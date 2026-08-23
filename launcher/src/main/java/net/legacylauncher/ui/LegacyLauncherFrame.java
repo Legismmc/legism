@@ -226,7 +226,8 @@ public class LegacyLauncherFrame extends JFrame {
 
     public void setWindowTitle() {
         updateBrand();
-        final String locTitle = Localizable.get("title");
+        // the product name is a proper noun: never translated
+        final String locTitle = BuildConfig.PRODUCT_NAME;
         String title;
         if (LegacyLauncher.getInstance().isDebug()) {
             title = String.format(java.util.Locale.ROOT, "%s %s [%s]", locTitle, brand, U.memoryStatus());

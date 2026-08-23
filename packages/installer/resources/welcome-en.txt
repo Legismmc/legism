@@ -1,5 +1,5 @@
-Legacy Launcher is free alternative Minecraft launcher
+Legacy by tgsko is a free alternative Minecraft launcher with a built-in Modrinth mod browser and no advertising.
 
-Project website: https://llaun.ch/
+It is an independent fork of Legacy Launcher (https://llaun.ch/) and is not affiliated with or endorsed by the Legacy Launcher team.
 
 This software is provided "as is", without any warranties of any kind, either express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement. The author(s) shall not be held liable for any damages arising in any way from the use of this software, including but not limited to direct, indirect, incidental, consequential, or special damages, even if advised of the possibility of such damages. By using this software, you acknowledge that you do so at your own risk.

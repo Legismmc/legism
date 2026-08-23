@@ -13,7 +13,7 @@ val jreZipSha256 = "49c9ab085278660c7f3236a70be07a9d15077ce6815f97239d3d3a066c6a
 val jreZipEntry = "zulu21.32.17-ca-fx-jre21.0.2-macosx_x64/zulu-21.jre"
 val jreZipFile = layout.buildDirectory.file("jreZip/macOsJre.zip")
 
-val bundleName = "Legacy Launcher ${brand.displayName.get()}"
+val bundleName = "${brand.productName.get()} ${brand.displayName.get()}"
 
 evaluationDependsOn(projects.launcher.path)
 

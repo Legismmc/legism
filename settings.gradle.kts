@@ -4,7 +4,7 @@ plugins {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "legacy-launcher"
+rootProject.name = "legacy-by-tgsko"
 
 include(":utils")
 include(":bootstrap")

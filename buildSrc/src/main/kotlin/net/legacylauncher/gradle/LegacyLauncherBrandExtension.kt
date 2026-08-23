@@ -6,6 +6,7 @@ import org.gradle.api.provider.Property
 interface LegacyLauncherBrandExtension {
     val brand: Property<String>
     val displayName: Property<String>
+    val productName: Property<String>
     val version: Property<String>
 
     val supportEmail: Property<String>

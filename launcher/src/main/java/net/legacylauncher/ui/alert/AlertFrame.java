@@ -13,6 +13,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import net.legacylauncher.LegacyLauncher;
+import net.legacylauncher.configuration.BuildConfig;
 import net.legacylauncher.ui.loc.*;
 
 import net.legacylauncher.ui.support.PreSupportFrame;
@@ -90,7 +91,7 @@ public class AlertFrame extends JDialog implements IAlertFrame {
     private void setupHelpButton(int messageType) {
         if (messageType == JOptionPane.INFORMATION_MESSAGE || messageType == JOptionPane.QUESTION_MESSAGE) {
             ((CardLayout) maybeEmptyPanel.getLayout()).show(maybeEmptyPanel, "label");
-            versionLabel.setText("Legacy Launcher " + U.getMinorVersion(LegacyLauncher.getVersion()));
+            versionLabel.setText(BuildConfig.PRODUCT_NAME + " " + U.getMinorVersion(LegacyLauncher.getVersion()));
         }
     }
 
@@ -240,7 +241,7 @@ public class AlertFrame extends JDialog implements IAlertFrame {
                     maybeEmptyPanel.add(helpButton, "help");
 
                     //---- versionLabel ----
-                    versionLabel.setText("Legacy Launcher");
+                    versionLabel.setText(BuildConfig.PRODUCT_NAME);
                     versionLabel.setForeground(SystemColor.inactiveCaption);
                     maybeEmptyPanel.add(versionLabel, "label");
                 }

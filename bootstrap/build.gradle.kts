@@ -269,6 +269,7 @@ buildConfig {
 
     useJavaOutput()
 
+    buildConfigField("String", "PRODUCT_NAME", brand.productName.map { "\"$it\"" })
     buildConfigField("String", "SHORT_BRAND", brand.brand.map { "\"$it\"" })
     buildConfigField("String", "FULL_BRAND", brand.displayName.map { "\"$it\"" })
     buildConfigField("String", "VERSION", brand.version.map { "\"$it\"" })

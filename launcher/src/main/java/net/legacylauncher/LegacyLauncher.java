@@ -465,7 +465,7 @@ public final class LegacyLauncher {
 
         setupErrorHandler();
 
-        log.info("Starting Legacy Launcher {} {}", BuildConfig.FULL_BRAND, getVersion().toString());
+        log.info("Starting {} {} {}", BuildConfig.PRODUCT_NAME, BuildConfig.FULL_BRAND, getVersion().toString());
         BootstrapIPC.BootstrapRelease bootstrapRelease = ipc.getBootstrapRelease();
         log.info("... using {} {}", bootstrapRelease.name, bootstrapRelease.version);
         log.info("... with dns resolver {}", resolver.describe());
@@ -483,7 +483,7 @@ public final class LegacyLauncher {
         try {
             new LegacyLauncher(ipc);
         } catch (Throwable t) {
-            log.error("Error launching Legacy Launcher", t);
+            log.error("Error launching {}", BuildConfig.PRODUCT_NAME, t);
             ipc.onBootError(t);
         }
     }

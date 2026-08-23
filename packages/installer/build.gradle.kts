@@ -12,7 +12,7 @@ plugins {
 evaluationDependsOn(projects.launcher.path)
 
 val mainIss = mapOf(
-    "name" to "Legacy Launcher ${brand.displayName.get()}",
+    "name" to "${brand.productName.get()} ${brand.displayName.get()}",
     "version" to "${projects.launcher.version}.0",
     "id" to generateUUIDFromString(brand.brand.get()),
     "short_brand" to brand.brand.get(),

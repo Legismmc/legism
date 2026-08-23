@@ -291,7 +291,7 @@ public class PrimaryElyAuthFlow extends ElyAuthFlow<PrimaryElyAuthFlowListener> 
 
     static final String SERVER_RESPONSE =
             "<!DOCTYPE html>" +
-                    "<html><head><title>Legacy Launcher</title></head>" +
+                    "<html><head><title>" + net.legacylauncher.configuration.BuildConfig.PRODUCT_NAME + "</title></head>" +
                     "<body>" +
                     "${text}" +
                     "</body>" +

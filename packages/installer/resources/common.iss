@@ -1,4 +1,5 @@
-﻿#define Publisher "Legacy Launcher Team"
+﻿#define Publisher "tgsko"
+; TODO: point this at the fork's own website before shipping an installer
 #define URL "https://llaun.ch"
 
 [Setup]
@@ -23,7 +24,7 @@ DisableDirPage=no
 DisableWelcomePage=no
 ExtraDiskSpaceRequired=536870912
 PrivilegesRequired=lowest
-OutputBaseFilename=LegacyLauncher_{#Branch}_Installer
+OutputBaseFilename=LegacyByTgsko_{#Branch}_Installer
 ;Compression=none
 Compression=lzma2/normal
 SetupIconFile=icons/icon.ico

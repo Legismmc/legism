@@ -299,7 +299,8 @@ public class Configuration extends SimpleConfiguration {
     }
 
     private void init(OptionSet set) {
-        comments = " Legacy Launcher " + BuildConfig.FULL_BRAND + " properties\n Created in " + LegacyLauncher.getVersion();
+        comments = " " + BuildConfig.PRODUCT_NAME + " " + BuildConfig.FULL_BRAND + " properties
+ Created in " + LegacyLauncher.getVersion();
         defaults = ConfigurationDefaults.getInstance();
         configFromArgs = ArgumentParser.extractConfigEntries(set);
 

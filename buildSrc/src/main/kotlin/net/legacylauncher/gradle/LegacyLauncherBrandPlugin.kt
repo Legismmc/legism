@@ -12,18 +12,17 @@ class LegacyLauncherBrandPlugin : Plugin<Project> {
         extension.displayName.convention(extension.brand.map { brand ->
             when (brand) {
                 "develop" -> "Dev"
-                "legacy" -> "Stable"
-                "legacy_beta" -> "Beta"
-                "mcl" -> "for Mc-launcher.com"
-                "aur" -> "AUR"
-                "appt" -> "для AppStorrent"
+                "tgsko" -> "Stable"
+                "tgsko_beta" -> "Beta"
                 else -> brand
             }
         })
+        extension.productName.convention(System.getenv("PRODUCT_NAME") ?: "Legacy by tgsko")
         extension.version.convention(extension.brand.map { brand ->
-            "${project.version}+${brand.replace(Regex("[^\\dA-Za-z\\-]"), "-")}${System.getenv("VERSION_SUFFIX") ?: ""}"
+            "${project.version}+${brand.replace(Regex("[^\dA-Za-z\-]"), "-")}${System.getenv("VERSION_SUFFIX") ?: ""}"
         })
 
-        extension.supportEmail.convention("support@llaun.ch")
+        // set SUPPORT_EMAIL in the environment before building a release
+        extension.supportEmail.convention(System.getenv("SUPPORT_EMAIL") ?: "support@example.invalid")
     }
 }

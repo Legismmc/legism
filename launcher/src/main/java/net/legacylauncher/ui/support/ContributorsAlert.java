@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.LegacyLauncher;
+import net.legacylauncher.configuration.BuildConfig;
 import net.legacylauncher.configuration.Configuration;
 import net.legacylauncher.configuration.LangConfiguration;
 import net.legacylauncher.configuration.SimpleConfiguration;
@@ -74,7 +75,7 @@ public final class ContributorsAlert {
 
             StringBuilder b = new StringBuilder();
 
-            b.append("<b>Legacy Launcher</b> ");
+            b.append("<b>").append(BuildConfig.PRODUCT_NAME).append("</b> ");
             b.append(isUssr ? "переведён на" : "is translated to");
             b.append(" <b>");
             b.append(locale.getDisplayName(locale));

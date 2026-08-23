@@ -240,6 +240,7 @@ buildConfig {
 
     useJavaOutput()
 
+    buildConfigField("String", "PRODUCT_NAME", "\"${brand.productName.get()}\"")
     buildConfigField("String", "SHORT_BRAND", "\"${brand.brand.get()}\"")
     buildConfigField("String", "FULL_BRAND", "\"${brand.displayName.get()}\"")
     buildConfigField("String", "VERSION", "\"${brand.version.get()}\"")
