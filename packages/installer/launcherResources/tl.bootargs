@@ -1,0 +1,6 @@
+# Extra JVM options for the launcher. One per line; lines starting with # are ignored.
+#
+# If the launcher cannot reach Mojang, Modrinth or anything else while a VPN or proxy
+# client is running, that client is probably advertising a SOCKS proxy that does not
+# answer. Uncomment the next line to make the launcher connect directly instead.
+#-Djava.net.useSystemProxies=false
