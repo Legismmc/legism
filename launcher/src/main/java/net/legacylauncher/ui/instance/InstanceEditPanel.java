@@ -10,7 +10,7 @@ import net.legacylauncher.ui.loc.LocalizableComponent;
 import net.legacylauncher.ui.modrinth.ModrinthPanel;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.modrinth.WorldsPanel;
-import net.legacylauncher.ui.swing.extended.BorderPanel;
+import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
@@ -37,7 +37,7 @@ import java.util.List;
  * Every tab installs into the instance's own game directory, so two instances never see
  * each other's content.
  */
-public class InstanceEditPanel extends BorderPanel implements LocalizableComponent {
+public class InstanceEditPanel extends BackdropPanel implements LocalizableComponent {
 
     private final MainPane pane;
     private final JLabel title = new JLabel();

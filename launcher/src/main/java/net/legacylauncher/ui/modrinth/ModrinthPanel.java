@@ -15,7 +15,7 @@ import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableComponent;
-import net.legacylauncher.ui.swing.extended.BorderPanel;
+import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
@@ -59,7 +59,7 @@ import java.util.function.Supplier;
  * which game directory the {@linkplain #targetSource target supplier} points at.
  */
 @Slf4j
-public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
+public class ModrinthPanel extends BackdropPanel implements LocalizableComponent {
     private static final int PAGE_SIZE = 20;
 
     private final MainPane pane;

@@ -5,7 +5,7 @@ import net.legacylauncher.modrinth.ModInstaller;
 import net.legacylauncher.modrinth.ModTarget;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
-import net.legacylauncher.ui.swing.extended.BorderPanel;
+import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.FileUtil;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
@@ -45,7 +45,7 @@ import java.util.zip.ZipFile;
  * zip.
  */
 @Slf4j
-public class WorldsPanel extends BorderPanel {
+public class WorldsPanel extends BackdropPanel {
     /**
      * A save folder is recognised by this file, the same way the game does it.
      */

@@ -11,7 +11,7 @@ import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableComponent;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.scenes.DefaultScene;
-import net.legacylauncher.ui.swing.extended.BorderPanel;
+import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.MinecraftUtil;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
@@ -60,7 +60,7 @@ import java.util.Map;
  * status line along the bottom.
  */
 @Slf4j
-public class InstancesPanel extends BorderPanel implements LocalizableComponent {
+public class InstancesPanel extends BackdropPanel implements LocalizableComponent {
 
     private final MainPane pane;
 
