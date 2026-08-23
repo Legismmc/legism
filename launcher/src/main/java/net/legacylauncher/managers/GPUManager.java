@@ -1,0 +1,217 @@
+package net.legacylauncher.managers;
+
+import net.legacylauncher.minecraft.launcher.ProcessHook;
+import net.legacylauncher.minecraft.launcher.hooks.WindowsGpuPreferenceHook;
+import net.legacylauncher.ui.loc.Localizable;
+import net.legacylauncher.util.OS;
+
+import javax.annotation.Nonnull;
+import java.io.Closeable;
+import java.util.*;
+
+public interface GPUManager extends Closeable {
+    default boolean isEmpty() {
+        return false;
+    }
+
+    @Nonnull
+    List<GPU> discoveryGPUs();
+
+    default Optional<GPU> findGPU(String name) {
+        return discoveryGPUs().stream().filter(it -> it.name.equalsIgnoreCase(name)).findAny();
+    }
+
+    default Optional<GPU> findIntegratedGPU() {
+        return discoveryGPUs().stream().filter(it -> !it.isDiscrete).findAny();
+    }
+
+    default Optional<GPU> findDiscreteGPU() {
+        return discoveryGPUs().stream().filter(it -> it.isDiscrete).findAny();
+    }
+
+    final class Empty implements GPUManager {
+        public static final GPUManager INSTANCE = new Empty();
+
+        private Empty() {
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Nonnull
+        @Override
+        public List<GPU> discoveryGPUs() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Optional<GPU> findGPU(String name) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<GPU> findIntegratedGPU() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<GPU> findDiscreteGPU() {
+            return Optional.empty();
+        }
+
+        @Override
+        public String toString() {
+            return "Empty";
+        }
+
+        @Override
+        public void close() {
+        }
+    }
+
+    abstract class GPU {
+        private final String name;
+        private final Vendor vendor;
+        static {
+            if (OS.WINDOWS.isCurrent()) {
+                INTEGRATED = new GPU("INTEGRATED", Vendor.Unknown, false) {
+                    @Override
+                    public String getDisplayName(GPUManager gpuManager) {
+                        return Localizable.get("settings.gpu.integrated.label");
+                    }
+
+                    @Override
+                    public ProcessHook getHook(GPUManager gpuManager) {
+                        if (WindowsGpuPreferenceHook.isSupported()) {
+                            return new WindowsGpuPreferenceHook(WindowsGpuPreferenceHook.Preference.MinimumPower);
+                        } else {
+                            return ProcessHook.None.INSTANCE;
+                        }
+                    }
+                };
+                DISCRETE = new GPU("DISCRETE", Vendor.Unknown, true) {
+                    @Override
+                    public String getDisplayName(GPUManager gpuManager) {
+                        return Localizable.get("settings.gpu.discrete.label");
+                    }
+
+                    @Override
+                    public ProcessHook getHook(GPUManager gpuManager) {
+                        if (WindowsGpuPreferenceHook.isSupported()) {
+                            return new WindowsGpuPreferenceHook(WindowsGpuPreferenceHook.Preference.HighPerformance);
+                        } else {
+                            return ProcessHook.None.INSTANCE;
+                        }
+                    }
+                };
+            } else {
+                INTEGRATED = new GPU("INTEGRATED", Vendor.Unknown, false) {
+                    @Override
+                    public String getDisplayName(GPUManager gpuManager) {
+                        return gpuManager.findIntegratedGPU().map(it -> Localizable.get("settings.gpu.integrated.specific.label", it.getDisplayName(gpuManager)))
+                                .orElse(Localizable.get("settings.gpu.integrated.label"));
+                    }
+
+                    @Override
+                    public Vendor getVendor(GPUManager gpuManager) {
+                        return gpuManager.findIntegratedGPU().map(it -> it.getVendor(gpuManager))
+                                .orElseGet(() -> super.getVendor(gpuManager));
+                    }
+
+                    @Override
+                    public ProcessHook getHook(GPUManager gpuManager) {
+                        return gpuManager.findIntegratedGPU().map(gpu -> gpu.getHook(gpuManager)).orElse(ProcessHook.None.INSTANCE);
+                    }
+                };
+                DISCRETE = new GPU("DISCRETE", Vendor.Unknown, true) {
+                    @Override
+                    public String getDisplayName(GPUManager gpuManager) {
+                        return gpuManager.findDiscreteGPU().map(it -> Localizable.get("settings.gpu.discrete.specific.label", it.getDisplayName(gpuManager)))
+                                .orElse(Localizable.get("settings.gpu.discrete.label"));
+                    }
+
+                    @Override
+                    public Vendor getVendor(GPUManager gpuManager) {
+                        return gpuManager.findDiscreteGPU().map(it -> it.getVendor(gpuManager))
+                                .orElseGet(() -> super.getVendor(gpuManager));
+                    }
+
+                    @Override
+                    public ProcessHook getHook(GPUManager gpuManager) {
+                        return gpuManager.findDiscreteGPU().map(gpu -> gpu.getHook(gpuManager)).orElse(ProcessHook.None.INSTANCE);
+                    }
+                };
+            }
+        }
+
+        public static final GPU DEFAULT = new GPU("SYSTEM", Vendor.Unknown, false) {
+            @Override
+            public String getDisplayName(GPUManager gpuManager) {
+                return Localizable.get("settings.gpu.default.label");
+            }
+
+            @Override
+            public ProcessHook getHook(GPUManager gpuManager) {
+                return ProcessHook.None.INSTANCE;
+            }
+        };
+        public static final GPU INTEGRATED, DISCRETE;
+
+        private final boolean isDiscrete;
+
+        public static final List<GPU> GLOBAL_DEFINED = Collections.unmodifiableList(Arrays.asList(DEFAULT, INTEGRATED, DISCRETE));
+
+        public GPU(String name, Vendor vendor, boolean isDiscrete) {
+            this.name = name;
+            this.vendor = vendor;
+            this.isDiscrete = isDiscrete;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDisplayName(GPUManager gpuManager) {
+            return getName();
+        }
+
+        public Vendor getVendor(GPUManager gpuManager) {
+            return vendor;
+        }
+
+        public boolean isDiscrete() {
+            return isDiscrete;
+        }
+
+        public abstract ProcessHook getHook(GPUManager gpuManager);
+    }
+
+    enum Vendor {
+        Unknown,
+        AMD,
+        Intel,
+        Nvidia,
+        ;
+
+        private static final Map<Vendor, Collection<String>> KEYWORDS = new EnumMap<>(Vendor.class);
+
+        static {
+            // keep it lowercase
+            KEYWORDS.put(AMD, Arrays.asList("amd", "radeon", "vega"));
+            KEYWORDS.put(Intel, Arrays.asList("intel", "uhd"));
+            KEYWORDS.put(Nvidia, Arrays.asList("nvidia", "geforce", "gtx", "rtx"));
+        }
+
+        public static Vendor guessVendorByName(String name) {
+            String nameLowercase = name.toLowerCase(Locale.ROOT);
+            for (Map.Entry<Vendor, Collection<String>> entry : KEYWORDS.entrySet()) {
+                if (entry.getValue().stream().anyMatch(nameLowercase::contains)) {
+                    return entry.getKey();
+                }
+            }
+            return Vendor.Unknown;
+        }
+    }
+}

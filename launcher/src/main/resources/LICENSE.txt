@@ -1,0 +1,23 @@
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS, OWNERS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+    OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+This software includes projects licensed under a Apache License 2.0:
+- Apache Commons IO (© 2002-2012 The Apache Software Foundation)
+- Apache Commons Lang (© 2001-2014 The Apache Software Foundation)
+- Google Gson
+Legal code can be found at: https://www.apache.org/licenses/LICENSE-2.0
+
+This software includes JOpt Simple which is licensed under The MIT License,
+which legal code can be found at: https://opensource.org/licenses/mit-license.php
+
+This software includes content made by Mojang and licensed under Minecraft EULA,
+which can be found at: https://account.mojang.com/documents/minecraft_eula
+It was modified to be compatible with extra features that Legacy Launcher includes.
+
+This software uses Hamburg icon pack (by former pc.de Team) and WPZOOM Developer
+icon pack under CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/deed.en

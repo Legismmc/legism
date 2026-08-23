@@ -1,0 +1,1000 @@
+{
+  "revision": 36,
+  "required": "1.122.3",
+  "skip-folders": ["millenaire", "millenaire-custom", "hats", "mcheli", "ruins", "voxelMap", "__MACOSX", ".connector"],
+  "variables": {
+    "heap-pattern": "(?:Could not reserve enough space for (?:[0-9]+KB |)object heap)$",
+    "oom-pattern": ".*java.lang.OutOfMemoryError: .+$",
+    "forge-pattern": ".*(?i:forge).*",
+    "fabric-pattern": ".*(?i:fabric).*",
+    "intel-bug-jre-link": "https://yadi.sk/d/dvzmBSqttQXhy/Java%208%20update%2045/Installers",
+    "intel-nvidia-select-url": "https://wiki.llaun.ch/guide:gpu-select:nvidia",
+    "nvidia-driver-update": {
+      "ru_RU": "https://wiki.llaun.ch/update:driver:nvidia",
+      "en_US": "https://www.howtogeek.com/135976/how-to-update-your-graphics-drivers-for-maximum-gaming-performance/"
+    },
+    "amd-driver-update": {
+      "ru_RU": "https://wiki.llaun.ch/update:driver:amd",
+      "en_US": "https://www.howtogeek.com/135976/how-to-update-your-graphics-drivers-for-maximum-gaming-performance/"
+    },
+    "intel-driver-update": {
+      "ru_RU": "https://wiki.llaun.ch/update:driver:intel",
+      "en_US": "https://www.howtogeek.com/135976/how-to-update-your-graphics-drivers-for-maximum-gaming-performance/"
+    }
+  },
+  "buttons": [
+    {
+      "text": "logs",
+      "actions": [
+        "gui args"
+      ]
+    },
+    {
+      "text": "disable-optimized",
+      "actions": [
+        "set --minecraft.improvedargs false"
+      ],
+      "block": true
+    },
+    {
+      "text": "open-settings",
+      "actions": [
+        "gui settings",
+        "exit"
+      ]
+    },
+    {
+      "text": "fix-heap",
+      "actions": [
+        "set --minecraft.memory fix",
+        "exit"
+      ]
+    },
+    {
+      "text": "install-java64",
+      "actions": [
+        "browse --www https://wiki.llaun.ch/update:java"
+      ]
+    },
+    {
+      "text": "update-java",
+      "actions": [
+        "browse --www https://wiki.llaun.ch/update:java"
+      ]
+    },
+    {
+      "text": "open-mods",
+      "actions": [
+        "browse --folder ./mods"
+      ]
+    },
+    {
+      "text": "force-update",
+      "actions": [
+        "force-update"
+      ]
+    },
+    {
+      "name": "jre-recommended",
+      "text": {
+        "ru_RU": "Использовать \"Рекомендованную\" Java",
+        "en_US": "Use \"Recommended\" JRE"
+      },
+      "actions": [
+        "set --minecraft.jre.type recommended"
+      ],
+      "block": true
+    },
+    {
+      "name": "vulkanmod-support",
+      "text": {
+        "ru_RU": "Поддержка VulkanMod",
+        "en_US": "VulkanMod Support"
+      },
+      "actions": [
+        "browse --www https://github.com/xCollateral/VulkanMod/issues"
+      ]
+    }
+  ],
+  "signatures": [
+    {
+      "name": "fabric-api",
+      "pattern": ".*Fix: add \\[.*add\\:fabric(?:-api)?.+\\].*",
+      "title": {
+        "ru_RU": "Установите Fabric API",
+        "en_US": "Fabric API is missing"
+      },
+      "body": {
+        "ru_RU": "Для большинства модов Fabric нужно установить отдельный мод: Fabric API. Установите его с CurseForge или Modrinth. Выберите версию, которая совпадает с вашим Minecraft.",
+        "en_US": "Fabric mods require Fabric API mod to be installed separately. You can find it on CurseForge or Modrinth. Don't forget you need to pick one that matches your Minecraft version."
+      },
+      "buttons": [
+        {
+          "name": "curseforge",
+          "text": {
+            "ru_RU": "CurseForge",
+            "en_US": "CurseForge"
+          },
+          "actions": [
+            "browse --www https://www.curseforge.com/minecraft/mc-mods/fabric-api/files"
+          ]
+        },
+        {
+          "name": "modrinth",
+          "text": {
+            "ru_RU": "Modrinth",
+            "en_US": "Modrinth"
+          },
+          "actions": [
+            "browse --www https://modrinth.com/mod/fabric-api/versions"
+          ]
+        }
+      ],
+      "version": "${fabric-pattern}"
+    },
+    {
+      "name": "char-png",
+      "pattern": "java\\.lang\\.SecurityException: SHA-256 digest error for (?:.+)\\.png",
+      "title": {
+        "ru_RU": "Скин меняется не так",
+        "en_US": "Skin shouldn't be changed that way"
+      },
+      "body": {
+        "ru_RU": "Minecraft крашнулся, потому что вы поменяли скин неправильно. Чтобы иметь возможность менять скин, зарегистрируйтесь на <b>Ely.by</b>, вернитесь в лаунчер и войдите в игру с использованием нового аккаунта.\nЧтобы исправить ошибку, отметьте галочку <b>«Обновить клиент»</b> в главном меню лаунчера перед тем как запустить игру ещё раз.",
+        "en_US": "Minecraft has crashed because you failed to change skin properly. We suggest you use another method: just register on <b>Ely.by</b>, return to the launcher and use your new account to launch the game.\nTo fix the crash check <b>\"Force update\"</b> in the main menu next time you try to launch the game."
+      },
+      "buttons": [
+        {
+          "name": "ely-by",
+          "text": {
+            "ru_RU": "Перейти на Ely.by",
+            "en_US": "Visit Ely.by"
+          },
+          "actions": [
+            "browse --www https://ely.by/"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duplicated-mods-forge",
+      "pattern": ".*EarlyLoadingException: Duplicate mods found.*",
+      "title": {
+        "ru_RU": "Обнаружены дубликаты модов",
+        "en_US": "Duplicated mods found"
+      },
+      "body": {
+        "ru_RU": "Обнаружены моды, установленные более одного раза. Перейдите в папку модов и удалите дубликаты.",
+        "en_US": "Some mods are installed more that once. Please open mods folder and remove such mods"
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "duplicated-mods-forge-old",
+      "pattern": "Caused by: java\\.lang\\.ClassFormatError: Duplicate (?:[a-z]+) name.+",
+      "title": {
+        "ru_RU": "Обнаружены дубликаты модов",
+        "en_US": "Duplicated mods found"
+      },
+      "body": {
+        "ru_RU": "Обнаружены моды, установленные более одного раза. Перейдите в папку модов и удалите дубликаты.",
+        "en_US": "Some mods are installed more that once. Please open mods folder and remove such mods"
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "forge-world-config-crash",
+      "pattern": ".*net\\.minecraftforge\\.fml\\.config\\.ConfigFileTypeHandler\\$ConfigLoadingException: Failed loading config file .+-server\\.toml of type SERVER for .+",
+      "title": {
+        "ru_RU": "Ошибка загрузки конфигов мира",
+        "en_US": "World config loading error"
+      },
+      "body": {
+        "ru_RU": "Обнаружены один или несколько серверных конфигов в папке мира (saves/НАЗВАНИЕ МИРА/serverconfig), которые не могут быть загружены. Удалите содержимое папки serverconfig полностью.",
+        "en_US": "One or several server configs from world folder (saves/YOUR WORLD NAME/serverconfig) cannot be loaded. You may just delete whole \"serverconfig\" folder."
+      },
+      "buttons": [
+        {
+          "name": "open-game-root",
+          "text": {
+            "ru_RU": "Открыть папку игры",
+            "en_US": "Open game folder"
+          },
+          "actions": [
+            "browse --folder ."
+          ]
+        }
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "forge-config-crash",
+      "pattern": ".*net\\.minecraftforge\\.fml\\.config\\.ConfigFileTypeHandler\\$ConfigLoadingException: Failed loading config file .+",
+      "title": {
+        "ru_RU": "Ошибка загрузки конфигов",
+        "en_US": "Config loading error"
+      },
+      "body": {
+        "ru_RU": "Обнаружены один или несколько конфигов, которые не могут быть загружены. Вы можете проверить конфиги вручную или удалить содержимое папки config полностью.",
+        "en_US": "One or several configs cannot be loaded. You can inspect them by hand, or just delete whole \"config\" folder."
+      },
+      "buttons": [
+        {
+          "name": "open-config",
+          "text": {
+            "ru_RU": "Открыть папку \"config\"",
+            "en_US": "Open \"config\" folder"
+          },
+          "actions": [
+            "browse --folder ./config"
+          ]
+        }
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "fabric-dependencies",
+      "pattern": "net\\.fabricmc\\.loader\\.discovery\\.ModResolutionException.+",
+      "title": {
+        "ru_RU": "Ошибка загрузки модов для Fabric",
+        "en_US": "Error resolving Fabric mods"
+      },
+      "body": {
+        "ru_RU": "Перейдите в папку mods и проверьте версии и зависимости модов",
+        "en_US": "Please open mods folder and check installed mods and their dependencies"
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "${fabric-pattern}"
+    },
+    {
+      "name": "stoneblock-craftpresense-issue",
+      "pattern": "Caused by: java\\.lang\\.UnsatisfiedLinkError: Unable to load library 'discord-rpc': Native library.+",
+      "title": {
+        "ru_RU": "Ошибка мода CraftPresense",
+        "en_US": "CraftPresense mod error"
+      },
+      "body": {
+        "ru_RU": "Пожалуйста, перейдите в папку с модами и удалите этот мод",
+        "en_US": "Please open mods folder and remove the mod"
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "StoneBlock"
+    },
+    {
+      "name": "forge-craftpresense-issue",
+      "pattern": "Caused by: java\\.lang\\.UnsatisfiedLinkError: Unable to load library 'discord-rpc': Native library.+",
+      "title": {
+        "ru_RU": "Ошибка мода CraftPresense",
+        "en_US": "CraftPresense mod error"
+      },
+      "body": {
+        "ru_RU": "Пожалуйста, перейдите в папку с модами и удалите этот мод",
+        "en_US": "Please open mods folder and remove the mod"
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "forge-creativecore-missing",
+      "pattern": "Caused by: java\\.lang\\.ClassNotFoundException: com\\.creativemd\\.creativecore\\.transformer\\.CreativeTransformer.*",
+      "title": {
+        "ru_RU": "Требуется мод Creative Core",
+        "en_US": "Creative Core mod required"
+      },
+      "body": {
+        "ru_RU": "Пожалуйста, установите мод Creative Core",
+        "en_US": "Please install CreativeCore mod"
+      },
+      "buttons": [
+        "open-mods",
+        {
+          "name": "curse-creativecore",
+          "text": {
+            "ru_RU": "Скачать мод",
+            "en_US": "Download mod"
+          },
+          "actions": [
+            "browse --www https://www.curseforge.com/minecraft/mc-mods/creativecore/files/all"
+          ]
+        }
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "notenoughids-required",
+      "pattern": "java\\.lang\\.RuntimeException: Invalid id (?:[0-9]+) - maximum id range exceeded.*",
+      "title": {
+        "ru_RU": "Превышено максимальное количество предметов в игре",
+        "en_US": "Game blocks/items limit exceeded"
+      },
+      "body": {
+        "ru_RU": "Удалите часть модов или установите мод NotEnoughIDs",
+        "en_US": "Please remove some mods or install NotEnoughIDs mod"
+      },
+      "buttons": [
+        "open-mods",
+        {
+          "name": "curse-notenoughids",
+          "text": {
+            "ru_RU": "Скачать мод",
+            "en_US": "Download mod"
+          },
+          "actions": [
+            "browse --www https://www.curseforge.com/minecraft/mc-mods/notenoughids/files/all"
+          ]
+        }
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "no-lwjgl32-on-linux",
+      "pattern": "^.+Failed to locate library: liblwjgl32.so$",
+      "title": {
+        "ru_RU": "Linux x86 не поддерживается",
+        "en_US": "Linux x86 not supported"
+      },
+      "body": {
+        "ru_RU": "LWJGL 3, который используют последние версии Minecraft, забросил поддержку 32-битных версий Linux.\nУстановите 64-битную версию вашего дистрибутива или играйте на более старых версиях.",
+        "en_US": "LWJGL 3 developers dropped Linux x86 support.\nYou may install 64-bit version of your distro, or just play older version of Minecraft."
+      },
+      "buttons": [
+        {
+          "name": "read-more",
+          "text": {
+            "ru_RU": "Подробнее на GitHub",
+            "en_US": "Read more on GitHub"
+          },
+          "actions": [
+            "browse --www https://github.com/LWJGL/lwjgl3/issues/162"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bug-mc-129374",
+      "pattern": "^.+Unable to bootstrap datafixers$",
+      "title": {
+        "ru_RU": "MC-129374",
+        "en_US": "MC-129374"
+      },
+      "body": {
+        "ru_RU": "Minecraft закрыт из-за бага MC-129374, описанного в официальном баг-трекере.\n\n32-битная Java имеет меньший размер стека, поэтому этой ошибке подвержены только 32-битные системы.",
+        "en_US": "Minecraft is crashed due to the error specified in the bug tracker: MC-129374.\n\nJava for x86 systems has smaller stack size, that is only 32-bit system users are affected by this issue."
+      },
+      "buttons": [
+        {
+          "name": "fix-stack-size",
+          "text": {
+            "ru_RU": "Исправить размер стека: \"-Xss1M\"",
+            "en_US": "Fix stack size: \"-Xss1M\""
+          },
+          "actions": [
+            "set --minecraft.javaargs -Xss1M"
+          ],
+          "block": true
+        }
+      ]
+    },
+    {
+      "name": "old-forge-newer-java",
+      "image": "logo-duke",
+      "pattern": ".+ cannot be cast to (?:java\\.base\\/|class )?java\\.net\\.URLClassLoader.*",
+      "version": "${forge-pattern}",
+      "title": {
+        "ru_RU": "Старая версия Forge",
+        "en_US": "Old Forge version"
+      },
+      "body": {
+        "ru_RU": "Старые версии Forge не поддерживаются более новыми версиями Java. Для Forge, вышедших до 1.17, требуется Java 8.\n\nУбедитесь, что в настройках лаунчера выбрана \"Рекомендуемая\" версия Java.",
+        "en_US": "Newer Java don't support old Forge versions. Use Java 8 to run Forge versions that came out before Minecraft 1.17.\n\nMake sure \"Recommended\" JVM is selected in the launcher settings."
+      },
+      "buttons": [
+        "jre-recommended"
+      ]
+    },
+    {
+      "name": "unsupported-java-version",
+      "image": "logo-duke",
+      "pattern": ".*java\\.lang\\.UnsupportedClassVersionError: .+ : Unsupported major.minor version .+",
+      "buttons": [
+        "update-java",
+        "jre-recommended"
+      ]
+    },
+    {
+      "name": "direct-close",
+      "pattern": "Someone is closing me!",
+      "version": ".*1\\.5\\.[\\d]$",
+      "fake": true
+    },
+    {
+      "name": "incorrent-mods-version",
+      "pattern": ".+/relauncher/IFMLLoadingPlugin$",
+      "version": "${forge-pattern}",
+      "buttons": [
+        "open-mods"
+      ]
+    },
+    {
+      "name": "codechicken-core-missing",
+      "pattern": ".*java\\.lang\\.NoClassDefFoundError: codechicken/.*",
+      "version": "${forge-pattern}",
+      "buttons": [
+        {
+          "text": "download",
+          "actions": [
+            "browse --www https://www.curseforge.com/minecraft/mc-mods/codechickencore/files/all"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "llibrary-missing",
+      "pattern": ".*Caused by: java.lang.ClassNotFoundException: net.ilexiconn.llibrary.+",
+      "version": "${forge-pattern}",
+      "title": {
+        "ru_RU": "Требуется LLibrary",
+        "en_US": "LLibrary is missing"
+      },
+      "body": {
+        "ru_RU": "Один из установленных модов требует мод LLibrary. Загрузите его на CurseForge и установите.",
+        "en_US": "One of the installed mods require LLibrary. Download on CurseForge and install it."
+      },
+      "buttons": [
+        {
+          "name": "download",
+          "text": {
+            "ru_RU": "Перейти на CurseForge",
+            "en_US": "Visit CurseForge"
+          },
+          "actions": [
+            "browse --www https://www.curseforge.com/minecraft/mc-mods/llibrary/files/all"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "update-optifine",
+      "pattern": ".*java\\.lang\\.NoSuchMethodError: net\\.minecraft\\.client\\.renderer\\.texture\\.TextureMap\\.\\<init\\>\\(ILjava\\/lang\\/String\\;Z\\)V.*",
+      "buttons": [
+        {
+          "text": "update",
+          "actions": [
+            "browse --www https://optifine.net/downloads"
+          ]
+        },
+        "open-mods"
+      ]
+    },
+    {
+      "name": "fastcraft-optifine",
+      "pattern": ".*at fastcraft\\.Z\\.\\<clinit\\>.+",
+      "buttons": [
+        "open-mods"
+      ],
+      "version": "${forge-pattern}"
+    },
+    {
+      "name": "mods-duplicate",
+      "pattern": ".*Caused by\\: java\\.lang.ClassFormatError\\: Duplicate method name\\&signature in class file .+",
+      "buttons": [
+        "open-mods"
+      ]
+    },
+    {
+      "name": "shadersmod-detected",
+      "pattern": "[\\s]*java\\.lang\\.RuntimeException: Shaders Mod detected\\. Please remove it, OptiFine has built\\-in support for shaders\\.",
+      "buttons": [
+        "open-mods"
+      ]
+    },
+    {
+      "name": "metaspace",
+      "exitCode": -805306369,
+      "buttons": [
+        "open-settings"
+      ]
+    },
+    {
+      "name": "memory-leak",
+      "os": [
+        "windows"
+      ],
+      "buttons": [
+        {
+          "text": "disable-vbos",
+          "actions": [
+            "option useVbo:false"
+          ],
+          "block": true
+        },
+        "open-settings",
+        "update-java"
+      ],
+      "exitCode": -1073740940
+    },
+    {
+      "name": "oom-x86",
+      "pattern": "${oom-pattern}",
+      "archIssue": true,
+      "buttons": [
+        "install-java64"
+      ]
+    },
+    {
+      "name": "vulkan-mod-xss",
+      "pattern": ".+OutOfMemoryError\\: Out of stack space.*",
+      "title": {
+        "ru_RU": "Проблемы с выделением памяти",
+        "en_US": "Memory Stack Allocation Issues"
+      },
+      "body": {
+        "ru_RU": "Превышен лимит стека. Вы можете попробовать использовать увеличенный лимит кнопкой ниже или удалить проблемный мод (скорее всего, <b>VulkanMod</b>).",
+        "en_US": "Memory Allocation Stack limit exceeded. You can try increasing the limit using button below or remove a mod caused the issue (most likely, <b>VulkanMod</b>)."
+      },
+      "buttons": [
+        {
+          "name": "fix-stack-size-4",
+          "text": {
+            "ru_RU": "Исправить размер стека: \"-Xss4M\"",
+            "en_US": "Fix stack size: \"-Xss4M\""
+          },
+          "actions": [
+            "set --minecraft.javaargs -Xss4M"
+          ],
+          "block": true
+        },
+        "open-mods"
+      ]
+    },
+    {
+      "name": "oom",
+      "pattern": "${oom-pattern}",
+      "buttons": [
+        "disable-optimized",
+        "open-settings"
+      ]
+    },
+    {
+      "name": "system-oom",
+      "pattern": "^# There is insufficient memory for the Java Runtime Environment to continue\\.$",
+      "title": {
+        "ru_RU": "Недостаточно памяти",
+        "en_US": "Insufficient memory"
+      },
+      "body": {
+        "ru_RU": "В системе закончилась оперативная память. Закройте все остальные приложения. Уменьшите объем выделенной памяти под Minecraft в настройках.",
+        "en_US": "There was insufficient memory for Minecraft to continue. Close all other applications on the system. Decrease memory amount in the launcher settings."
+      },
+      "buttons": [
+        "fix-heap"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "invalid-username",
+      "pattern": "^[\\s]*at org.apache.logging.log4j.util.PropertiesUtil.<init>\\(PropertiesUtil.java:[0-9]+\\)$",
+      "os": [
+        "windows"
+      ],
+      "buttons": [
+        "open-settings"
+      ]
+    },
+    {
+      "name": "firewall-block",
+      "pattern": "^Caused by: io\\.netty\\.channel\\.ChannelException: failed to open a new selector$",
+      "os": [
+        "windows"
+      ]
+    },
+    {
+      "name": "server-resource-pack",
+      "pattern": ".*(?:\\[Downloader [\\d]+\\/ERROR]: INTERRUPTED|f\\: Updating screen events).*"
+    },
+    {
+      "name": "heap-x32",
+      "pattern": "${heap-pattern}",
+      "archIssue": true,
+      "buttons": [
+        "install-java64"
+      ]
+    },
+    {
+      "name": "heap",
+      "pattern": "${heap-pattern}",
+      "buttons": [
+        "fix-heap",
+        "open-settings"
+      ]
+    },
+    {
+      "name": "arch",
+      "image": "logo-duke",
+      "archIssue": true,
+      "buttons": [
+        "install-java64"
+      ]
+    },
+    {
+      "name": "system-oom-mac",
+      "os": [
+        "osx"
+      ],
+      "title": {
+        "ru_RU": "Недостаточно памяти для запуска",
+        "en_US": "Insufficient RAM to start Minecraft"
+      },
+      "body": {
+        "ru_RU": "В системе очень мало свободной оперативной памяти. Закройте все остальные приложения. Уменьшите объем выделенной памяти под Minecraft в настройках.",
+        "en_US": "There was insufficient memory for Minecraft to launch. Close all other applications. Decrease memory amount in the launcher settings."
+      },
+      "exitCode": 137
+    },
+    {
+      "name": "pulse-shit",
+      "pattern": ".* provided by \\'pulse\\' at \\'ru\\.pulse\\.Pulse\\'.+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Pulse Visual",
+        "en_US": "Ask Pulse Visual developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой Pulse Visual. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Pulse Visual. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "soup-shit",
+      "pattern": ".* provided by \\'soupapi\\' at \\'padej\\.soup\\.core\\.Main\\'.+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Soup Visual",
+        "en_US": "Ask Soup Visual developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой Soup Visual. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Soup Visual. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "topka-shit-1",
+      "pattern": ".* refmap mixins\\.topka.+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Topka Mods",
+        "en_US": "Ask Topka Mods developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой модов от Topka. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Topka mods. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "topka-shit-2",
+      "pattern": ".* \\~\\[topka.+\\].+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Topka Mods",
+        "en_US": "Ask Topka Mods developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой модов от Topka. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Topka mods. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "topka-shit-3",
+      "pattern": ".* at dev\\.sxmurxy\\.topka.+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Topka Mods",
+        "en_US": "Ask Topka Mods developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой модов от Topka. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Topka mods. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "topka-shit-4",
+      "pattern": ".* provided by \\'topka.+\\'",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Topka Mods",
+        "en_US": "Ask Topka Mods developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой модов от Topka. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Topka mods. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "phantom-shit",
+      "pattern": ".+ due to errors, provided by \\'phantomvisuals\\' .+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Phantom Visuals",
+        "en_US": "Ask Phantom Visuals developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой Phantom Visuals. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Phantom Visuals. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "rival-shit",
+      "pattern": ".*at .+\\$rivalvisual\\$.+",
+      "title": {
+        "ru_RU": "Обратитесь в поддержку Rival Visuals",
+        "en_US": "Ask Rival Visuals developers for help"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой Rival Visuals. Пожалуйста, обратитесь в их поддержку.",
+        "en_US": "Your problem is caused by Rival Visuals. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "fever-shit",
+      "pattern": ".*at Fever\\.Visual\\..+",
+      "title": {
+        "ru_RU": "Обнаружены сторонние модификации",
+        "en_US": "Third-party modifications detected"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой установленных модификаций клиента. Пожалуйста, обратитесь в поддержку этих модификаций.",
+        "en_US": "Your problem is caused by unstable client modifications. Please contact modifications' developers to fix this issue."
+      },
+      "permitHelp": false
+    },
+    {
+      "name": "haruka-shit",
+      "pattern": ".+ at haru\\.love\\..+",
+      "title": {
+        "ru_RU": "Обнаружены сторонние модификации",
+        "en_US": "Third-party modifications detected"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с нестабильной работой установленных модификаций клиента. Пожалуйста, обратитесь в поддержку этих модификаций.",
+        "en_US": "Your problem is caused by unstable client modifications. Please contact modifications' developers to fix this issue."
+      },
+      "permitHelp": false
+    },
+    {
+      "name": "rrls",
+      "pattern": ".+ errors, provided by \\'rrls\\' at \\'org\\.redlance\\.dima_dencep\\.mods\\.rrls\\..+\\'.*",
+      "title": {
+        "ru_RU": "Проблемы с RRLS",
+        "en_US": "RRLS Issues"
+      },
+      "body": {
+        "ru_RU": "Ваша проблема связана с работой мода RRLS. Пожалуйста, обратитесь в поддержку этого мода.",
+        "en_US": "Your problem is caused by RRLS mod. Please contact mod developers to fix this issue."
+      },
+      "buttons": [
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "invalid-player-nickname",
+      "pattern": ".+IllegalStateException\\: Invalid characters in username.*",
+      "title": {
+        "ru_RU": "Некорректные символы в нике",
+        "en_US": "Invalid characters in username"
+      },
+      "body": {
+        "ru_RU": "Ник может содержать только латинские символы, цифры и некоторые знаки препинания.",
+        "en_US": "Username must contain latin letters, digits and some some punctuation marks only."
+      },
+      "buttons": [],
+      "permitHelp": false
+    },
+    {
+      "name": "invalid-player-nickname-length",
+      "pattern": ".+EncoderException\\: String too big.*",
+      "title": {
+        "ru_RU": "Ник слишком длинный",
+        "en_US": "Username is too long"
+      },
+      "body": {
+        "ru_RU": "Ник должен иметь длину от 3 до 16 символов.",
+        "en_US": "Username must be 3-16 characters long."
+      },
+      "buttons": [],
+      "permitHelp": false
+    },
+    {
+      "name": "fullscreen-issue",
+      "pattern": ".+LWJGLException\\: Failed to set display mode.+",
+      "title": {
+        "ru_RU": "Проблемы с полноэкранным режимом",
+        "en_US": "Fullscreen mode issues"
+      },
+      "body": {
+        "ru_RU": "Настройки вашего дисплея вызывают краш игры в полноэкранном режиме.\n<br />Вы можете отключить полноэкранный режим или попробовать изменить настройки дисплея.",
+        "en_US": "Your display settings are crashing the game in fullscreen mode.\n<br />You may try changing display settings or disabling fullscreen mode."
+      },
+      "buttons": [
+        {
+          "name": "exit-fullscreen",
+          "text": {
+            "ru_RU": "Отключить полноэкранный режим",
+            "en_US": "Disable Fullscreen mode"
+          },
+          "actions": [
+            "option fullscreen:false",
+            "set --minecraft.fullscreen false"
+          ],
+          "block": true
+        }
+      ]
+    },
+    {
+      "name": "26-1-outdated-java",
+      "pattern": ".*Unrecognized option\\: \\-\\-sun\\-misc\\-unsafe\\-memory\\-access\\=allow.*",
+      "title": {
+        "ru_RU": "Устаревшая версия Java",
+        "en_US": "Outdated Java"
+      },
+      "body": {
+        "ru_RU": "Эта версия использует параметры, не поддерживающиеся выбранной версией Java.\n<br />Убедитесь, что в настройках лаунчера выбрана \"Рекомендуемая\" версия Java",
+        "en_US": "This version uses jre arguments not supported by current JRE.\n<br />Make sure you've seledted \"Recommended\" JRE in the launcher settings."
+      },
+      "buttons": [
+        "jre-recommended"
+      ],
+      "version": ".*26\\.\\d+.*"
+    },
+    {
+      "name": "vulkan-mod-1",
+      "pattern": ".+NEG_HARD_DEP.+breaks vulkanmod.*",
+      "title": {
+        "ru_RU": "Проблемы с VulkanMod",
+        "en_US": "VulkanMod Issues"
+      },
+      "body": {
+        "ru_RU": "Часть установленных модов заявляет о несовместимости с VulkanMod. Самое простое решение - удаление VulkanMod.",
+        "en_US": "Some installed mods are incompatible with VulkanMod. Easiest option is to remove VulkanMod."
+      },
+      "buttons": [
+        "vulkanmod-support",
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "vulkan-mod-2",
+      "pattern": ".+IllegalStateException\\: Failed to find a suitable GPU.*",
+      "title": {
+        "ru_RU": "Проблемы с VulkanMod",
+        "en_US": "VulkanMod Issues"
+      },
+      "body": {
+        "ru_RU": "Ваша видеокарта (или её драйвер) не поддерживают VulkanMod. Обновите драйвер видеокарты или удалите VulkanMod.",
+        "en_US": "You GPU (or GPU driver) does not support VulkanMod. Try updating GPU driver or removing VulkanMod."
+      },
+      "buttons": [
+        "vulkanmod-support",
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "vulkan-mod-3",
+      "pattern": ".+from mod vulkanmod failed injection check.+",
+      "title": {
+        "ru_RU": "Проблемы с VulkanMod",
+        "en_US": "VulkanMod Issues"
+      },
+      "body": {
+        "ru_RU": "Проблема вызвана модом VulkanMod. Удалите мод или обратитесь к авторам этого мода.",
+        "en_US": "The issue is caused by VulkanMod. Uninstall the mod or ask mod devs for support."
+      },
+      "buttons": [
+        "vulkanmod-support",
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "vulkan-mod-4",
+      "pattern": ".+InvalidInjectionException\\: .+ merged by net\\.vulkanmod\\..+",
+      "title": {
+        "ru_RU": "Проблемы с VulkanMod",
+        "en_US": "VulkanMod Issues"
+      },
+      "body": {
+        "ru_RU": "Похоже, какой-то из установленных модов конфликтует с VulkanMod. Самое простое решение - удаление VulkanMod.",
+        "en_US": "Seems like some of your installed mods conflict with VulkanMod. Easiest option is to remove VulkanMod."
+      },
+      "buttons": [
+        "vulkanmod-support",
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "vulkan-mod-5",
+      "pattern": ".+RuntimeException: Vulkan .+ not supported.*",
+      "title": {
+        "ru_RU": "Проблемы с VulkanMod",
+        "en_US": "VulkanMod Issues"
+      },
+      "body": {
+        "ru_RU": "Ваша видеокарта (или её драйвер) не поддерживают VulkanMod. Обновите драйвер видеокарты или удалите VulkanMod.",
+        "en_US": "You GPU (or GPU driver) does not support VulkanMod. Try updating GPU driver or removing VulkanMod."
+      },
+      "buttons": [
+        "vulkanmod-support",
+        "open-mods"
+      ],
+      "permitHelp": false
+    },
+    {
+      "name": "neverifly",
+      "pattern": ".*Unrecognized option\\: \\-n[oe]\\S+",
+      "title": {
+        "ru_RU": "А-та-та!",
+        "en_US": "Tut-tut!"
+      },
+      "body": {
+        "ru_RU": "Любишь читерить - люби и инструкции читать.<br />Вы определенно что-то сделали не так. Но даем вам волшебную кнопку для того, чтобы начать заново!",
+        "en_US": "If you wanna cheat, you've gotta pay the piper.<br />You definitely messed something up. But here's a magic button to start fresh!"
+      },
+      "buttons": [
+        {
+          "name": "cheat-magic-reset",
+          "text": {
+            "ru_RU": "Применить магию",
+            "en_US": "Use the magic"
+          },
+          "actions": [
+            "set --minecraft.javaargs -Dmagic=applied",
+            "set --minecraft.jre.type recommended",
+            "force-update"
+          ],
+          "block": true
+        }
+      ],
+      "permitHelp": false
+    }
+  ]
+}

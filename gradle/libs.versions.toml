@@ -1,0 +1,93 @@
+[versions]
+authlib = "1.5.24"
+aws-sdk-kotlin = "1.4.62"
+buildconfig-plugin = "5.3.5"
+commons-compress = "1.26.0"
+commons-io = "2.15.1"
+commons-lang3 = "3.14.0"
+dbus = "4.3.2"
+download-plugin = "5.6.0"
+flatlaf = "3.4"
+gson = "2.13.2"
+guava = "33.0.0-jre"
+httpcomponents = "5.3.1"
+jackson = "2.16.1"
+jarscanner = "1.1"
+java-semver = "0.10.2"
+java-statsd-client = "3.1.0"
+javafx-plugin = "0.0.9"
+jdom = "2.0.2"
+jna = "5.17.0"
+jopt-simple = "5.0.4" # Locked, see 92d9c564
+junit5 = "5.10.2"
+junixsocket = "2.9.0"
+jvd = "1.0"
+log4j = "2.23.0"
+lombok-plugin = "8.6"
+mockito = "5.10.0"
+nanohttpd = "2.3.1"
+nstweaker = "1.0"
+oshi = "6.8.2"
+slf4j = "2.0.12"
+spring-boot = "2.7.18" # Spring Boot 3 requires java 17+, so we stuck here with 2.7 branch
+system-theme-detector = "06bbc431eb" # or use anything newer than df12cda
+text-tree = "2.1.2"
+toml4j = "0.7.3"
+xz = "1.9"
+
+[libraries]
+authlib = { module = "com.mojang:authlib", version.ref = "authlib" }
+aws-sdk-kotlin-s3 = { module = "aws.sdk.kotlin:s3", version.ref = "aws-sdk-kotlin" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+dbus-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbus" }
+dbus-transport-tcp = { module = "com.github.hypfvieh:dbus-java-transport-tcp", version.ref = "dbus" }
+flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+httpcomponents-httpclient-fluent = { module = "org.apache.httpcomponents.client5:httpclient5-fluent", version.ref = "httpcomponents" }
+httpcomponents-httpclient = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpcomponents" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jarscanner = { module = "me.cortex:jarscanner", version.ref = "jarscanner" }
+java-semver = { module = "com.github.zafarkhaja:java-semver", version.ref = "java-semver" }
+java-statsd-client = { module = "com.timgroup:java-statsd-client", version.ref = "java-statsd-client" }
+jdom = { module = "org.jdom:jdom", version.ref = "jdom" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+jopt-simple = { module = "net.sf.jopt-simple:jopt-simple", version.ref = "jopt-simple" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
+junixsocket-core = { module = "com.kohlschutter.junixsocket:junixsocket-core", version.ref = "junixsocket" }
+jvd = { module = "ru.turikhay:jvd", version.ref = "jvd" }
+log4j-1-2-api = { module = "org.apache.logging.log4j:log4j-1.2-api", version.ref = "log4j" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+nanohttpd = { module = "org.nanohttpd:nanohttpd", version.ref = "nanohttpd" }
+nstweaker = { module = "ru.turikhay.app:nstweaker", version.ref = "nstweaker" }
+oshi = { module = "com.github.oshi:oshi-core", version.ref = "oshi" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+spring-boot-loader = { module = "org.springframework.boot:spring-boot-loader", version.ref = "spring-boot" }
+system-theme-detector = { module = "com.github.Dansoftowner:jSystemThemeDetector", version.ref = "system-theme-detector" }
+texttree = { module = "org.barfuin.texttree:text-tree", version.ref = "text-tree" }
+toml4j = { module = "io.hotmoka:toml4j", version.ref = "toml4j" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
+
+[bundles]
+dbus = ["dbus-core", "dbus-transport-tcp"]
+httpcomponents = ["httpcomponents-httpclient", "httpcomponents-httpclient-fluent"]
+jna = ["jna", "jna-platform"]
+log4j = ["log4j-api", "log4j-core", "log4j-1-2-api", "log4j-slf4j-impl"]
+
+[plugins]
+buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig-plugin" }
+download = { id = "de.undercouch.download", version.ref = "download-plugin" }
+javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok-plugin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

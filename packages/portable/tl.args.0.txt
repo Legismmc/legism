@@ -1,0 +1,5 @@
+--targetJar
+launcher/launcher.jar
+
+--targetLibFolder
+launcher/libraries
