@@ -12,11 +12,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Where mods go for one installed Minecraft version, and what Modrinth has to be asked
- * for so the mods actually load there.
+ * One game directory that content can be installed into, plus what Modrinth has to be
+ * asked for so the content actually loads there.
  * <p>
- * The mods directory is resolved exactly like the launcher's own "open mods folder"
- * menu entry does, so downloaded mods land where the game looks for them.
+ * For a plain launcher version the directory is resolved exactly like the launcher's own
+ * "open mods folder" menu entry does. For an instance it is the instance's own folder.
  */
 @Slf4j
 public final class ModTarget {
@@ -40,13 +40,13 @@ public final class ModTarget {
     private final String versionId;
     private final String gameVersion;
     private final ModLoader loader;
-    private final File modsDir;
+    private final File gameDir;
 
-    private ModTarget(String versionId, String gameVersion, ModLoader loader, File modsDir) {
+    private ModTarget(String versionId, String gameVersion, ModLoader loader, File gameDir) {
         this.versionId = versionId;
         this.gameVersion = gameVersion;
         this.loader = loader;
-        this.modsDir = modsDir;
+        this.gameDir = gameDir;
     }
 
     /**
@@ -71,8 +71,25 @@ public final class ModTarget {
         return loader;
     }
 
-    public File getModsDir() {
-        return modsDir;
+    /**
+     * The game directory itself - the one Minecraft is started with.
+     */
+    public File getGameDir() {
+        return gameDir;
+    }
+
+    /**
+     * Where content of the given type belongs, e.g. {@code <gameDir>/resourcepacks}.
+     */
+    public File getDirectory(ContentType type) {
+        return new File(gameDir, type.getFolder());
+    }
+
+    /**
+     * Where the game keeps its singleplayer worlds.
+     */
+    public File getSavesDir() {
+        return new File(gameDir, "saves");
     }
 
     public boolean supportsMods() {
@@ -80,15 +97,16 @@ public final class ModTarget {
     }
 
     public ModTarget withLoader(ModLoader newLoader) {
-        return new ModTarget(versionId, gameVersion, newLoader, modsDir);
+        return new ModTarget(versionId, gameVersion, newLoader, gameDir);
     }
 
     public ModTarget withGameVersion(String newGameVersion) {
-        return new ModTarget(versionId, newGameVersion, loader, modsDir);
+        return new ModTarget(versionId, newGameVersion, loader, gameDir);
     }
 
     /**
-     * Derives the target from the version currently selected in the launcher.
+     * Derives the target from a launcher version, using the shared game directory the
+     * launcher would start it in.
      *
      * @return {@code null} if no version is selected or it is not installed yet
      */
@@ -100,7 +118,14 @@ public final class ModTarget {
         if (version == null) {
             return null;
         }
+        return of(version, rootDirOf(version, configuration));
+    }
 
+    /**
+     * Derives the target from a launcher version installed into a directory of its own -
+     * an instance.
+     */
+    public static ModTarget of(CompleteVersion version, File gameDir) {
         String id = version.getID();
         String family = version.getFamily();
 
@@ -117,17 +142,25 @@ public final class ModTarget {
             gameVersion = extractGameVersion(family);
         }
 
-        File modsDir = new File(rootDirOf(version, configuration), "mods");
+        log.debug("Content target for {}: game version {}, loader {}, dir {}",
+                id, gameVersion, loader, gameDir);
 
-        log.debug("Mod target for {}: game version {}, loader {}, mods dir {}",
-                id, gameVersion, loader, modsDir);
-
-        return new ModTarget(id, gameVersion, loader, modsDir);
+        return new ModTarget(id, gameVersion, loader, gameDir);
     }
 
     /**
-     * Mirrors {@code FolderButton}: with separate game directories switched on the mods
-     * live under {@code home/<family>} or {@code home/<version id>}, otherwise directly
+     * Builds a target for a version id that is not installed yet, so an instance can be
+     * edited before it has ever been launched.
+     */
+    public static ModTarget ofVersionId(String versionId, File gameDir) {
+        ModLoader loader = ModLoader.detect(versionId);
+        String gameVersion = extractGameVersion(versionId);
+        return new ModTarget(versionId, gameVersion, loader, gameDir);
+    }
+
+    /**
+     * Mirrors {@code FolderButton}: with separate game directories switched on the game
+     * lives under {@code home/<family>} or {@code home/<version id>}, otherwise directly
      * in the working directory.
      */
     private static File rootDirOf(CompleteVersion version, Configuration configuration) {
@@ -172,6 +205,7 @@ public final class ModTarget {
 
     @Override
     public String toString() {
-        return "ModTarget{" + versionId + ", game=" + gameVersion + ", loader=" + loader + "}";
+        return "ModTarget{" + versionId + ", game=" + gameVersion + ", loader=" + loader
+                + ", dir=" + gameDir + "}";
     }
 }

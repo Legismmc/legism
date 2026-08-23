@@ -96,6 +96,7 @@ public class MinecraftLauncher implements JavaProcessListener {
     private String family;
     private File rootDir;
     private File gameDir;
+    private File forcedGameDir;
     private File localAssetsDir;
     private File nativeDir;
     private File globalAssetsDir;
@@ -468,7 +469,9 @@ public class MinecraftLauncher implements JavaProcessListener {
             throw new MinecraftException(true, "Insufficient space " + rootDir.getAbsolutePath() + "(" + freeSpace + ")", "free-space", rootDir);
         }
 
-        gameDir = getGameDir(rootDir, family, version.getID(), settings.getSeparateDirs());
+        gameDir = forcedGameDir != null
+                ? forcedGameDir
+                : getGameDir(rootDir, family, version.getID(), settings.getSeparateDirs());
 
         detectCharsetOnWindows();
 
@@ -614,6 +617,32 @@ public class MinecraftLauncher implements JavaProcessListener {
 
                 downloadResources();
             }
+        }
+    }
+
+    /**
+     * Starts the game in this directory instead of the shared one the settings would
+     * pick. Used to launch an instance, which keeps its own mods, worlds and options.
+     */
+    public void setForcedGameDir(File dir) {
+        this.forcedGameDir = dir;
+    }
+
+    /**
+     * FML wants the library root as a path relative to the game directory. Working it out
+     * rather than hardcoding one keeps it right for instances, whose game directory sits
+     * deeper than either of the two layouts the settings can produce.
+     */
+    private String relativeLibrariesPath() {
+        Path libraries = new File(rootDir, "libraries").getAbsoluteFile().toPath().normalize();
+        Path from = gameDir.getAbsoluteFile().toPath().normalize();
+        try {
+            String relative = from.relativize(libraries).toString().replace(File.separatorChar, '/');
+            return relative.isEmpty() ? "." : relative;
+        } catch (IllegalArgumentException e) {
+            // no relative path exists, e.g. a different drive letter on Windows
+            log.warn("Could not relativise {} against {}, using an absolute path", libraries, from);
+            return libraries.toString().replace(File.separatorChar, '/');
         }
     }
 
@@ -1381,7 +1410,7 @@ public class MinecraftLauncher implements JavaProcessListener {
                         "--fml.mods",
                         mods.stream().map(Library::getName).collect(Collectors.joining(",")),
                         "--fml.mavenRoots",
-                        settings.getSeparateDirs() == Configuration.SeparateDirs.NONE ? "libraries" : "../../libraries"
+                        relativeLibrariesPath()
                 );
 
             default:

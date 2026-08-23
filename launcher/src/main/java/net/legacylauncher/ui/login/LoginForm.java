@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.downloader.Downloadable;
 import net.legacylauncher.downloader.Downloader;
 import net.legacylauncher.downloader.DownloaderListener;
+import net.legacylauncher.instance.Instance;
 import net.legacylauncher.managers.SwingVersionManagerListener;
 import net.legacylauncher.managers.VersionManager;
 import net.legacylauncher.managers.VersionManagerListener;
@@ -35,6 +36,7 @@ import net.minecraft.launcher.versions.CompleteVersion;
 import net.minecraft.launcher.versions.ReleaseType;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -210,10 +212,18 @@ public class LoginForm extends CenterPanel implements MinecraftListener, Authent
             log.debug("Calling Minecraft Launcher...");
             String versionName = requestedVersion == null ? versions.getVersion().getID() : requestedVersion.getID();
             boolean forceUpdate = checkbox.forceupdate.isSelected();
-            AsyncThread.execute(() -> tlauncher.newMinecraftLauncher(versionName, server, serverId, forceUpdate).start());
+            final Instance instance = pendingInstance;
+            final File instanceGameDir = instance == null ? null : instance.getGameDir();
+            AsyncThread.execute(() -> tlauncher
+                    .newMinecraftLauncher(versionName, server, serverId, forceUpdate, instanceGameDir)
+                    .start());
+            if (instance != null) {
+                tlauncher.getInstanceManager().startSession(instance);
+            }
             checkbox.forceupdate.setSelected(false);
         }
         requestedVersion = null;
+        pendingInstance = null;
     }
 
     private void stopProcess() {
@@ -226,6 +236,27 @@ public class LoginForm extends CenterPanel implements MinecraftListener, Authent
     }
 
     VersionSyncInfo requestedVersion;
+
+    /**
+     * Set when the launch was started from the instance list, so the game runs in that
+     * instance's own directory instead of the shared one.
+     */
+    private Instance pendingInstance;
+
+    /**
+     * Starts an instance: its version is selected in the form, and the game is pointed at
+     * the instance folder.
+     */
+    public void startInstance(Instance instance) {
+        VersionSyncInfo version = tlauncher.getVersionManager()
+                .getVersionSyncInfo(instance.getVersionId());
+        if (version == null) {
+            Alert.showLocError("versions.notfound");
+            return;
+        }
+        pendingInstance = instance;
+        startLauncher(version, null, 0);
+    }
 
     public void startLauncher() {
         startLauncher(null, 0);

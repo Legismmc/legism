@@ -47,6 +47,7 @@ public class MinecraftUIListener implements MinecraftListener, CrashManagerListe
     }
 
     public void onMinecraftAbort() {
+        t.getInstanceManager().finishSession();
     }
 
     public void onMinecraftLaunch() {
@@ -57,12 +58,16 @@ public class MinecraftUIListener implements MinecraftListener, CrashManagerListe
     }
 
     public void onMinecraftClose() {
+        // closes the play session an instance launch opened, so the total on the
+        // instance screen keeps counting up
+        t.getInstanceManager().finishSession();
         if (t.getMinecraftLauncher().isLaunchAssist()) {
             SwingUtil.later(() -> t.getFrame().setVisible(true));
         }
     }
 
     public void onMinecraftError(Throwable throwable) {
+        t.getInstanceManager().finishSession();
         Alert.showLocError("launcher.error.title", "launcher.error.unknown", throwable);
     }
 

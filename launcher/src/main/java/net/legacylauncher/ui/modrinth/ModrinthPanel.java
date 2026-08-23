@@ -2,6 +2,7 @@ package net.legacylauncher.ui.modrinth;
 
 import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.LegacyLauncher;
+import net.legacylauncher.modrinth.ContentType;
 import net.legacylauncher.modrinth.InstalledMod;
 import net.legacylauncher.modrinth.ModInstaller;
 import net.legacylauncher.modrinth.ModLoader;
@@ -41,22 +42,30 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Rectangle;
-import java.io.File;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
- * The Modrinth browser: search the mod index, install into the mods directory of the
- * version selected in the launcher, and manage what is already installed.
+ * Browses one kind of Modrinth content — mods, resource packs or shaders — and manages
+ * what is already installed of that kind.
+ * <p>
+ * The same panel serves the standalone mods screen and each tab of the instance editor;
+ * the difference is only whether it draws its own back button and target caption, and
+ * which game directory the {@linkplain #targetSource target supplier} points at.
  */
 @Slf4j
 public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     private static final int PAGE_SIZE = 20;
 
     private final MainPane pane;
+    private final ContentType type;
+    private final Supplier<ModTarget> targetSource;
+    private final boolean standalone;
 
     private final JLabel targetLabel = new JLabel();
     private final JTextField searchField = new JTextField();
@@ -98,8 +107,21 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
      */
     private String inFlightSearch;
 
+    /**
+     * Browses mods for the version selected on the main screen, with its own back button.
+     */
     public ModrinthPanel(MainPane pane) {
+        this(pane, ContentType.MOD, () -> ModTarget.of(
+                pane.defaultScene.loginForm.versions.getVersion(),
+                LegacyLauncher.getInstance().getSettings()
+        ), true);
+    }
+
+    public ModrinthPanel(MainPane pane, ContentType type, Supplier<ModTarget> targetSource, boolean standalone) {
         this.pane = pane;
+        this.type = type;
+        this.targetSource = targetSource;
+        this.standalone = standalone;
         setVgap(SwingUtil.magnify(8));
 
         setNorth(buildHeader());
@@ -116,15 +138,14 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         JPanel top = new JPanel(new BorderLayout(SwingUtil.magnify(8), 0));
         top.setOpaque(false);
 
-        JButton back = button("back", "arrow-left", e -> pane.openDefaultScene());
-        top.add(back, BorderLayout.WEST);
+        if (standalone) {
+            top.add(button("back", "arrow-left", e -> pane.openDefaultScene()), BorderLayout.WEST);
+            targetLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            targetLabel.setFont(targetLabel.getFont().deriveFont(Font.BOLD));
+            top.add(targetLabel, BorderLayout.CENTER);
+        }
 
-        targetLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        targetLabel.setFont(targetLabel.getFont().deriveFont(Font.BOLD));
-        top.add(targetLabel, BorderLayout.CENTER);
-
-        top.add(button("open-folder", "folder-open", e -> openModsFolder()), BorderLayout.EAST);
-
+        top.add(button("open-folder", "folder-open", e -> openContentFolder()), BorderLayout.EAST);
         header.add(top, BorderLayout.NORTH);
 
         JPanel searchRow = new JPanel(new BorderLayout(SwingUtil.magnify(8), 0));
@@ -132,7 +153,6 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         searchField.putClientProperty("JTextField.placeholderText", ModrinthStrings.get("search.hint"));
         searchField.addActionListener(e -> startSearch(true));
         searchRow.add(searchField, BorderLayout.CENTER);
-
         searchRow.add(button("search", "search", e -> startSearch(true)), BorderLayout.EAST);
 
         header.add(searchRow, BorderLayout.CENTER);
@@ -151,22 +171,27 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         gameVersionBox.addActionListener(e -> onGameVersionChanged());
         filters.add(gameVersionBox);
 
-        filters.add(label("loader"));
-        loaderBox.setModel(new DefaultComboBoxModel<>(new Object[]{
-                ModLoader.FABRIC, ModLoader.FORGE, ModLoader.NEOFORGE, ModLoader.QUILT
-        }));
-        loaderBox.addActionListener(e -> onLoaderChanged());
-        filters.add(loaderBox);
+        // only mods care which loader is installed; a resource pack or a shader does not
+        if (type.isLoaderSpecific()) {
+            filters.add(label("loader"));
+            loaderBox.setModel(new DefaultComboBoxModel<>(new Object[]{
+                    ModLoader.FABRIC, ModLoader.FORGE, ModLoader.NEOFORGE, ModLoader.QUILT
+            }));
+            loaderBox.addActionListener(e -> onLoaderChanged());
+            filters.add(loaderBox);
+        }
 
         filters.add(label("sort"));
         sortBox.setModel(new DefaultComboBoxModel<>(SortOption.values()));
         sortBox.addActionListener(e -> startSearch(true));
         filters.add(sortBox);
 
-        dependenciesBox.setText(ModrinthStrings.get("dependencies"));
-        dependenciesBox.setSelected(true);
-        dependenciesBox.setOpaque(false);
-        filters.add(dependenciesBox);
+        if (type.isLoaderSpecific()) {
+            dependenciesBox.setText(ModrinthStrings.get("dependencies"));
+            dependenciesBox.setSelected(true);
+            dependenciesBox.setOpaque(false);
+            filters.add(dependenciesBox);
+        }
 
         return filters;
     }
@@ -286,18 +311,18 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     // ------------------------------------------------------------ target
 
     /**
-     * Re-reads the version selected on the main screen. Called every time the screen is
-     * opened, because the user may have switched versions in between.
+     * Re-reads the target this panel installs into. Called every time the screen is
+     * shown, because the user may have switched versions or instances in between.
      */
     public void onShown() {
-        VersionSyncInfo selected = pane.defaultScene.loginForm.versions.getVersion();
-        ModTarget newTarget = ModTarget.of(selected, LegacyLauncher.getInstance().getSettings());
+        ModTarget newTarget = targetSource.get();
 
         boolean sameTarget = newTarget != null && target != null
-                && StringUtils.equals(newTarget.getVersionId(), target.getVersionId());
+                && StringUtils.equals(newTarget.getVersionId(), target.getVersionId())
+                && newTarget.getGameDir().equals(target.getGameDir());
 
         target = newTarget;
-        installer = target == null ? null : new ModInstaller(target);
+        installer = target == null ? null : new ModInstaller(target, type);
 
         updateTargetLabel();
         loadGameVersionsOnce();
@@ -312,6 +337,9 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     }
 
     private void updateTargetLabel() {
+        if (!standalone) {
+            return;
+        }
         if (target == null) {
             targetLabel.setText(ModrinthStrings.get("no-version-selected"));
             return;
@@ -344,14 +372,14 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
             syncingFilters = false;
         }
 
-        if (target != null && !target.supportsMods()) {
+        if (type.isLoaderSpecific() && target != null && !target.supportsMods()) {
             targetWarning = ModrinthStrings.get("vanilla");
             // browsing and installing both need a loader to ask Modrinth about, so fall
             // back to whatever the loader box happens to show
             Object fallback = loaderBox.getSelectedItem();
             if (fallback instanceof ModLoader) {
                 target = target.withLoader((ModLoader) fallback);
-                installer = new ModInstaller(target);
+                installer = new ModInstaller(target, type);
             }
         } else {
             targetWarning = null;
@@ -369,7 +397,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
             return;
         }
         target = target.withGameVersion(StringUtils.isEmpty(version) ? null : version);
-        installer = new ModInstaller(target);
+        installer = new ModInstaller(target, type);
         startSearch(true);
     }
 
@@ -383,7 +411,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
             return;
         }
         target = target.withLoader(loader);
-        installer = new ModInstaller(target);
+        installer = new ModInstaller(target, type);
         startSearch(true);
     }
 
@@ -431,8 +459,8 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         // a game version also repopulates its own combo box, for instance. Firing the same
         // request twice only burns Modrinth's rate limit, so an identical query that is
         // already in flight is dropped.
-        String key = query + ' ' + gameVersion + ' ' + loader
-                + ' ' + (sort == null ? "" : sort.getIndex()) + ' ' + offset;
+        String key = query + ' ' + gameVersion + ' ' + loader
+                + ' ' + (sort == null ? "" : sort.getIndex()) + ' ' + offset;
         if (key.equals(inFlightSearch)) {
             log.debug("Search already in flight, ignoring duplicate request");
             return;
@@ -454,7 +482,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         AsyncThread.execute(() -> {
             final ModrinthSearchResult result;
             try {
-                result = ModrinthApi.search(query, gameVersion, loader,
+                result = ModrinthApi.search(type, query, gameVersion, loader,
                         sort == null ? SortOption.RELEVANCE.getIndex() : sort.getIndex(),
                         offset, PAGE_SIZE);
             } catch (IOException e) {
@@ -515,13 +543,14 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
                     ModrinthStrings.get("no-version-selected"));
             return;
         }
-        final boolean withDependencies = dependenciesBox.isSelected();
+        final boolean withDependencies = type.isLoaderSpecific() && dependenciesBox.isSelected();
 
         cell.setBusy(ModrinthStrings.get("installing"));
 
         AsyncThread.execute(() -> {
             try {
                 List<ModrinthVersion> versions = ModrinthApi.listVersions(
+                        type,
                         project.getProjectId(),
                         currentTarget.getGameVersion(),
                         currentTarget.getLoader() == null ? null : currentTarget.getLoader().getId()
@@ -546,7 +575,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
                 SwingUtil.later(() -> {
                     cell.setInstalled();
                     setStatus(ModrinthStrings.get("installed-into",
-                            installed.size(), currentTarget.getModsDir()));
+                            installed.size(), currentInstaller.getDirectory()));
                     if (tabs.getSelectedIndex() == 1) {
                         refreshInstalled();
                     }
@@ -610,20 +639,19 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
             installer.setEnabled(mod, !mod.isEnabled());
         } catch (IOException e) {
             log.warn("Could not toggle {}", mod, e);
-            Alert.showError(ModrinthStrings.get("error.title"), e.getMessage());
+            Alert.showError(ModrinthStrings.get("error.title"), String.valueOf(e.getMessage()));
         }
         refreshInstalled();
     }
 
-    private void openModsFolder() {
-        if (target == null) {
+    private void openContentFolder() {
+        if (installer == null) {
             Alert.showError(ModrinthStrings.get("error.title"),
                     ModrinthStrings.get("no-version-selected"));
             return;
         }
-        final File dir = target.getModsDir();
+        final File dir = installer.getDirectory();
         AsyncThread.execute(() -> {
-            //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
             OS.openFolder(dir);
         });
@@ -685,5 +713,16 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     @Override
     public Dimension getPreferredSize() {
         return SwingUtil.magnify(new Dimension(760, 560));
+    }
+
+    /**
+     * Kept so the standalone screen can still be built from a {@link VersionSyncInfo}
+     * without every caller repeating the settings lookup.
+     */
+    public static Supplier<ModTarget> targetOfSelectedVersion(MainPane pane) {
+        return () -> ModTarget.of(
+                pane.defaultScene.loginForm.versions.getVersion(),
+                LegacyLauncher.getInstance().getSettings()
+        );
     }
 }

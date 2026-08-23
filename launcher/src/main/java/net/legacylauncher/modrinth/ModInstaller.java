@@ -41,9 +41,29 @@ public class ModInstaller {
     private static final int MAX_DEPENDENCY_DEPTH = 5;
 
     private final ModTarget target;
+    private final ContentType type;
 
-    public ModInstaller(ModTarget target) {
+    public ModInstaller(ModTarget target, ContentType type) {
         this.target = target;
+        this.type = type;
+    }
+
+    /**
+     * Convenience for the common case of installing loader mods.
+     */
+    public ModInstaller(ModTarget target) {
+        this(target, ContentType.MOD);
+    }
+
+    public ContentType getType() {
+        return type;
+    }
+
+    /**
+     * The folder this installer writes into, e.g. {@code <gameDir>/shaderpacks}.
+     */
+    public File getDirectory() {
+        return target.getDirectory(type);
     }
 
     /**
@@ -67,7 +87,7 @@ public class ModInstaller {
             collectDependencies(version, plan, new HashSet<String>(), 0);
         }
 
-        FileUtil.createFolder(target.getModsDir());
+        FileUtil.createFolder(getDirectory());
 
         List<String> installed = new ArrayList<>();
         for (int i = 0; i < plan.size(); i++) {
@@ -80,7 +100,7 @@ public class ModInstaller {
             if (listener != null) {
                 listener.onStep(file.getFilename(), i + 1, plan.size());
             }
-            downloadInto(file, target.getModsDir());
+            downloadInto(file, getDirectory());
             installed.add(file.getFilename());
         }
         return installed;
@@ -130,6 +150,7 @@ public class ModInstaller {
             return null;
         }
         List<ModrinthVersion> candidates = ModrinthApi.listVersions(
+                type,
                 dependency.getProjectId(),
                 target.getGameVersion(),
                 target.getLoader() == null ? null : target.getLoader().getId()
@@ -153,7 +174,7 @@ public class ModInstaller {
     }
 
     private void downloadInto(ModrinthFile file, File modsDir) throws IOException {
-        String fileName = sanitizeFileName(file.getFilename());
+        String fileName = sanitizeFileName(file.getFilename(), type);
         File destination = new File(modsDir, fileName);
 
         log.info("Downloading {} ({} bytes) into {}", fileName, file.getSize(), modsDir);
@@ -229,10 +250,11 @@ public class ModInstaller {
     }
 
     /**
-     * Keeps a hostile file name from escaping the mods directory. Modrinth validates its
-     * own uploads, but the name arrives over the network, so it is not trusted here.
+     * Keeps a hostile file name from escaping the target directory, and refuses anything
+     * whose extension does not match the content type. Modrinth validates its own
+     * uploads, but the name arrives over the network, so it is not trusted here.
      */
-    static String sanitizeFileName(String fileName) throws ModrinthException {
+    static String sanitizeFileName(String fileName, ContentType type) throws ModrinthException {
         if (StringUtils.isEmpty(fileName)) {
             throw new ModrinthException("Modrinth sent a file without a name");
         }
@@ -244,17 +266,19 @@ public class ModInstaller {
         if (name.isEmpty() || name.equals(".") || name.equals("..")) {
             throw new ModrinthException("Modrinth sent an unusable file name: " + fileName);
         }
-        if (!name.toLowerCase(Locale.ROOT).endsWith(".jar")) {
-            throw new ModrinthException("refusing to install a non-jar file: " + fileName);
+        if (!type.accepts(name)) {
+            throw new ModrinthException("refusing to install " + fileName + " as a "
+                    + type.getModrinthType() + ": expected one of " + type.getExtensions());
         }
         return name;
     }
 
     /**
-     * @return every jar in the mods directory, enabled or not, sorted by name
+     * @return every file of this content type in the target directory, enabled or not,
+     * sorted by name
      */
     public List<InstalledMod> listInstalled() {
-        File[] files = target.getModsDir().listFiles();
+        File[] files = getDirectory().listFiles();
         if (files == null) {
             return Collections.emptyList();
         }
@@ -263,8 +287,11 @@ public class ModInstaller {
             if (!file.isFile()) {
                 continue;
             }
-            String name = file.getName().toLowerCase(Locale.ROOT);
-            if (name.endsWith(".jar") || name.endsWith(".jar" + InstalledMod.DISABLED_SUFFIX)) {
+            String name = file.getName();
+            if (name.endsWith(InstalledMod.DISABLED_SUFFIX)) {
+                name = name.substring(0, name.length() - InstalledMod.DISABLED_SUFFIX.length());
+            }
+            if (type.accepts(name)) {
                 mods.add(new InstalledMod(file));
             }
         }
@@ -282,7 +309,7 @@ public class ModInstaller {
      * or disabled
      */
     public boolean isInstalled(String fileName) {
-        File modsDir = target.getModsDir();
+        File modsDir = getDirectory();
         return new File(modsDir, fileName).isFile()
                 || new File(modsDir, fileName + InstalledMod.DISABLED_SUFFIX).isFile();
     }

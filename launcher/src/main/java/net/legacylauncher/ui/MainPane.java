@@ -25,6 +25,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,8 @@ import java.util.Map;
 @Slf4j
 public class MainPane extends ExtendedLayeredPane {
     private final LegacyLauncherFrame rootFrame;
+    private static final int INPUT_SWALLOW_MS = 300;
+
     private final boolean repaintEveryTime;
     private PseudoScene scene;
     public final BackgroundManager background;
@@ -40,6 +44,8 @@ public class MainPane extends ExtendedLayeredPane {
     public final DelayedComponent<AccountManagerScene> accountManager;
     public final DelayedComponent<VersionManagerScene> versionManager;
     public final DelayedComponent<ModrinthScene> modrinthScene;
+    public final DelayedComponent<InstancesScene> instancesScene;
+    public final DelayedComponent<InstanceEditScene> instanceEditScene;
     public final DelayedComponent<RevertFontSize> revertFont;
     public final Map<String, DelayedComponent<? extends PseudoScene>> scenes = new HashMap<>();
 
@@ -104,6 +110,33 @@ public class MainPane extends ExtendedLayeredPane {
             }
         });
         scenes.put("mods", modrinthScene);
+        log.trace("Init Instances scene...");
+        instancesScene = new DelayedComponent<>(new DelayedComponentLoader<InstancesScene>() {
+            @Override
+            public InstancesScene loadComponent() {
+                return new InstancesScene(MainPane.this);
+            }
+
+            @Override
+            public void onComponentLoaded(InstancesScene loaded) {
+                MainPane.this.add(loaded);
+                loaded.onResize();
+            }
+        });
+        scenes.put("instances", instancesScene);
+        instanceEditScene = new DelayedComponent<>(new DelayedComponentLoader<InstanceEditScene>() {
+            @Override
+            public InstanceEditScene loadComponent() {
+                return new InstanceEditScene(MainPane.this);
+            }
+
+            @Override
+            public void onComponentLoaded(InstanceEditScene loaded) {
+                MainPane.this.add(loaded);
+                loaded.onResize();
+            }
+        });
+        scenes.put("instance-edit", instanceEditScene);
         progress = new DelayedComponent<>(new DelayedComponentLoader<LaunchProgress>() {
             @Override
             public LaunchProgress loadComponent() {
@@ -231,6 +264,39 @@ public class MainPane extends ExtendedLayeredPane {
         return scene;
     }
 
+    /**
+     * Swallows mouse input for a moment right after a scene change.
+     * <p>
+     * The click that switches scenes is two events: the press opens the new scene, and the
+     * release arrives once it is built. By then the button that was pressed is hidden along
+     * with its scene, so AWT retargets the release to whatever the new scene happens to put
+     * under the cursor - pressing it. Building a scene for the first time takes long enough
+     * for a perfectly normal click to trigger this, so a transparent glass pane eats the
+     * leftovers.
+     */
+    private void swallowInputBriefly() {
+        JRootPane root = getRootPane();
+        if (root == null) {
+            return;
+        }
+        final Component previous = root.getGlassPane();
+        final JPanel blocker = new JPanel();
+        blocker.setOpaque(false);
+        blocker.addMouseListener(new MouseAdapter() {
+        });
+        blocker.addMouseMotionListener(new MouseMotionAdapter() {
+        });
+        root.setGlassPane(blocker);
+        blocker.setVisible(true);
+
+        Timer timer = new Timer(INPUT_SWALLOW_MS, e -> {
+            blocker.setVisible(false);
+            root.setGlassPane(previous);
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
     public void setScene(PseudoScene scene) {
         setScene(scene, true);
     }
@@ -255,6 +321,7 @@ public class MainPane extends ExtendedLayeredPane {
 
             scene = newscene;
             scene.setShown(true);
+            swallowInputBriefly();
             if (repaintEveryTime) {
                 repaint();
             }
@@ -272,6 +339,30 @@ public class MainPane extends ExtendedLayeredPane {
 
     public void openVersionManager() {
         setScene(versionManager.get());
+    }
+
+    public void openInstancesScene() {
+        InstancesScene scene = instancesScene.get();
+        scene.onResize();
+        setScene(scene);
+        scene.panel.onShown();
+    }
+
+    /**
+     * Opens the instance list and immediately asks for a new instance - the shortcut on
+     * the toolbar's context menu.
+     */
+    public void openInstancesSceneAndCreate() {
+        openInstancesScene();
+        instancesScene.get().panel.createInstance();
+    }
+
+    public void openInstanceEditor(net.legacylauncher.instance.Instance instance) {
+        InstanceEditScene scene = instanceEditScene.get();
+        scene.panel.setInstance(instance);
+        scene.onResize();
+        setScene(scene);
+        scene.panel.onShown();
     }
 
     public void openModrinthScene() {

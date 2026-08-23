@@ -46,25 +46,29 @@ public final class ModrinthApi {
     }
 
     /**
-     * Searches the mod index.
+     * Searches the index for one kind of content.
      *
+     * @param type        what to look for - mods, resource packs, shaders, data packs
      * @param query       free text, may be empty
      * @param gameVersion Minecraft version to restrict to, may be {@code null}
-     * @param loader      mod loader id (fabric, forge, quilt, neoforge), may be {@code null}
+     * @param loader      mod loader id (fabric, forge, quilt, neoforge), may be {@code null};
+     *                    ignored for types that are not loader specific, because a resource
+     *                    pack works whatever the instance runs
      * @param sortIndex   one of relevance, downloads, follows, newest, updated
      */
-    public static ModrinthSearchResult search(String query,
+    public static ModrinthSearchResult search(ContentType type,
+                                              String query,
                                               String gameVersion,
                                               String loader,
                                               String sortIndex,
                                               int offset,
                                               int limit) throws ModrinthException {
         List<String> facets = new ArrayList<>();
-        facets.add(facet("project_type", "mod"));
+        facets.add(facet("project_type", type.getModrinthType()));
         if (StringUtils.isNotEmpty(gameVersion)) {
             facets.add(facet("versions", gameVersion));
         }
-        if (StringUtils.isNotEmpty(loader)) {
+        if (type.isLoaderSpecific() && StringUtils.isNotEmpty(loader)) {
             facets.add(facet("categories", loader));
         }
 
@@ -82,14 +86,19 @@ public final class ModrinthApi {
     /**
      * Lists the versions of a project that fit the given game version and loader.
      * Modrinth returns them newest first.
+     * <p>
+     * The loader filter is only applied for loader specific content: shaders are tagged
+     * with iris/optifine/canvas rather than with a mod loader, so filtering them by
+     * "fabric" would hide every one of them.
      */
-    public static List<ModrinthVersion> listVersions(String projectIdOrSlug,
+    public static List<ModrinthVersion> listVersions(ContentType type,
+                                                     String projectIdOrSlug,
                                                      String gameVersion,
                                                      String loader) throws ModrinthException {
         StringBuilder url = new StringBuilder(BASE_URL)
                 .append("/project/").append(encode(projectIdOrSlug)).append("/version");
         List<String> query = new ArrayList<>();
-        if (StringUtils.isNotEmpty(loader)) {
+        if (type.isLoaderSpecific() && StringUtils.isNotEmpty(loader)) {
             query.add("loaders=" + encode("[\"" + loader + "\"]"));
         }
         if (StringUtils.isNotEmpty(gameVersion)) {

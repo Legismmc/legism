@@ -9,6 +9,7 @@ import net.legacylauncher.common.exceptions.LocalIOException;
 import net.legacylauncher.configuration.*;
 import net.legacylauncher.downloader.Downloader;
 import net.legacylauncher.handlers.ExceptionHandler;
+import net.legacylauncher.instance.InstanceManager;
 import net.legacylauncher.ipc.BootstrapIPC;
 import net.legacylauncher.ipc.ResolverIPC;
 import net.legacylauncher.logger.Log4j2ContextHelper;
@@ -106,6 +107,8 @@ public final class LegacyLauncher {
     private final MemoryAllocationService memoryAllocationService;
     @Getter
     private final GPUManager gpuManager;
+    @Getter
+    private final InstanceManager instanceManager = new InstanceManager();
     @Getter
     private final Downloader downloader;
     @Getter
@@ -394,6 +397,22 @@ public final class LegacyLauncher {
             }
         });
 
+        executeWhenReady(() -> {
+            // a desktop shortcut created from the instance screen names its instance here
+            String wanted = System.getenv(InstanceManager.ENV_INSTANCE);
+            if (wanted == null || wanted.trim().isEmpty()) {
+                return;
+            }
+            for (net.legacylauncher.instance.Instance candidate : instanceManager.refresh()) {
+                if (candidate.getId().equalsIgnoreCase(wanted.trim())) {
+                    log.info("Starting instance {} because {} names it", candidate, InstanceManager.ENV_INSTANCE);
+                    SwingUtil.later(() -> frame.mp.defaultScene.loginForm.startInstance(candidate));
+                    return;
+                }
+            }
+            log.warn("{} names an instance that does not exist: {}", InstanceManager.ENV_INSTANCE, wanted);
+        });
+
         executeOnReadyJobs();
     }
 
@@ -620,6 +639,16 @@ public final class LegacyLauncher {
     }
 
     public MinecraftLauncher newMinecraftLauncher(String versionName, Server server, int serverId, boolean forceUpdate) {
+        return newMinecraftLauncher(versionName, server, serverId, forceUpdate, null);
+    }
+
+    /**
+     * @param forcedGameDir game directory to start in, overriding the one the settings
+     *                      would choose; {@code null} to use the shared one. Instances
+     *                      pass their own directory here.
+     */
+    public MinecraftLauncher newMinecraftLauncher(String versionName, Server server, int serverId,
+                                                  boolean forceUpdate, File forcedGameDir) {
         if (isMinecraftLauncherWorking()) {
             throw new IllegalStateException("launcher is working");
         }
@@ -632,6 +661,7 @@ public final class LegacyLauncher {
 
         minecraftLauncher.setVersion(versionName);
         minecraftLauncher.setServer(server, serverId);
+        minecraftLauncher.setForcedGameDir(forcedGameDir);
 
         return minecraftLauncher;
     }

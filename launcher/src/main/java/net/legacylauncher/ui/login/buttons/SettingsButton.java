@@ -21,6 +21,7 @@ public class SettingsButton extends LocalizableButton implements Blockable {
     private final LocalizableMenuItem accountManager;
     private final LocalizableMenuItem versionManager;
     private final JMenuItem mods;
+    private final JMenuItem instances;
 
     SettingsButton(LoginForm loginform) {
         lf = loginform;
@@ -40,6 +41,10 @@ public class SettingsButton extends LocalizableButton implements Blockable {
         mods.setIcon(Images.getIcon16("puzzle-piece"));
         mods.addActionListener(e -> lf.pane.openModrinthScene());
         popup.add(mods);
+        instances = new JMenuItem(ModrinthStrings.get("instances.title"));
+        instances.setIcon(Images.getIcon16("cube"));
+        instances.addActionListener(e -> lf.pane.openInstancesScene());
+        popup.add(instances);
         setPreferredSize(new Dimension(30, getHeight()));
         addActionListener(e -> callPopup());
     }
@@ -69,6 +74,7 @@ public class SettingsButton extends LocalizableButton implements Blockable {
         super.updateLocale();
         if (mods != null) { // may run before the constructor finished
             mods.setText(ModrinthStrings.get("title"));
+            instances.setText(ModrinthStrings.get("instances.title"));
         }
     }
 

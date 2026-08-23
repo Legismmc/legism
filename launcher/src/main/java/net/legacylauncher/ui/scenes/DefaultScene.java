@@ -4,6 +4,7 @@ import net.legacylauncher.configuration.Configuration;
 import net.legacylauncher.minecraft.auth.Account;
 import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.login.LoginForm;
+import net.legacylauncher.ui.instance.InstancesToolbar;
 import net.legacylauncher.ui.notification.NotificationPanel;
 import net.legacylauncher.ui.settings.SettingsPanel;
 import net.legacylauncher.ui.swing.DelayedComponent;
@@ -24,6 +25,7 @@ public class DefaultScene extends PseudoScene {
     private ExtendedPanel sidePanelComp;
     private Direction lfDirection;
     public final NotificationPanel notificationPanel;
+    public final InstancesToolbar instancesToolbar;
 
     public DefaultScene(MainPane main) {
         super(main);
@@ -48,6 +50,9 @@ public class DefaultScene extends PseudoScene {
         add(loginForm);
         this.notificationPanel = new NotificationPanel();
         add(notificationPanel);
+
+        this.instancesToolbar = new InstancesToolbar(main);
+        add(instancesToolbar);
 
         updateDirection();
     }
@@ -199,6 +204,12 @@ public class DefaultScene extends PseudoScene {
                 sn_y = 0;
         }
         notificationPanel.setBounds(0, sn_y, getWidth(), notificationPanel.height);
+
+        // the toolbar sits in the top-left corner, stepping aside when the notification
+        // strip is up there too
+        Dimension toolbarSize = instancesToolbar.getPreferredSize();
+        int tb_y = sn_y == 0 ? notificationPanel.height : margin;
+        instancesToolbar.setBounds(margin, tb_y, toolbarSize.width, toolbarSize.height);
     }
 
     public DefaultScene.SidePanel getSidePanel() {
