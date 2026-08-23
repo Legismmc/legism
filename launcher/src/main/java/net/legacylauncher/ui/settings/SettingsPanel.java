@@ -191,7 +191,11 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
             extraHandlerList.add(new EditorFieldHandler("minecraft.gamemode", new EditorCheckBox("settings.gamemode", true)));
         }
         extraHandler = new EditorGroupHandler(extraHandlerList);
-        minecraftTab.add(new EditorPair("settings.extra.label", extraHandlerList));
+        // the promoted-servers checkbox used to live here; on a platform without GameMode
+        // there is nothing left to show, so the row is skipped rather than left empty
+        if (!extraHandlerList.isEmpty()) {
+            minecraftTab.add(new EditorPair("settings.extra.label", extraHandlerList));
+        }
         minecraftTab.nextPane();
 
         add(minecraftTab);
