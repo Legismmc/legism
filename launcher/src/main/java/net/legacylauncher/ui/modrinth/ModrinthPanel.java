@@ -166,7 +166,8 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         filters.setOpaque(false);
 
         filters.add(label("game-version"));
-        gameVersionBox.setEditable(true);
+        // a fixed list only: typing a version by hand just produced empty result pages
+        gameVersionBox.setEditable(false);
         gameVersionBox.setPrototypeDisplayValue("1.00.00");
         gameVersionBox.addActionListener(e -> onGameVersionChanged());
         filters.add(gameVersionBox);

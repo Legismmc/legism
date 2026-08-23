@@ -216,6 +216,12 @@ public final class ModrinthStrings {
         en("instances.new.version", "Minecraft version");
         ru("instances.new.version", "Версия Minecraft");
 
+        en("instances.new.loader", "Mod loader");
+        ru("instances.new.loader", "Загрузчик модов");
+
+        en("instances.new.loader.none", "None (vanilla)");
+        ru("instances.new.loader.none", "Без загрузчика (ваниль)");
+
         en("instances.new.create", "Create");
         ru("instances.new.create", "Создать");
 

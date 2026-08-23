@@ -184,7 +184,13 @@ public final class ModTarget {
         return MinecraftUtil.getWorkingDirectory(false);
     }
 
-    static String extractGameVersion(String candidate) {
+    /**
+     * Pulls the plain Minecraft version out of a launcher version id, e.g. {@code 1.20.1}
+     * from {@code Forge 1.20.1}.
+     *
+     * @return {@code null} when the id names none
+     */
+    public static String extractGameVersion(String candidate) {
         if (StringUtils.isEmpty(candidate)) {
             return null;
         }

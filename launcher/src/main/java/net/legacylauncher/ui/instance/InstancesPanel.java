@@ -5,6 +5,10 @@ import net.legacylauncher.LegacyLauncher;
 import net.legacylauncher.configuration.BuildConfig;
 import net.legacylauncher.instance.Instance;
 import net.legacylauncher.instance.InstanceManager;
+import net.legacylauncher.managers.ProfileManager;
+import net.legacylauncher.managers.ProfileManagerListener;
+import net.legacylauncher.minecraft.auth.Account;
+import net.legacylauncher.minecraft.auth.AuthenticatorDatabase;
 import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
@@ -16,6 +20,7 @@ import net.legacylauncher.util.MinecraftUtil;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
+import net.legacylauncher.user.User;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -66,6 +71,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
     private final JPanel grid = new JPanel();
     private final InstanceActionsPanel sidebar;
+    private JButton accountButton;
     private final JLabel statusLeft = new JLabel();
     private final JLabel statusRight = new JLabel();
 
@@ -96,6 +102,24 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
                     applySelection();
                     updateStatus();
                 }));
+
+        // keep the toolbar showing whoever is signed in
+        LegacyLauncher.getInstance().getProfileManager().addListener(new ProfileManagerListener() {
+            @Override
+            public void onProfilesRefreshed(ProfileManager pm) {
+                SwingUtil.later(InstancesPanel.this::updateAccountButton);
+            }
+
+            @Override
+            public void onProfileManagerChanged(ProfileManager pm) {
+                SwingUtil.later(InstancesPanel.this::updateAccountButton);
+            }
+
+            @Override
+            public void onAccountsRefreshed(AuthenticatorDatabase db) {
+                SwingUtil.later(InstancesPanel.this::updateAccountButton);
+            }
+        });
     }
 
     // ---------------------------------------------------------------- layout
@@ -115,10 +139,32 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         right.setOpaque(false);
-        right.add(toolbarButton("instances.accounts", "user-circle-o", e -> pane.openAccountEditor()));
+        accountButton = new JButton();
+        accountButton.setIcon(Images.getIcon16("user-circle-o"));
+        accountButton.addActionListener(e -> pane.openAccountEditor());
+        right.add(accountButton);
         bar.add(right, BorderLayout.EAST);
 
+        updateAccountButton();
+
         return bar;
+    }
+
+    /**
+     * Shows who is signed in, falling back to the generic caption when nobody is. The
+     * account type comes along because the same nickname can exist twice under different
+     * kinds of account.
+     */
+    private void updateAccountButton() {
+        Account<? extends User> account = pane.defaultScene.loginForm.accounts.getAccount();
+        if (account == null) {
+            accountButton.setText(ModrinthStrings.get("instances.accounts"));
+            accountButton.setToolTipText(ModrinthStrings.get("instances.accounts"));
+            return;
+        }
+        accountButton.setText(account.getDisplayName());
+        accountButton.setToolTipText(account.getDisplayName() + " ["
+                + account.getType().toString().toLowerCase(Locale.ROOT) + "]");
     }
 
     private JButton toolbarButton(String key, String icon, ActionListener action) {
@@ -230,6 +276,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     }
 
     public void onShown() {
+        updateAccountButton();
         refresh();
     }
 
@@ -678,6 +725,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         for (Map.Entry<String, JButton> entry : toolbarButtons.entrySet()) {
             entry.getValue().setText(ModrinthStrings.get(entry.getKey()));
         }
+        updateAccountButton();
         sidebar.updateLocale();
         refresh();
     }
