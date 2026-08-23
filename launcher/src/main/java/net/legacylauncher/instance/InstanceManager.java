@@ -309,6 +309,7 @@ public class InstanceManager {
         } catch (IOException e) {
             log.warn("Could not record the last played time of {}", instance, e);
         }
+        fireChanged();
     }
 
     /**
@@ -326,6 +327,7 @@ public class InstanceManager {
         }
         log.debug("Play session of {} ended, total {} ms", running, running.getTotalPlayTime());
         running = null;
+        fireChanged();
     }
 
     /**

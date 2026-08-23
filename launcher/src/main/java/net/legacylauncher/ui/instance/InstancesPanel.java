@@ -88,6 +88,14 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         setNorth(buildToolbar());
         setCenter(buildBody());
         setSouth(buildStatusBar());
+
+        // the game starting or stopping swaps Play for Stop in the sidebar; the callback
+        // arrives off the Swing thread when Minecraft exits
+        LegacyLauncher.getInstance().getInstanceManager().addListener(instances ->
+                SwingUtil.later(() -> {
+                    applySelection();
+                    updateStatus();
+                }));
     }
 
     // ---------------------------------------------------------------- layout
@@ -98,7 +106,6 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         left.setOpaque(false);
-        left.add(toolbarButton("back", "arrow-left", e -> pane.openDefaultScene()));
         left.add(toolbarButton("instances.create", "plus", e -> createInstance()));
         left.add(toolbarButton("instances.folders", "folder-open", this::showFoldersMenu));
         left.add(toolbarButton("instances.settings", "gear", e -> openLauncherSettings()));
@@ -493,16 +500,18 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         }
     }
 
+    /**
+     * Starts the instance without leaving this screen: the progress bar runs along the
+     * bottom of the window and Stop takes over in the sidebar.
+     */
     void play(Instance instance) {
         if (instance == null) {
             return;
         }
-        pane.openDefaultScene();
         pane.defaultScene.loginForm.startInstance(instance);
     }
 
     void stop() {
-        pane.openDefaultScene();
         pane.defaultScene.loginForm.stopLauncher();
     }
 

@@ -11,7 +11,6 @@ import net.legacylauncher.ui.FlatLaf;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.block.Blocker;
 import net.legacylauncher.ui.converter.ActionOnLaunchConverter;
-import net.legacylauncher.ui.converter.DirectionConverter;
 import net.legacylauncher.ui.converter.LoggerTypeConverter;
 import net.legacylauncher.ui.converter.SeparateDirsConverter;
 import net.legacylauncher.ui.editor.*;
@@ -26,7 +25,6 @@ import net.legacylauncher.ui.scenes.DefaultScene;
 import net.legacylauncher.ui.support.ContributorsAlert;
 import net.legacylauncher.ui.swing.extended.BorderPanel;
 import net.legacylauncher.ui.swing.extended.ExtendedButton;
-import net.legacylauncher.util.Direction;
 import net.legacylauncher.util.IntegerArray;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.shared.FlatLafConfiguration;
@@ -63,7 +61,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorFieldHandler launcherResolution;
     public final EditorFieldHandler laf;
     public final EditorFieldHandler background;
-    public final EditorFieldHandler loginFormDirection;
     public final EditorFieldHandler logger;
     public final EditorFieldHandler crashManager;
     public final EditorFieldHandler fullCommand;
@@ -210,15 +207,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
             }
         });
         tlauncherTab.add(new EditorPair("settings.clientres.label", launcherResolution));
-        loginFormDirection = new EditorFieldHandler("gui.direction.loginform", new EditorComboBox<>(new DirectionConverter(), Direction.values()));
-        loginFormDirection.addListener(new EditorFieldChangeListener() {
-            protected void onChange(String oldValue, String newValue) {
-                if (SettingsPanel.this.ready) {
-                    tlauncher.getFrame().mp.defaultScene.updateDirection();
-                }
-            }
-        });
-        tlauncherTab.add(new EditorPair("settings.direction.label", loginFormDirection));
         laf = new EditorFieldHandler(FlatLafConfiguration.KEY_STATE, new EditorComboBox<>(
                 new LocalizableStringConverter<String>("settings.laf.state") {
                     @Override

@@ -780,6 +780,10 @@ public final class LegacyLauncher {
 
         profileManager.refresh();
 
+        // the instance list is the launcher's home screen; the default scene is only kept
+        // around to host the settings panel and to drive the launch itself
+        frame.mp.openInstancesScene();
+
         // upstream pinged its stats server every 30 minutes from here; this fork does not
     }
 

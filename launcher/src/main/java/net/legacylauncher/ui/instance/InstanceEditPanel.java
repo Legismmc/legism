@@ -149,7 +149,7 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
 
     private void play() {
         if (instance != null) {
-            pane.openDefaultScene();
+            pane.openInstancesScene();
             pane.defaultScene.loginForm.startInstance(instance);
         }
     }

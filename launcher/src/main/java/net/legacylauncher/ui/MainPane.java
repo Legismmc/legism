@@ -348,15 +348,6 @@ public class MainPane extends ExtendedLayeredPane {
         scene.panel.onShown();
     }
 
-    /**
-     * Opens the instance list and immediately asks for a new instance - the shortcut on
-     * the toolbar's context menu.
-     */
-    public void openInstancesSceneAndCreate() {
-        openInstancesScene();
-        instancesScene.get().panel.createInstance();
-    }
-
     public void openInstanceEditor(net.legacylauncher.instance.Instance instance) {
         InstanceEditScene scene = instanceEditScene.get();
         scene.panel.setInstance(instance);

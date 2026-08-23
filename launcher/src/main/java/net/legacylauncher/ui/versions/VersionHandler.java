@@ -82,7 +82,7 @@ public class VersionHandler implements Blockable, VersionHandlerListener {
 
     void exitEditor() {
         list.deselect();
-        scene.getMainPane().openDefaultScene();
+        scene.getMainPane().openInstancesScene();
     }
 
     VersionSyncInfo getSelected() {

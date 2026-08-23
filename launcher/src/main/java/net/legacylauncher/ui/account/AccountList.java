@@ -100,7 +100,8 @@ public class AccountList extends CenterPanel implements ProfileManagerListener, 
         firstLineButtons.add(edit);
 
         LocalizableButton back = new LocalizableButton(Images.getIcon24("home"), "account.button.home");
-        back.addActionListener(e -> LegacyLauncher.getInstance().getFrame().mp.openDefaultScene());
+        // the instance list is the home screen this came from
+        back.addActionListener(e -> LegacyLauncher.getInstance().getFrame().mp.openInstancesScene());
         firstLineButtons.add(back);
 
         wrapper.setSouth(buttons);
