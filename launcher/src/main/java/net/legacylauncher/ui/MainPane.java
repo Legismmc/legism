@@ -39,7 +39,6 @@ public class MainPane extends ExtendedLayeredPane {
     public final DefaultScene defaultScene;
     public final DelayedComponent<AccountManagerScene> accountManager;
     public final DelayedComponent<VersionManagerScene> versionManager;
-    public final DelayedComponent<NoticeScene> noticeScene;
     public final DelayedComponent<RevertFontSize> revertFont;
     public final Map<String, DelayedComponent<? extends PseudoScene>> scenes = new HashMap<>();
 
@@ -90,20 +89,6 @@ public class MainPane extends ExtendedLayeredPane {
         });
         scenes.put("versions", versionManager);
         //add(versionManager);
-        noticeScene = new DelayedComponent<>(new DelayedComponentLoader<NoticeScene>() {
-            @Override
-            public NoticeScene loadComponent() {
-                return new NoticeScene(MainPane.this);
-            }
-
-            @Override
-            public void onComponentLoaded(NoticeScene loaded) {
-                MainPane.this.add(loaded);
-                loaded.onResize();
-            }
-        });
-        scenes.put("notices", noticeScene);
-        //add(noticeScene);
         progress = new DelayedComponent<>(new DelayedComponentLoader<LaunchProgress>() {
             @Override
             public LaunchProgress loadComponent() {
@@ -272,10 +257,6 @@ public class MainPane extends ExtendedLayeredPane {
 
     public void openVersionManager() {
         setScene(versionManager.get());
-    }
-
-    public void openNoticeScene() {
-        setScene(noticeScene.get());
     }
 
     public LegacyLauncherFrame getRootFrame() {

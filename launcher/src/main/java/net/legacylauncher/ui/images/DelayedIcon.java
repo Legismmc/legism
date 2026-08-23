@@ -1,7 +1,6 @@
 package net.legacylauncher.ui.images;
 
 import lombok.extern.slf4j.Slf4j;
-import net.legacylauncher.ui.notice.NoticeImage;
 import net.legacylauncher.ui.swing.extended.ExtendedLabel;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
@@ -17,11 +16,6 @@ public class DelayedIcon extends ExtendedLabel implements ExtendedIcon {
     private Dimension size;
 
     private volatile IconLoader loader;
-
-    public DelayedIcon(NoticeImage image, int targetWidth, int targetHeight) {
-        this();
-        setImage(image, targetWidth, targetHeight, false);
-    }
 
     public DelayedIcon() {
         setIcon(this);
@@ -45,14 +39,6 @@ public class DelayedIcon extends ExtendedLabel implements ExtendedIcon {
         if (repaint) {
             repaint();
         }
-    }
-
-    public void setImage(NoticeImage image, int targetWidth, int targetHeight, boolean repaint) {
-        setImage(image.getTask(), image.getWidth(), image.getHeight(), targetWidth, targetHeight, repaint);
-    }
-
-    public void setImage(NoticeImage image, int targetWidth, int targetHeight) {
-        setImage(image.getTask(), image.getWidth(), image.getHeight(), targetWidth, targetHeight, true);
     }
 
     private void iconLoaded(Image icon) {

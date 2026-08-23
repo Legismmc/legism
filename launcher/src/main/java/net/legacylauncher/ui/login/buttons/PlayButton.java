@@ -1,61 +1,24 @@
 package net.legacylauncher.ui.login.buttons;
 
-import net.legacylauncher.stats.Stats;
 import net.legacylauncher.ui.LegacyLauncherFrame;
 import net.legacylauncher.ui.block.Blockable;
 import net.legacylauncher.ui.block.Blocker;
-import net.legacylauncher.ui.images.DelayedIcon;
-import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableButton;
 import net.legacylauncher.ui.loc.LocalizableMenuItem;
 import net.legacylauncher.ui.login.LoginForm;
-import net.legacylauncher.ui.notice.Notice;
-import net.legacylauncher.ui.notice.NoticeManager;
-import net.legacylauncher.ui.notice.NoticeManagerListener;
-import net.legacylauncher.ui.notice.NoticePopup;
 import net.legacylauncher.ui.swing.extended.BorderPanel;
-import net.legacylauncher.util.SwingUtil;
 import net.minecraft.launcher.updater.VersionSyncInfo;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class PlayButton extends BorderPanel implements Blockable, LoginForm.LoginStateListener, NoticeManagerListener {
+public class PlayButton extends BorderPanel implements Blockable, LoginForm.LoginStateListener {
     private static final long serialVersionUID = 6944074583143406549L;
     private PlayButton.PlayButtonState state;
     private final LoginForm loginForm;
 
-    private final LocalizableButton button, promotedNoticeButton;
-    private final NoticePopup promotedNoticePopup = new NoticePopup();
-    private final LocalizableMenuItem
-            hideNotice = new LocalizableMenuItem("notice.action.hide"),
-            hidePromoted = new LocalizableMenuItem("notice.promoted.hide.here");
-
-    {
-        Images.getIcon16("eye-slash").setup(hideNotice);
-        hideNotice.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (promotedNoticePopup.getNotice() != null) {
-                    NoticeManager manager = loginForm.scene.getMainPane().getRootFrame().getNotices();
-                    manager.setHidden(promotedNoticePopup.getNotice(), true);
-                    manager.selectRandom();
-                }
-            }
-        });
-        promotedNoticePopup.registerItem(hideNotice);
-
-        Images.getIcon16("eye-slash").setup(hidePromoted);
-        hidePromoted.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                NoticeManager manager = loginForm.scene.getMainPane().getRootFrame().getNotices();
-                manager.setPromotedAllowed(false);
-            }
-        });
-        promotedNoticePopup.registerItem(hidePromoted);
-    }
+    private final LocalizableButton button;
 
     private int mouseX, mouseY;
     private final JPopupMenu wrongButtonMenu = new JPopupMenu();
@@ -88,14 +51,6 @@ public class PlayButton extends BorderPanel implements Blockable, LoginForm.Logi
         button.setFont(getFont().deriveFont(Font.BOLD).deriveFont(LegacyLauncherFrame.getFontSize() * 1.5f));
         setCenter(button);
 
-        promotedNoticeButton = new LocalizableButton();
-        promotedNoticeButton.setPreferredSize(SwingUtil.magnify(new Dimension(48, 1)));
-        promotedNoticeButton.addActionListener(e -> {
-            promotedNoticePopup.updateList();
-            promotedNoticePopup.show(promotedNoticeButton, promotedNoticeButton.getWidth(), 0);
-        });
-        onNoticePromoted(null);
-
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -111,8 +66,6 @@ public class PlayButton extends BorderPanel implements Blockable, LoginForm.Logi
             }
         });
         setState(PlayButton.PlayButtonState.PLAY);
-
-        lf.scene.getMainPane().getRootFrame().getNotices().addListener(this, true);
     }
 
     public PlayButton.PlayButtonState getState() {
@@ -165,28 +118,6 @@ public class PlayButton extends BorderPanel implements Blockable, LoginForm.Logi
 
     public void unblock(Object reason) {
         setEnabled(true);
-    }
-
-    @Override
-    public void onNoticeSelected(Notice notice) {
-
-    }
-
-    @Override
-    public void onNoticePromoted(Notice promotedNotice) {
-        if (promotedNotice == null) {
-            setEast(null);
-        } else {
-            setEast(promotedNoticeButton);
-            promotedNoticePopup.setNotice(promotedNotice);
-            promotedNoticeButton.setIcon(new DelayedIcon(promotedNotice.getImage(), 32, 32));
-
-            Stats.noticeViewed(promotedNotice);
-        }
-
-        validate();
-        //invalidate();
-        repaint();
     }
 
     @Override

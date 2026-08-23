@@ -13,7 +13,6 @@ import net.legacylauncher.ui.block.Blocker;
 import net.legacylauncher.ui.frames.FeedbackFrame;
 import net.legacylauncher.ui.loc.Localizable;
 import net.legacylauncher.ui.loc.LocalizableMenuItem;
-import net.legacylauncher.ui.notice.NoticeManager;
 import net.legacylauncher.ui.swing.extended.ExtendedComponentAdapter;
 import net.legacylauncher.ui.theme.SystemTheme;
 import net.legacylauncher.ui.theme.Theme;
@@ -49,8 +48,6 @@ public class LegacyLauncherFrame extends JFrame {
     private final int[] windowSize;
     public final MainPane mp;
     private String brand;
-    @Getter
-    private final NoticeManager notices;
 
     public static void setFontSize(float size) {
         fontSize = size;
@@ -147,7 +144,6 @@ public class LegacyLauncherFrame extends JFrame {
                 settings.set("gui.window", newState);
             }
         });
-        notices = new NoticeManager(this, t.getBootConfig());
         mp = new MainPane(this);
         add(mp);
         log.trace("Packing main frame...");
@@ -208,7 +204,6 @@ public class LegacyLauncherFrame extends JFrame {
 
         LocalizableMenuItem.updateLocales();
         updateUILocale();
-        notices.updateLocale();
         Localizable.updateContainer(this);
         setWindowTitle();
     }

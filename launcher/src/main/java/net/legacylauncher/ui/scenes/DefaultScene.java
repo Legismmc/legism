@@ -4,9 +4,6 @@ import net.legacylauncher.configuration.Configuration;
 import net.legacylauncher.minecraft.auth.Account;
 import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.login.LoginForm;
-import net.legacylauncher.ui.notice.MainNoticePanel;
-import net.legacylauncher.ui.notice.Notice;
-import net.legacylauncher.ui.notice.NoticeSidePanel;
 import net.legacylauncher.ui.notification.NotificationPanel;
 import net.legacylauncher.ui.settings.SettingsPanel;
 import net.legacylauncher.ui.swing.DelayedComponent;
@@ -23,11 +20,9 @@ public class DefaultScene extends PseudoScene {
 
     public final LoginForm loginForm;
     public final DelayedComponent<SettingsPanel> settingsForm;
-    public final DelayedComponent<NoticeSidePanel> noticeSidePanel;
     private DefaultScene.SidePanel sidePanel;
     private ExtendedPanel sidePanelComp;
     private Direction lfDirection;
-    public final DelayedComponent<MainNoticePanel> noticePanel;
     public final NotificationPanel notificationPanel;
 
     public DefaultScene(MainPane main) {
@@ -51,53 +46,15 @@ public class DefaultScene extends PseudoScene {
         loginForm = new LoginForm(this);
         loginForm.setSize(SwingUtil.magnify(LOGIN_SIZE));
         add(loginForm);
-        noticePanel = new DelayedComponent<>(new DelayedComponentLoader<MainNoticePanel>() {
-            @Override
-            public MainNoticePanel loadComponent() {
-                return new MainNoticePanel(DefaultScene.this);
-            }
-
-            @Override
-            public void onComponentLoaded(MainNoticePanel loaded) {
-                DefaultScene.this.add(loaded);
-                updateSidePanel();
-            }
-        });
-        //add(noticePanel);
-        noticeSidePanel = new DelayedComponent<>(new DelayedComponentLoader<NoticeSidePanel>() {
-            @Override
-            public NoticeSidePanel loadComponent() {
-                return new NoticeSidePanel(DefaultScene.this);
-            }
-
-            @Override
-            public void onComponentLoaded(NoticeSidePanel loaded) {
-                DefaultScene.this.add(loaded);
-                updateSidePanel();
-            }
-        });
         this.notificationPanel = new NotificationPanel();
         add(notificationPanel);
 
         updateDirection();
     }
 
-    private void updateSidePanel() {
-        if (isNoticeSidePanelEnabled() && getMainPane().getRootFrame().getNotices().getForCurrentLocale() != null) {
-            setSidePanel(null);
-        }
-    }
-
     public void setShown(boolean shown, boolean animate) {
         super.setShown(shown, animate);
         if (shown) {
-            if (getMainPane().getRootFrame().getNotices().getSelectedNotice() != null) {
-                if (getMainPane().getRootFrame().getNotices().isHidden(noticePanel.get().getNotice())) {
-                    getMainPane().getRootFrame().getNotices().selectRandom();
-                }
-                noticePanel.get().redraw();
-            }
-
             if (getMainPane().accountManager.isLoaded()) {
                 Account<?> selected = getMainPane().accountManager.get().list.getSelected();
                 if (selected != null) {
@@ -230,9 +187,6 @@ public class DefaultScene extends PseudoScene {
             sidePanelComp.setLocation(sp_x, sp_y);
         }
         loginForm.setLocation(lf_x, lf_y);
-        if (noticePanel.isLoaded()) {
-            noticePanel.get().onResize();
-        }
 
         int sn_y;
         switch (lfDirection) {
@@ -251,20 +205,7 @@ public class DefaultScene extends PseudoScene {
         return sidePanel;
     }
 
-    public boolean isNoticeSidePanelEnabled() {
-        return getMainPane().getRootFrame().getConfiguration().getBoolean("gui.notices.enabled");
-    }
-
-    public void setNoticeSidePanelEnabled(boolean e) {
-        getMainPane().getRootFrame().getConfiguration().set("gui.notices.enabled", e);
-        setSidePanel(null);
-    }
-
     public void setSidePanel(DefaultScene.SidePanel side) {
-        java.util.List<Notice> noticeList = getMainPane().getRootFrame().getNotices().getForCurrentLocale();
-        if (side == null && isNoticeSidePanelEnabled() && noticeList != null && noticeList.size() > 3) {
-            side = SidePanel.NOTICES;
-        }
         if (sidePanel != side) {
             boolean noSidePanel = side == null;
             if (sidePanelComp != null) {
@@ -277,13 +218,6 @@ public class DefaultScene extends PseudoScene {
                 sidePanelComp.setVisible(true);
             }
 
-            if (noticePanel.isLoaded()) {
-                noticePanel.get().setVisible(noSidePanel);
-            }
-            /*if(noSidePanel) {
-                noticePanel.panelShown();
-            }*/
-            //noticePanel.setVisible(noSidePanel);
             updateCoords();
 
             validate();
@@ -311,8 +245,6 @@ public class DefaultScene extends PseudoScene {
             switch (side) {
                 case SETTINGS:
                     return settingsForm.get();
-                case NOTICES:
-                    return noticeSidePanel.get();
                 default:
                     throw new RuntimeException("unknown side:" + side);
             }
@@ -339,7 +271,7 @@ public class DefaultScene extends PseudoScene {
     }
 
     public enum SidePanel {
-        SETTINGS, NOTICES;
+        SETTINGS;
 
         public final boolean requiresShow;
 

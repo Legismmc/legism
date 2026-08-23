@@ -110,8 +110,6 @@ public class MinecraftLauncher implements JavaProcessListener {
     private long startupTime;
     private int exitCode;
     private Server server;
-    private List<PromotedServer> promotedServers;
-    private PromotedServerAddStatus promotedServerAddStatus = PromotedServerAddStatus.NONE;
     private int serverId;
     private JavaProcess process;
 
@@ -297,11 +295,6 @@ public class MinecraftLauncher implements JavaProcessListener {
         checkWorking();
         this.server = server;
         this.serverId = id;
-    }
-
-    public void setPromotedServers(List<PromotedServer> serverList) {
-        this.promotedServers = new ArrayList<>(serverList);
-        Collections.shuffle(promotedServers);
     }
 
     public OptionsFile getOptionsFile() {
@@ -961,15 +954,15 @@ public class MinecraftLauncher implements JavaProcessListener {
                                 "We'll have to overwrite it as it can't be read by Minecraft neither", e);
                         exisingServerList = new LinkedHashSet<>();
                     }
-                    if (settings.getBoolean("minecraft.servers.promoted.ingame")) {
-                        exisingServerList.removeIf(s -> {
-                            boolean markedAsPromoted = s.getName().startsWith("§r");
-                            if (markedAsPromoted) {
-                                log.info("Removing promoted server: {}", s);
-                            }
-                            return markedAsPromoted;
-                        });
-                    }
+                    // this fork never injects advertised servers, but it does clean up
+                    // the ones a previous (upstream) launcher run may have left behind
+                    exisingServerList.removeIf(s -> {
+                        boolean markedAsPromoted = s.getName().startsWith("\u00a7r");
+                        if (markedAsPromoted) {
+                            log.info("Removing advertised server left by another launcher: {}", s);
+                        }
+                        return markedAsPromoted;
+                    });
                 } else {
                     FileUtil.createFile(file);
                     exisingServerList = new LinkedHashSet<>();
@@ -977,45 +970,12 @@ public class MinecraftLauncher implements JavaProcessListener {
                 if (server != null) {
                     nbtServerList.add(new NBTServer(server));
                 }
-                if (settings.getBoolean("minecraft.servers.promoted.ingame")) {
-                    if (promotedServers != null) {
-                        for (final PromotedServer promotedServer : promotedServers) {
-                            if (!promotedServer.getFamily().isEmpty() && !promotedServer.getFamily().contains(family)) {
-                                continue;
-                            }
-                            if (promotedServer.equals(server)) {
-                                continue;
-                            }
-                            NBTServer existingServer = null;
-                            for (NBTServer nbtServer : exisingServerList) {
-                                if (promotedServer.isSame(nbtServer)) {
-                                    existingServer = nbtServer;
-                                    break;
-                                }
-                            }
-                            if (existingServer != null) {
-                                nbtServerList.add(existingServer);
-                                exisingServerList.remove(existingServer);
-                            } else {
-                                nbtServerList.add(new NBTServer(promotedServer));
-                            }
-                        }
-                    } else {
-                        promotedServerAddStatus = PromotedServerAddStatus.EMPTY;
-                    }
-                } else {
-                    promotedServerAddStatus = PromotedServerAddStatus.DISABLED;
-                }
 
                 nbtServerList.addAll(exisingServerList);
                 FileUtil.copyFile(file, new File(gameDir, "servers.dat.bak"), true);
                 NBTServer.saveSet(nbtServerList, file);
-                if (promotedServerAddStatus == PromotedServerAddStatus.NONE) {
-                    promotedServerAddStatus = PromotedServerAddStatus.SUCCESS;
-                }
             } catch (Exception e) {
                 log.warn("Couldn't reconstruct server list", e);
-                promotedServerAddStatus = PromotedServerAddStatus.ERROR;
             }
         }
 
@@ -1026,149 +986,6 @@ public class MinecraftLauncher implements JavaProcessListener {
                 log.warn("Could not make it compatible with older versions", e);
             }
         }
-
-        /*launcher.addCommand("-Djava.library.path=" + nativeDir.getAbsolutePath());
-
-        if (OS.WINDOWS.isCurrent() && OS.VERSION.startsWith("10.")) {
-            launcher.addCommand("-Dos.name=Windows 10");
-            launcher.addCommand("-Dos.version=10.0");
-        }
-
-        launcher.addCommand("-cp", constructClassPath(version));
-        launcher.addCommand("-Dfml.ignoreInvalidMinecraftCertificates=true");
-        launcher.addCommand("-Dfml.ignorePatchDiscrepancies=true");
-        launcher.addCommand("-Djava.net.useSystemProxies=true");
-
-        if (!OS.WINDOWS.isCurrent() || StringUtils.isAsciiPrintable(nativeDir.getAbsolutePath())) {
-            launcher.addCommand("-Dfile.encoding=UTF-8");
-        }
-
-        launcher.addCommands(getJVMArguments());
-        if (javaArgs != null) {
-            launcher.addSplitCommands(javaArgs);
-        }
-
-        address = assistants.iterator();
-
-        MinecraftLauncherAssistant assistant2;
-        while (address.hasNext()) {
-            assistant2 = (MinecraftLauncherAssistant) address.next();
-            assistant2.constructJavaArguments();
-        }
-
-
-        if (!fullCommand) {
-            log("Half command (characters are not escaped):\n" + launcher.getCommandsAsString());
-        }
-
-        launcher.addCommands(getMinecraftArguments());
-        launcher.addCommand("--width", Integer.valueOf(windowSize[0]));
-        launcher.addCommand("--height", Integer.valueOf(windowSize[1]));
-        if (fullScreen) {
-            launcher.addCommand("--fullscreen");
-        }
-
-        try {
-            File serversDat = new File(gameDir, "servers.dat");
-
-            if (serversDat.isFile())
-                FileUtil.copyFile(serversDat, new File(serversDat.getAbsolutePath() + ".bak"), true);
-
-        } catch (IOException ioE) {
-            log("Could not make backup for servers.dat", ioE);
-        }
-
-        try {
-            fixResourceFolder();
-        } catch (Exception ioE) {
-            log("Cannot check resource folder. This could have been fixed [MCL-3732].", ioE);
-        }
-
-
-        Set<NBTServer> exisingServerList = null, nbtServerList = new LinkedHashSet<>();
-        try {
-            File file = new File(gameDir, "servers.dat");
-            if(file.isFile()) {
-                exisingServerList = NBTServer.loadSet(file);
-            } else {
-                FileUtil.createFile(file);
-                exisingServerList = new LinkedHashSet<>();
-            }
-            if(server != null) {
-                nbtServerList.add(new NBTServer(server));
-            }
-            if (outdatedPromotedServers != null) {
-                Iterator<NBTServer> i = exisingServerList.iterator();
-                while (i.hasNext()) {
-                    NBTServer existingServer = i.next();
-                    for(PromotedServer outdatedServer : outdatedPromotedServers) {
-                        if(existingServer.equals(outdatedServer) && existingServer.getName().equals(outdatedServer.getName())) {
-                            log("Removed outdated server:", existingServer, ", compared with", outdatedServer);
-                            i.remove();
-                            break;
-                        }
-                    }
-                }
-            }
-            if(settings.getBoolean("minecraft.servers.promoted.ingame")) {
-                if (promotedServers != null) {
-                    for (final PromotedServer promotedServer : promotedServers) {
-                        if (!promotedServer.getFamily().isEmpty() && !promotedServer.getFamily().contains(family)) {
-                            continue;
-                        }
-                        if(promotedServer.equals(server)) {
-                            continue;
-                        }
-                        NBTServer existingServer = null;
-                        for (NBTServer nbtServer : exisingServerList) {
-                            if (promotedServer.equals(nbtServer)) {
-                                existingServer = nbtServer;
-                                break;
-                            }
-                        }
-                        if (existingServer != null) {
-                            nbtServerList.add(existingServer);
-                            exisingServerList.remove(existingServer);
-                        } else {
-                            nbtServerList.add(new NBTServer(promotedServer));
-                        }
-                    }
-                } else {
-                    promotedServerAddStatus = PromotedServerAddStatus.EMPTY;
-                }
-            } else {
-                promotedServerAddStatus = PromotedServerAddStatus.DISABLED;
-            }
-
-            nbtServerList.addAll(exisingServerList);
-            if(!nbtServerList.isEmpty()) {
-                FileUtil.copyFile(file, new File(gameDir, "servers.dat.bak"), true);
-                NBTServer.saveSet(nbtServerList, file);
-                if(promotedServerAddStatus == PromotedServerAddStatus.NONE) {
-                    promotedServerAddStatus = PromotedServerAddStatus.SUCCESS;
-                }
-            }
-        } catch (Exception e) {
-            Sentry.sendError(MinecraftLauncher.class, "couldn't reconstruct server list", e, DataBuilder.create("existing", exisingServerList).add("new", nbtServerList).add("status", promotedServerAddStatus));
-            log("Couldn't reconstruct server list", e);
-            promotedServerAddStatus = PromotedServerAddStatus.ERROR;
-        }
-
-        if (server != null) {
-            launcher.addCommand("--server", server.getAddress());
-            launcher.addCommand("--port", server.getPort());
-        }
-
-        if (programArgs != null) {
-            launcher.addSplitCommands(programArgs);
-        }
-
-        address = assistants.iterator();
-
-        while (address.hasNext()) {
-            assistant2 = (MinecraftLauncherAssistant) address.next();
-            assistant2.constructProgramArguments();
-        }*/
 
         Library log4jLibrary = findLog4j2Library();
         if (log4jLibrary == null) {
@@ -2008,7 +1825,7 @@ public class MinecraftLauncher implements JavaProcessListener {
             listener.onMinecraftPostLaunch();
         }
 
-        Stats.minecraftLaunched(account, version, server, serverId, promotedServerAddStatus);
+        Stats.minecraftLaunched(account, version, server, serverId);
         if (assistLaunch) {
             log.info("Waiting child process to close");
             waitForClose();

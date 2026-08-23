@@ -284,11 +284,11 @@ public class LoginForm extends CenterPanel implements MinecraftListener, Authent
             Blocker.block(accounts, reason);
         }
 
-        Blocker.block(reason, settings, versions, checkbox, buttons, scene.noticePanel);
+        Blocker.block(reason, settings, versions, checkbox, buttons);
     }
 
     public synchronized void unblock(Object reason) {
-        Blocker.unblock(reason, settings, accounts, versions, checkbox, buttons, scene.noticePanel);
+        Blocker.unblock(reason, settings, accounts, versions, checkbox, buttons);
     }
 
     public void onDownloaderStart(Downloader downloader, int tasks) {

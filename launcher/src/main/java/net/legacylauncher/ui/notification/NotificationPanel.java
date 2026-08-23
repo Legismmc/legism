@@ -1,8 +1,6 @@
 package net.legacylauncher.ui.notification;
 
-import net.legacylauncher.LegacyLauncher;
 import net.legacylauncher.ui.images.ImageIcon;
-import net.legacylauncher.ui.loc.Localizable;
 import net.legacylauncher.ui.loc.LocalizableComponent;
 import net.legacylauncher.ui.swing.extended.ExtendedButton;
 import net.legacylauncher.ui.swing.extended.ExtendedPanel;
@@ -75,23 +73,8 @@ public class NotificationPanel extends ExtendedPanel implements LocalizableCompo
         });
     }
 
-    private String localeNotificationId;
-
     @Override
     public void updateLocale() {
-        if (localeNotificationId != null) {
-            removeNotification(localeNotificationId);
-            localeNotificationId = null;
-        }
-        UrlNotificationObject notificationObject = LegacyLauncher.getInstance().getBootConfig()
-                .getNotifications().get(Localizable.get().getLocale().toString());
-        if (notificationObject != null) {
-            addNotification(notificationObject.getId(), new Notification(
-                    notificationObject.getImage(),
-                    new NotificationListener.UrlOpen(notificationObject.getUrl())
-                            .then(new NotificationListener.Remove(this, notificationObject.getId()))
-            ));
-            localeNotificationId = notificationObject.getId();
-        }
+        // upstream pulled a remotely configured, clickable advertisement banner in here
     }
 }

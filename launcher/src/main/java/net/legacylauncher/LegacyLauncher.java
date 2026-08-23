@@ -16,7 +16,6 @@ import net.legacylauncher.logger.LoggerBuffer;
 import net.legacylauncher.logger.LoggerInterface;
 import net.legacylauncher.logger.SwingLoggerAppender;
 import net.legacylauncher.managers.*;
-import net.legacylauncher.minecraft.PromotedServer;
 import net.legacylauncher.minecraft.Server;
 import net.legacylauncher.minecraft.launcher.MinecraftLauncher;
 import net.legacylauncher.minecraft.launcher.MinecraftListener;
@@ -34,7 +33,6 @@ import net.legacylauncher.ui.listener.UIListeners;
 import net.legacylauncher.ui.loc.Localizable;
 import net.legacylauncher.ui.logger.SwingLogger;
 import net.legacylauncher.ui.login.LoginForm;
-import net.legacylauncher.ui.notice.NoticeManager;
 import net.legacylauncher.ui.notification.Notification;
 import net.legacylauncher.user.ElyUser;
 import net.legacylauncher.user.PlainUser;
@@ -101,9 +99,6 @@ public final class LegacyLauncher {
     private final MemoryAllocationService memoryAllocationService;
     @Getter
     private final GPUManager gpuManager;
-    @Getter
-    private final PromotedStoreManager promotedStoreManager;
-    private final PersonalNoticeManager personalNoticeManager;
     @Getter
     private final Downloader downloader;
     @Getter
@@ -172,7 +167,6 @@ public final class LegacyLauncher {
         handleWorkdir();
         if (!settings.isFirstRun())
             handleUpdate();
-        handleNoticeHiding();
 
         bootstrapIPC.onBootProgress("Preparing managers", 0.2);
         this.manager = new ComponentManager(this);
@@ -231,9 +225,6 @@ public final class LegacyLauncher {
         }
 
         log.info("Loaded GPU manager: {}", gpuManager);
-
-        promotedStoreManager = new PromotedStoreManager();
-        personalNoticeManager = new PersonalNoticeManager();
 
         preloadUI();
 
@@ -386,22 +377,6 @@ public final class LegacyLauncher {
             }
         });
 
-        personalNoticeManager.queueRequest(
-                settings.getClient(),
-                getVersion().toString(),
-                bootstrapIPC.getBootstrapRelease().name,
-                bootstrapIPC.getBootstrapRelease().version,
-                settings.getLocale()
-        );
-        executeWhenReady(() -> personalNoticeManager.getRequestOnce().thenAcceptAsync(payload -> {
-            if (payload.getNotices().isEmpty()) {
-                return;
-            }
-            frame.mp.defaultScene.noticePanel.load();
-            NoticeManager notices = frame.getNotices();
-            notices.addNoticeForCurrentLocale(payload.getNotices());
-            notices.selectRandom();
-        }, SwingUtil.executor()));
         executeWhenReady(() -> {
             if (settings.isFirstRun() && OS.WINDOWS.isCurrent() && OS.Arch.CURRENT.isARM()) {
                 SwingUtil.later(() -> {
@@ -651,15 +626,6 @@ public final class LegacyLauncher {
         minecraftLauncher.setVersion(versionName);
         minecraftLauncher.setServer(server, serverId);
 
-        List<PromotedServer> promotedServerList = new ArrayList<>();
-        if (bootConfig.getPromotedServers().containsKey(getSettings().getLocale().toString())) {
-            promotedServerList.addAll(bootConfig.getPromotedServers().get(getSettings().getLocale().toString()));
-        } else if (bootConfig.getPromotedServers().containsKey("global")) {
-            promotedServerList.addAll(bootConfig.getPromotedServers().get("global"));
-        }
-
-        minecraftLauncher.setPromotedServers(promotedServerList);
-
         return minecraftLauncher;
     }
 
@@ -744,12 +710,6 @@ public final class LegacyLauncher {
         }
     }
 
-    private void handleNoticeHiding() {
-        if (!isNoticeDisablingAllowed()) {
-            settings.set("notice.enabled", true);
-        }
-    }
-
     private void handleWorkdir() {
         if (settings.isFirstRun()) {
             handleFirstRun();
@@ -769,14 +729,6 @@ public final class LegacyLauncher {
                 new NewFolderFrame(this, currentDir).showAndWait();
             }
         }
-    }
-
-    public boolean isNoticeDisablingAllowed() {
-        return bootConfig.isAllowNoticeDisable(settings.getClient());
-    }
-
-    public boolean isNoticeDisabled() {
-        return isNoticeDisablingAllowed() && !settings.getBoolean("notice.enabled");
     }
 
     private void initAndRefreshUI() {

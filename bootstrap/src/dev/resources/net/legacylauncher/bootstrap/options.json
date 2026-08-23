@@ -1,13 +1,5 @@
 {
-  "stats": true,
+  "stats": false,
   "ely": true,
-  "repositories": [],
-  "notices": {
-    "ru_RU": [
-    ]
-  },
-  "promotedServers": {
-    "global": [
-    ]
-  }
+  "repositories": []
 }

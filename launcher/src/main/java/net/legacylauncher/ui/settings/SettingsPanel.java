@@ -69,7 +69,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorFieldHandler fullCommand;
     public final EditorFieldHandler launchAction;
     public final EditorGroupHandler alertUpdates;
-    public final EditorFieldHandler allowNoticeDisable;
     public final EditorFieldHandler switchToBeta;
     public final EditorFieldHandler locale;
     public final HTMLPage about;
@@ -188,9 +187,7 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
         minecraftTab.nextPane();
 
         List<EditorHandler> extraHandlerList = new ArrayList<>();
-        extraHandlerList.add(new EditorFieldHandler("minecraft.servers.promoted.ingame", new EditorCheckBox("settings.promotion.ingame", true)));
         if (GameModeHookLoader.isAvailable()) {
-            extraHandlerList.add(EditorPair.NEXT_COLUMN);
             extraHandlerList.add(new EditorFieldHandler("minecraft.gamemode", new EditorCheckBox("settings.gamemode", true)));
         }
         extraHandler = new EditorGroupHandler(extraHandlerList);
@@ -296,19 +293,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
 
         alertUpdates = new EditorGroupHandler(defReleaseTypeHandlers);
         tlauncherTab.add(new EditorPair("settings.alert-on.label", defReleaseTypeHandlers));
-        tlauncherTab.nextPane();
-
-        allowNoticeDisable = new EditorFieldHandler("notice.enabled", new EditorCheckBox("notice.enable"));
-        allowNoticeDisable.addListener(new EditorFieldChangeListener() {
-            protected void onChange(String oldValue, String newValue) {
-                if (SettingsPanel.this.ready) {
-                    Stats.noticeStatusUpdated(Boolean.parseBoolean(newValue));
-                    tlauncher.getFrame().getNotices().selectRandom();
-                    Alert.showLocMessage("notice.enable.alert." + newValue);
-                }
-            }
-        });
-        tlauncherTab.add(new EditorPair("notice.enable.label", allowNoticeDisable));
         tlauncherTab.nextPane();
 
         switchToBeta = new EditorFieldHandler("bootstrap.switchToBeta", new EditorCheckBox("settings.switch-to-beta"));
@@ -440,11 +424,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public void updateValues() {
         boolean globalUnSaveable = !global.isSaveable();
         Iterator<EditorHandler> iterator = handlers.iterator();
-
-        if (!tlauncher.isNoticeDisablingAllowed()) {
-            allowNoticeDisable.getComponent().setEnabled(false);
-            //allowNoticeDisableHint.getComponent().setEnabled(false);
-        }
 
         while (true) {
             EditorHandler handler;
