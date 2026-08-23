@@ -3,3 +3,10 @@ launcher/launcher.jar
 
 --targetLibFolder
 launcher/libraries
+
+# This is a fork. Its brand does not exist on the upstream update server, so an update
+# check would find nothing anyway - but if it ever did, it would overwrite this build
+# with the original ad-serving launcher. Both update paths are switched off explicitly.
+--ignoreUpdate
+
+--ignoreSelfUpdate

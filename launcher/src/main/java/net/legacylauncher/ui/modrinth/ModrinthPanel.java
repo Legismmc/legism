@@ -34,11 +34,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.io.File;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -89,6 +91,12 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
      */
     private int searchGeneration;
     private int nextOffset;
+
+    /**
+     * Identifies the search currently being waited on, so an identical one is not fired
+     * a second time. Cleared on the Swing thread when the request finishes.
+     */
+    private String inFlightSearch;
 
     public ModrinthPanel(MainPane pane) {
         this.pane = pane;
@@ -222,8 +230,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     }
 
     private static JScrollPane scrollable(JComponent content) {
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setOpaque(false);
+        JPanel wrapper = new WidthTrackingPanel();
         wrapper.add(content, BorderLayout.NORTH);
 
         JScrollPane scroll = new JScrollPane(wrapper,
@@ -234,6 +241,46 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         scroll.getViewport().setOpaque(false);
         scroll.setOpaque(false);
         return scroll;
+    }
+
+    /**
+     * Content holder for the scroll panes.
+     * <p>
+     * Horizontal scrolling is switched off, so without this a row that wants to be wider
+     * than the viewport is simply cut off on the right - which is where the install
+     * buttons live. Tracking the viewport width instead forces every row to fit, and the
+     * row's own layout gives the buttons their space before the description gets the rest.
+     */
+    private static class WidthTrackingPanel extends JPanel implements Scrollable {
+        WidthTrackingPanel() {
+            super(new BorderLayout());
+            setOpaque(false);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return SwingUtil.magnify(16);
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return visibleRect.height;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
 
     // ------------------------------------------------------------ target
@@ -373,6 +420,25 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
     // ------------------------------------------------------------ searching
 
     private void startSearch(boolean reset) {
+        final String query = searchField.getText().trim();
+        final String gameVersion = target == null ? null : target.getGameVersion();
+        final String loader = target == null || target.getLoader() == null
+                ? null : target.getLoader().getId();
+        final SortOption sort = (SortOption) sortBox.getSelectedItem();
+        final int offset = reset ? 0 : nextOffset;
+
+        // Several widgets can ask for a search in response to one user action - selecting
+        // a game version also repopulates its own combo box, for instance. Firing the same
+        // request twice only burns Modrinth's rate limit, so an identical query that is
+        // already in flight is dropped.
+        String key = query + ' ' + gameVersion + ' ' + loader
+                + ' ' + (sort == null ? "" : sort.getIndex()) + ' ' + offset;
+        if (key.equals(inFlightSearch)) {
+            log.debug("Search already in flight, ignoring duplicate request");
+            return;
+        }
+        inFlightSearch = key;
+
         if (reset) {
             nextOffset = 0;
             resultsBox.removeAll();
@@ -382,12 +448,6 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
         loadMoreButton.setVisible(false);
 
         final int generation = ++searchGeneration;
-        final String query = searchField.getText().trim();
-        final int offset = nextOffset;
-        final String gameVersion = target == null ? null : target.getGameVersion();
-        final String loader = target == null || target.getLoader() == null
-                ? null : target.getLoader().getId();
-        final SortOption sort = (SortOption) sortBox.getSelectedItem();
 
         setStatus(ModrinthStrings.get("loading"));
 
@@ -400,6 +460,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
             } catch (IOException e) {
                 log.warn("Modrinth search failed", e);
                 SwingUtil.later(() -> {
+                    inFlightSearch = null;
                     if (generation != searchGeneration) {
                         return;
                     }
@@ -408,6 +469,7 @@ public class ModrinthPanel extends BorderPanel implements LocalizableComponent {
                 return;
             }
             SwingUtil.later(() -> {
+                inFlightSearch = null;
                 if (generation != searchGeneration) {
                     return; // a newer search already owns the list
                 }

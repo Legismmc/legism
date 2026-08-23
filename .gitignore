@@ -28,3 +28,6 @@ build
 
 /logs/*
 /lib/*
+
+# build outputs of the packaging modules
+packages/*/build/

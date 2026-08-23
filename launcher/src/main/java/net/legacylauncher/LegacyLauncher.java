@@ -70,7 +70,14 @@ public final class LegacyLauncher {
     private static LegacyLauncher instance;
 
     static {
-        System.setProperty("java.net.useSystemProxies", "true");
+        // Following the system proxy is the right default, but a local proxy client that
+        // advertises a SOCKS server and then never answers leaves the launcher unable to
+        // reach anything at all. Upstream overwrote the property unconditionally; here an
+        // explicitly passed -Djava.net.useSystemProxies=false wins, so such a setup can be
+        // worked around from tl.bootargs without rebuilding.
+        if (System.getProperty("java.net.useSystemProxies") == null) {
+            System.setProperty("java.net.useSystemProxies", "true");
+        }
     }
 
     @Getter
@@ -743,10 +750,7 @@ public final class LegacyLauncher {
 
         profileManager.refresh();
 
-        AsyncThread.DELAYER.scheduleWithFixedDelay(
-                () -> AsyncThread.execute(Stats::beacon),
-                30, 30, TimeUnit.MINUTES
-        );
+        // upstream pinged its stats server every 30 minutes from here; this fork does not
     }
 
     private void preloadUI() {

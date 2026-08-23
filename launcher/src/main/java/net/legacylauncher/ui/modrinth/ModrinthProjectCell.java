@@ -35,7 +35,7 @@ import java.util.Locale;
 @Slf4j
 public class ModrinthProjectCell extends JPanel {
     private static final int ICON_SIZE = 48;
-    private static final int DESCRIPTION_WIDTH = 420;
+    private static final int DESCRIPTION_WIDTH = 340;
 
     private final ModrinthPanel panel;
     private final ModrinthProject project;
