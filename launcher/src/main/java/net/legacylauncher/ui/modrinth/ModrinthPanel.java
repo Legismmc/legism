@@ -7,10 +7,11 @@ import net.legacylauncher.modrinth.InstalledMod;
 import net.legacylauncher.modrinth.ModInstaller;
 import net.legacylauncher.modrinth.ModLoader;
 import net.legacylauncher.modrinth.ModTarget;
-import net.legacylauncher.modrinth.ModrinthApi;
-import net.legacylauncher.modrinth.ModrinthProject;
-import net.legacylauncher.modrinth.ModrinthSearchResult;
-import net.legacylauncher.modrinth.ModrinthVersion;
+import net.legacylauncher.modrinth.ContentFile;
+import net.legacylauncher.modrinth.ContentProject;
+import net.legacylauncher.modrinth.ContentProvider;
+import net.legacylauncher.modrinth.ContentProviders;
+import net.legacylauncher.modrinth.ContentSearchResult;
 import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
@@ -25,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -38,6 +41,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -71,7 +75,8 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
     private final JTextField searchField = new JTextField();
     private final JComboBox<String> gameVersionBox = new JComboBox<>();
     private final JComboBox<Object> loaderBox = new JComboBox<>();
-    private final JComboBox<SortOption> sortBox = new JComboBox<>();
+    private final JComboBox<SortItem> sortBox = new JComboBox<>();
+    private final JComboBox<ContentProvider> libraryBox = new JComboBox<>();
     private final JCheckBox dependenciesBox = new JCheckBox();
     private final JLabel statusLabel = new JLabel();
 
@@ -93,6 +98,12 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
      */
     private ModTarget target;
     private ModInstaller installer;
+
+    /**
+     * The library being browsed. Kept per panel, so the mods tab can sit on CurseForge
+     * while the shaders tab stays on Modrinth.
+     */
+    private ContentProvider provider = ContentProviders.getDefault();
 
     /**
      * Bumped on every new search so that a slow response from a previous query cannot
@@ -165,6 +176,19 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(6), 0));
         filters.setOpaque(false);
 
+        filters.add(label("library"));
+        List<ContentProvider> providers = new java.util.ArrayList<>();
+        for (ContentProvider candidate : ContentProviders.all()) {
+            if (candidate.supports(type)) {
+                providers.add(candidate);
+            }
+        }
+        libraryBox.setModel(new DefaultComboBoxModel<>(providers.toArray(new ContentProvider[0])));
+        libraryBox.setRenderer(new LibraryRenderer());
+        libraryBox.setSelectedItem(provider);
+        libraryBox.addActionListener(e -> onLibraryChanged());
+        filters.add(libraryBox);
+
         filters.add(label("game-version"));
         // a fixed list only: typing a version by hand just produced empty result pages
         gameVersionBox.setEditable(false);
@@ -183,9 +207,13 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         }
 
         filters.add(label("sort"));
-        sortBox.setModel(new DefaultComboBoxModel<>(SortOption.values()));
-        sortBox.addActionListener(e -> startSearch(true));
+        sortBox.addActionListener(e -> {
+            if (!sortingBoxIsBeingRebuilt) {
+                startSearch(true);
+            }
+        });
         filters.add(sortBox);
+        refreshSortOptions();
 
         if (type.isLoaderSpecific()) {
             dependenciesBox.setText(ModrinthStrings.get("dependencies"));
@@ -426,9 +454,9 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         AsyncThread.execute(() -> {
             final List<String> versions;
             try {
-                versions = ModrinthApi.listReleaseGameVersions();
+                versions = provider.listGameVersions();
             } catch (IOException e) {
-                log.warn("Could not load the Modrinth game version list: {}", e.toString());
+                log.warn("Could not load the game version list: {}", e.toString());
                 return;
             }
             SwingUtil.later(() -> {
@@ -453,15 +481,16 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         final String gameVersion = target == null ? null : target.getGameVersion();
         final String loader = target == null || target.getLoader() == null
                 ? null : target.getLoader().getId();
-        final SortOption sort = (SortOption) sortBox.getSelectedItem();
+        final SortItem sort = (SortItem) sortBox.getSelectedItem();
+        final ContentProvider currentProvider = provider;
         final int offset = reset ? 0 : nextOffset;
 
         // Several widgets can ask for a search in response to one user action - selecting
         // a game version also repopulates its own combo box, for instance. Firing the same
         // request twice only burns Modrinth's rate limit, so an identical query that is
         // already in flight is dropped.
-        String key = query + ' ' + gameVersion + ' ' + loader
-                + ' ' + (sort == null ? "" : sort.getIndex()) + ' ' + offset;
+        String key = currentProvider.getId() + ' ' + query + ' ' + gameVersion + ' ' + loader
+                + ' ' + (sort == null ? "" : sort.getId()) + ' ' + offset;
         if (key.equals(inFlightSearch)) {
             log.debug("Search already in flight, ignoring duplicate request");
             return;
@@ -481,13 +510,12 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         setStatus(ModrinthStrings.get("loading"));
 
         AsyncThread.execute(() -> {
-            final ModrinthSearchResult result;
+            final ContentSearchResult result;
             try {
-                result = ModrinthApi.search(type, query, gameVersion, loader,
-                        sort == null ? SortOption.RELEVANCE.getIndex() : sort.getIndex(),
-                        offset, PAGE_SIZE);
+                result = currentProvider.search(type, query, gameVersion, loader,
+                        sort == null ? null : sort.getId(), offset, PAGE_SIZE);
             } catch (IOException e) {
-                log.warn("Modrinth search failed", e);
+                log.warn("{} search failed", currentProvider.getDisplayName(), e);
                 SwingUtil.later(() -> {
                     inFlightSearch = null;
                     if (generation != searchGeneration) {
@@ -507,10 +535,10 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         });
     }
 
-    private void showResults(ModrinthSearchResult result) {
+    private void showResults(ContentSearchResult result) {
         resultsBox.remove(loadMoreButton);
 
-        for (ModrinthProject project : result.getHits()) {
+        for (ContentProject project : result.getHits()) {
             resultsBox.add(new ModrinthProjectCell(this, project));
         }
         nextOffset = result.getOffset() + result.getHits().size();
@@ -536,9 +564,10 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
      * Finds a build of the project that fits the current target and installs it.
      * Runs off the Swing thread; the cell is told about progress and the outcome.
      */
-    void install(ModrinthProject project, ModrinthProjectCell cell) {
+    void install(ContentProject project, ModrinthProjectCell cell) {
         final ModTarget currentTarget = target;
         final ModInstaller currentInstaller = installer;
+        final ContentProvider currentProvider = provider;
         if (currentTarget == null || currentInstaller == null) {
             Alert.showError(ModrinthStrings.get("error.title"),
                     ModrinthStrings.get("no-version-selected"));
@@ -550,14 +579,14 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
 
         AsyncThread.execute(() -> {
             try {
-                List<ModrinthVersion> versions = ModrinthApi.listVersions(
+                List<ContentFile> plan = currentProvider.plan(
                         type,
-                        project.getProjectId(),
+                        project.getId(),
                         currentTarget.getGameVersion(),
-                        currentTarget.getLoader() == null ? null : currentTarget.getLoader().getId()
+                        currentTarget.getLoader() == null ? null : currentTarget.getLoader().getId(),
+                        withDependencies
                 );
-                ModrinthVersion best = ModInstaller.pickBest(versions);
-                if (best == null) {
+                if (plan.isEmpty()) {
                     String loaderName = currentTarget.getLoader() == null
                             ? "-" : currentTarget.getLoader().getDisplayName();
                     final String message = ModrinthStrings.get("no-compatible-version",
@@ -569,7 +598,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
                     return;
                 }
 
-                final List<String> installed = currentInstaller.install(best, withDependencies,
+                final List<String> installed = currentInstaller.install(plan,
                         (fileName, current, total) -> SwingUtil.later(() ->
                                 cell.setBusy(ModrinthStrings.get("installing") + " " + current + "/" + total)));
 
@@ -663,31 +692,84 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
     }
 
     /**
-     * The orderings Modrinth's search index offers.
+     * One entry of the sort box, showing the caption for whatever the library called it.
      */
-    enum SortOption {
-        RELEVANCE("relevance", "sort.relevance"),
-        DOWNLOADS("downloads", "sort.downloads"),
-        FOLLOWS("follows", "sort.follows"),
-        NEWEST("newest", "sort.newest"),
-        UPDATED("updated", "sort.updated");
+    private static class SortItem {
+        private final ContentProvider.SortOption option;
 
-        private final String index;
-        private final String key;
-
-        SortOption(String index, String key) {
-            this.index = index;
-            this.key = key;
+        SortItem(ContentProvider.SortOption option) {
+            this.option = option;
         }
 
-        String getIndex() {
-            return index;
+        String getId() {
+            return option.getId();
         }
 
         @Override
         public String toString() {
-            return ModrinthStrings.get(key);
+            return ModrinthStrings.get(option.getLabelKey());
         }
+    }
+
+    /**
+     * Shows a library's name, greyed out with the reason appended when it cannot be used.
+     */
+    private static class LibraryRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean selected, boolean focused) {
+            super.getListCellRendererComponent(list, value, index, selected, focused);
+            if (value instanceof ContentProvider) {
+                ContentProvider candidate = (ContentProvider) value;
+                setText(candidate.getDisplayName());
+                setEnabled(candidate.isAvailable());
+            }
+            return this;
+        }
+    }
+
+    /**
+     * Refills the sort box from whichever library is selected: they do not offer the same
+     * orderings, and CurseForge has no notion of followers.
+     */
+    private void refreshSortOptions() {
+        List<SortItem> items = new java.util.ArrayList<>();
+        for (ContentProvider.SortOption option : provider.getSortOptions()) {
+            items.add(new SortItem(option));
+        }
+        sortingBoxIsBeingRebuilt = true;
+        try {
+            sortBox.setModel(new DefaultComboBoxModel<>(items.toArray(new SortItem[0])));
+            if (!items.isEmpty()) {
+                sortBox.setSelectedIndex(0);
+            }
+        } finally {
+            sortingBoxIsBeingRebuilt = false;
+        }
+    }
+
+    private boolean sortingBoxIsBeingRebuilt;
+
+    /**
+     * Switches library. An unusable one is refused with the reason rather than left
+     * selected and silently empty.
+     */
+    private void onLibraryChanged() {
+        Object selected = libraryBox.getSelectedItem();
+        if (!(selected instanceof ContentProvider) || selected == provider) {
+            return;
+        }
+        ContentProvider candidate = (ContentProvider) selected;
+        if (!candidate.isAvailable()) {
+            setStatus(ModrinthStrings.get(candidate.getUnavailableReason()));
+            libraryBox.setSelectedItem(provider);
+            return;
+        }
+        provider = candidate;
+        refreshSortOptions();
+        gameVersionsLoaded = false;
+        loadGameVersionsOnce();
+        startSearch(true);
     }
 
     /**

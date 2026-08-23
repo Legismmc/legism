@@ -60,6 +60,8 @@ public final class ConfigurationDefaults {
 
         d.put("minecraft.onlaunch", Configuration.ActionOnLaunch.HIDE);
 
+        d.put("curseforge.apikey", "");
+
         d.put("minecraft.crash", true);
         d.put("minecraft.mods.removeUndesirable", true);
 

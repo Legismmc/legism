@@ -18,27 +18,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
- * Downloads Modrinth mods into a game directory and manages what is already there.
+ * Downloads content into a game directory and manages what is already there.
  * <p>
- * Every download is checked against the SHA-512 Modrinth publishes for the file; a jar
- * that does not match is discarded rather than installed.
+ * Which files to fetch is decided by a {@link ContentProvider}; this class only puts them
+ * on disk. Every download is checked against whatever hash its library publishes, and a
+ * file that does not match is discarded rather than installed.
  * <p>
  * All methods block, so callers must stay off the Swing thread.
  */
 @Slf4j
 public class ModInstaller {
-    /**
-     * How deep the installer follows required dependencies. Modrinth dependency chains
-     * are shallow in practice; the limit is there so a cycle in the metadata cannot turn
-     * into an endless download.
-     */
-    private static final int MAX_DEPENDENCY_DEPTH = 5;
 
     private final ModTarget target;
     private final ContentType type;
@@ -74,110 +67,34 @@ public class ModInstaller {
     }
 
     /**
-     * Installs one version and, optionally, everything it declares as required.
+     * Downloads everything in the plan into the target folder.
      *
-     * @return the names of the files that ended up in the mods directory
+     * @return the names of the files that ended up there
      */
-    public List<String> install(ModrinthVersion version,
-                                boolean withDependencies,
-                                Listener listener) throws IOException {
-        List<ModrinthVersion> plan = new ArrayList<>();
-        plan.add(version);
-        if (withDependencies) {
-            collectDependencies(version, plan, new HashSet<String>(), 0);
-        }
-
+    public List<String> install(List<ContentFile> plan, Listener listener) throws IOException {
         FileUtil.createFolder(getDirectory());
 
         List<String> installed = new ArrayList<>();
         for (int i = 0; i < plan.size(); i++) {
-            ModrinthVersion current = plan.get(i);
-            ModrinthFile file = current.getPrimaryFile();
-            if (file == null) {
-                log.warn("Version {} carries no downloadable file, skipping", current);
-                continue;
-            }
+            ContentFile file = plan.get(i);
             if (listener != null) {
-                listener.onStep(file.getFilename(), i + 1, plan.size());
+                listener.onStep(file.getFileName(), i + 1, plan.size());
             }
             downloadInto(file, getDirectory());
-            installed.add(file.getFilename());
+            installed.add(file.getFileName());
         }
         return installed;
     }
 
-    /**
-     * Walks the required dependencies of the given version, appending the versions that
-     * have to be installed alongside it.
-     */
-    private void collectDependencies(ModrinthVersion version,
-                                     List<ModrinthVersion> plan,
-                                     Set<String> visitedProjects,
-                                     int depth) {
-        if (depth >= MAX_DEPENDENCY_DEPTH) {
-            log.warn("Stopping dependency resolution at depth {}", depth);
-            return;
-        }
-        for (ModrinthDependency dependency : version.getDependencies()) {
-            if (!dependency.isRequired()) {
-                continue;
-            }
-            try {
-                ModrinthVersion resolved = resolve(dependency);
-                if (resolved == null) {
-                    log.warn("Could not resolve required dependency {} of {}", dependency, version);
-                    continue;
-                }
-                if (resolved.getProjectId() != null && !visitedProjects.add(resolved.getProjectId())) {
-                    continue;
-                }
-                if (containsSameFile(plan, resolved)) {
-                    continue;
-                }
-                plan.add(resolved);
-                collectDependencies(resolved, plan, visitedProjects, depth + 1);
-            } catch (IOException e) {
-                log.warn("Could not resolve required dependency {}: {}", dependency, e.toString());
-            }
-        }
-    }
+    private void downloadInto(ContentFile file, File targetDir) throws IOException {
+        String fileName = sanitizeFileName(file.getFileName(), type);
+        File destination = new File(targetDir, fileName);
 
-    private ModrinthVersion resolve(ModrinthDependency dependency) throws IOException {
-        if (StringUtils.isNotEmpty(dependency.getVersionId())) {
-            return ModrinthApi.getVersion(dependency.getVersionId());
+        if (StringUtils.isEmpty(file.getUrl())) {
+            throw new ModrinthException("no download link for " + fileName);
         }
-        if (StringUtils.isEmpty(dependency.getProjectId())) {
-            return null;
-        }
-        List<ModrinthVersion> candidates = ModrinthApi.listVersions(
-                type,
-                dependency.getProjectId(),
-                target.getGameVersion(),
-                target.getLoader() == null ? null : target.getLoader().getId()
-        );
-        return pickBest(candidates);
-    }
 
-    private static boolean containsSameFile(List<ModrinthVersion> plan, ModrinthVersion candidate) {
-        ModrinthFile candidateFile = candidate.getPrimaryFile();
-        if (candidateFile == null) {
-            return true; // nothing to install anyway
-        }
-        for (ModrinthVersion planned : plan) {
-            ModrinthFile file = planned.getPrimaryFile();
-            if (file != null && file.getFilename() != null
-                    && file.getFilename().equals(candidateFile.getFilename())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void downloadInto(ModrinthFile file, File modsDir) throws IOException {
-        String fileName = sanitizeFileName(file.getFilename(), type);
-        File destination = new File(modsDir, fileName);
-
-        log.info("Downloading {} ({} bytes) into {}", fileName, file.getSize(), modsDir);
+        log.info("Downloading {} ({} bytes) into {}", fileName, file.getSize(), targetDir);
 
         Content content;
         try {
@@ -195,7 +112,7 @@ public class ModInstaller {
         byte[] bytes = content.asBytes();
         verify(fileName, bytes, file);
 
-        File temp = new File(modsDir, fileName + ".part");
+        File temp = new File(targetDir, fileName + ".part");
         try {
             Files.write(temp.toPath(), bytes);
             Files.move(temp.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -204,7 +121,7 @@ public class ModInstaller {
         }
 
         // a copy the user disabled earlier would otherwise sit next to the fresh one
-        File disabled = new File(modsDir, fileName + InstalledMod.DISABLED_SUFFIX);
+        File disabled = new File(targetDir, fileName + InstalledMod.DISABLED_SUFFIX);
         if (disabled.isFile()) {
             disabled.delete();
         }
@@ -212,7 +129,10 @@ public class ModInstaller {
         log.info("Installed {}", destination);
     }
 
-    private static void verify(String fileName, byte[] bytes, ModrinthFile file) throws ModrinthException {
+    /**
+     * Checks the download against the strongest hash its library published for it.
+     */
+    private static void verify(String fileName, byte[] bytes, ContentFile file) throws ModrinthException {
         String expected = file.getSha512();
         String algorithm = "SHA-512";
         if (StringUtils.isEmpty(expected)) {
@@ -220,13 +140,17 @@ public class ModInstaller {
             algorithm = "SHA-1";
         }
         if (StringUtils.isEmpty(expected)) {
-            log.warn("Modrinth published no hash for {}, installing unverified", fileName);
+            expected = file.getMd5();
+            algorithm = "MD5";
+        }
+        if (StringUtils.isEmpty(expected)) {
+            log.warn("No hash was published for {}, installing unverified", fileName);
             return;
         }
         String actual = digest(bytes, algorithm);
         if (!expected.equalsIgnoreCase(actual)) {
-            throw new ModrinthException(fileName + " does not match the " + algorithm
-                    + " hash published by Modrinth (expected " + expected + ", got " + actual + ")");
+            throw new ModrinthException(fileName + " does not match the published " + algorithm
+                    + " hash (expected " + expected + ", got " + actual + ")");
         }
     }
 
@@ -251,12 +175,12 @@ public class ModInstaller {
 
     /**
      * Keeps a hostile file name from escaping the target directory, and refuses anything
-     * whose extension does not match the content type. Modrinth validates its own
+     * whose extension does not match the content type. The libraries validate their own
      * uploads, but the name arrives over the network, so it is not trusted here.
      */
     static String sanitizeFileName(String fileName, ContentType type) throws ModrinthException {
         if (StringUtils.isEmpty(fileName)) {
-            throw new ModrinthException("Modrinth sent a file without a name");
+            throw new ModrinthException("a file arrived without a name");
         }
         String name = fileName.replace('\\', '/');
         int slash = name.lastIndexOf('/');
@@ -264,7 +188,7 @@ public class ModInstaller {
             name = name.substring(slash + 1);
         }
         if (name.isEmpty() || name.equals(".") || name.equals("..")) {
-            throw new ModrinthException("Modrinth sent an unusable file name: " + fileName);
+            throw new ModrinthException("unusable file name: " + fileName);
         }
         if (!type.accepts(name)) {
             throw new ModrinthException("refusing to install " + fileName + " as a "
@@ -305,25 +229,13 @@ public class ModInstaller {
     }
 
     /**
-     * @return true when the mods directory already holds a file with this name, enabled
+     * @return true when the target directory already holds a file with this name, enabled
      * or disabled
      */
     public boolean isInstalled(String fileName) {
-        File modsDir = getDirectory();
-        return new File(modsDir, fileName).isFile()
-                || new File(modsDir, fileName + InstalledMod.DISABLED_SUFFIX).isFile();
-    }
-
-    /**
-     * @return true when any of the files of the given version is already there
-     */
-    public boolean isInstalled(ModrinthVersion version) {
-        for (ModrinthFile file : version.getFiles()) {
-            if (file.getFilename() != null && isInstalled(file.getFilename())) {
-                return true;
-            }
-        }
-        return false;
+        File dir = getDirectory();
+        return new File(dir, fileName).isFile()
+                || new File(dir, fileName + InstalledMod.DISABLED_SUFFIX).isFile();
     }
 
     public void delete(InstalledMod mod) throws IOException {
@@ -349,26 +261,6 @@ public class ModInstaller {
         Files.move(mod.getFile().toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
         log.info("{} {}", enabled ? "Enabled" : "Disabled", destination);
         return new InstalledMod(destination);
-    }
-
-    /**
-     * Picks the newest version that fits the target, preferring a release over a beta or
-     * an alpha when both are offered. Modrinth returns versions newest first.
-     */
-    public static ModrinthVersion pickBest(List<ModrinthVersion> versions) {
-        ModrinthVersion fallback = null;
-        for (ModrinthVersion version : versions) {
-            if (version.getPrimaryFile() == null) {
-                continue;
-            }
-            if ("release".equals(version.getVersionType())) {
-                return version;
-            }
-            if (fallback == null) {
-                fallback = version;
-            }
-        }
-        return fallback;
     }
 
     /**

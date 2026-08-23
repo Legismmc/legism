@@ -18,7 +18,9 @@ import net.legacylauncher.ui.explorer.FileExplorer;
 import net.legacylauncher.ui.explorer.ImageFileExplorer;
 import net.legacylauncher.ui.explorer.MediaFileExplorer;
 import net.legacylauncher.ui.images.Images;
+import net.legacylauncher.modrinth.CurseForgeProvider;
 import net.legacylauncher.ui.loc.*;
+import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.login.LoginException;
 import net.legacylauncher.ui.login.LoginForm;
 import net.legacylauncher.ui.scenes.DefaultScene;
@@ -67,6 +69,7 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorFieldHandler launchAction;
     public final EditorGroupHandler alertUpdates;
     public final EditorFieldHandler switchToBeta;
+    public final EditorFieldHandler curseForgeKey;
     public final EditorFieldHandler locale;
     public final HTMLPage about;
     private final BorderPanel buttonPanel;
@@ -285,6 +288,12 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
 
         alertUpdates = new EditorGroupHandler(defReleaseTypeHandlers);
         tlauncherTab.add(new EditorPair("settings.alert-on.label", defReleaseTypeHandlers));
+        tlauncherTab.nextPane();
+
+        // CurseForge answers nothing without a key of the user's own, so there is one to type in
+        curseForgeKey = new EditorFieldHandler(CurseForgeProvider.API_KEY_SETTING,
+                new EditorTextField("settings.curseforge.apikey.prompt", true));
+        tlauncherTab.add(new EditorPair(ModrinthStrings.get("curseforge.apikey"), curseForgeKey));
         tlauncherTab.nextPane();
 
         switchToBeta = new EditorFieldHandler("bootstrap.switchToBeta", new EditorCheckBox("settings.switch-to-beta"));

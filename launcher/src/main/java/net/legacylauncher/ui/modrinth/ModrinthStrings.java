@@ -47,6 +47,17 @@ public final class ModrinthStrings {
         en("loader", "Loader");
         ru("loader", "Загрузчик");
 
+        en("library", "Library");
+        ru("library", "Библиотека");
+
+        en("curseforge.no-key", "CurseForge answers nothing without an API key of your own. "
+                + "Get one free at console.curseforge.com and paste it into Settings -> Launcher.");
+        ru("curseforge.no-key", "CurseForge не отвечает без собственного API-ключа. "
+                + "Получите бесплатный на console.curseforge.com и вставьте его в Параметры -> Лаунчер.");
+
+        en("curseforge.apikey", "CurseForge API key");
+        ru("curseforge.apikey", "API-ключ CurseForge");
+
         en("sort", "Sort by");
         ru("sort", "Сортировка");
 

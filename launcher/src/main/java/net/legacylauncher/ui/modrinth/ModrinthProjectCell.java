@@ -1,8 +1,8 @@
 package net.legacylauncher.ui.modrinth;
 
 import lombok.extern.slf4j.Slf4j;
+import net.legacylauncher.modrinth.ContentProject;
 import net.legacylauncher.modrinth.ModInstaller;
-import net.legacylauncher.modrinth.ModrinthProject;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.util.EHttpClient;
 import net.legacylauncher.util.OS;
@@ -38,12 +38,12 @@ public class ModrinthProjectCell extends JPanel {
     private static final int DESCRIPTION_WIDTH = 340;
 
     private final ModrinthPanel panel;
-    private final ModrinthProject project;
+    private final ContentProject project;
 
     private final JButton installButton = new JButton();
     private final JLabel iconLabel = new JLabel();
 
-    public ModrinthProjectCell(ModrinthPanel panel, ModrinthProject project) {
+    public ModrinthProjectCell(ModrinthPanel panel, ContentProject project) {
         this.panel = panel;
         this.project = project;
 
@@ -87,9 +87,9 @@ public class ModrinthProjectCell extends JPanel {
         meta.append(meta.length() > 0 ? "  ·  " : "")
                 .append(ModInstaller.formatCount(project.getDownloads()))
                 .append(" ↓");
-        if (!project.getDisplayCategories().isEmpty()) {
+        if (!project.getCategories().isEmpty()) {
             meta.append("  ·  ")
-                    .append(StringUtils.join(project.getDisplayCategories(), ", "));
+                    .append(StringUtils.join(project.getCategories(), ", "));
         }
         JLabel metaLabel = new JLabel(meta.toString());
         metaLabel.setEnabled(false);
@@ -110,6 +110,7 @@ public class ModrinthProjectCell extends JPanel {
         JButton open = new JButton();
         open.setIcon(Images.getIcon16("external-link"));
         open.setToolTipText(ModrinthStrings.get("open"));
+        open.setEnabled(project.getPageUrl() != null);
         open.addActionListener(e -> OS.openLink(project.getPageUrl()));
         buttons.add(open);
 
