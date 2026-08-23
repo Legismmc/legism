@@ -6,6 +6,7 @@ import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableButton;
 import net.legacylauncher.ui.loc.LocalizableMenuItem;
 import net.legacylauncher.ui.login.LoginForm;
+import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.scenes.DefaultScene;
 import net.legacylauncher.util.SwingUtil;
 
@@ -19,6 +20,7 @@ public class SettingsButton extends LocalizableButton implements Blockable {
     private final JPopupMenu popup;
     private final LocalizableMenuItem accountManager;
     private final LocalizableMenuItem versionManager;
+    private final JMenuItem mods;
 
     SettingsButton(LoginForm loginform) {
         lf = loginform;
@@ -34,6 +36,10 @@ public class SettingsButton extends LocalizableButton implements Blockable {
         accountManager = new LocalizableMenuItem("loginform.button.settings.account");
         accountManager.addActionListener(e -> lf.pane.openAccountEditor());
         popup.add(accountManager);
+        mods = new JMenuItem(ModrinthStrings.get("title"));
+        mods.setIcon(Images.getIcon16("puzzle-piece"));
+        mods.addActionListener(e -> lf.pane.openModrinthScene());
+        popup.add(mods);
         setPreferredSize(new Dimension(30, getHeight()));
         addActionListener(e -> callPopup());
     }
@@ -61,6 +67,9 @@ public class SettingsButton extends LocalizableButton implements Blockable {
     @Override
     public void updateLocale() {
         super.updateLocale();
+        if (mods != null) { // may run before the constructor finished
+            mods.setText(ModrinthStrings.get("title"));
+        }
     }
 
     @Override

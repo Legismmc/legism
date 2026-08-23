@@ -14,6 +14,7 @@ public class ButtonPanel extends BlockablePanel {
     public final PlayButton play;
     private final JPanel manageButtonsPanel;
     public final SupportButton support;
+    public final ModsButton mods;
     public final FolderButton folder;
     public final RefreshButton refresh;
     public final SettingsButton settings;
@@ -28,10 +29,12 @@ public class ButtonPanel extends BlockablePanel {
         play = new PlayButton(lf);
         add("Center", play);
         cancel = new CancelAutoLoginButton(lf);
-        manageButtonsPanel = new JPanel(new GridLayout(0, letUserDoWhatHeWants ? 4 : 2));
+        manageButtonsPanel = new JPanel(new GridLayout(0, letUserDoWhatHeWants ? 5 : 3));
         manageButtonsPanel.setOpaque(false);
         support = new SupportButton(lf);
         manageButtonsPanel.add(support);
+        mods = new ModsButton(lf);
+        manageButtonsPanel.add(mods);
         folder = new FolderButton(lf);
         if (letUserDoWhatHeWants) {
             manageButtonsPanel.add(folder);

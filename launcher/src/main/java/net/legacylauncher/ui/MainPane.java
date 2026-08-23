@@ -39,6 +39,7 @@ public class MainPane extends ExtendedLayeredPane {
     public final DefaultScene defaultScene;
     public final DelayedComponent<AccountManagerScene> accountManager;
     public final DelayedComponent<VersionManagerScene> versionManager;
+    public final DelayedComponent<ModrinthScene> modrinthScene;
     public final DelayedComponent<RevertFontSize> revertFont;
     public final Map<String, DelayedComponent<? extends PseudoScene>> scenes = new HashMap<>();
 
@@ -89,6 +90,20 @@ public class MainPane extends ExtendedLayeredPane {
         });
         scenes.put("versions", versionManager);
         //add(versionManager);
+        log.trace("Init Modrinth scene...");
+        modrinthScene = new DelayedComponent<>(new DelayedComponentLoader<ModrinthScene>() {
+            @Override
+            public ModrinthScene loadComponent() {
+                return new ModrinthScene(MainPane.this);
+            }
+
+            @Override
+            public void onComponentLoaded(ModrinthScene loaded) {
+                MainPane.this.add(loaded);
+                loaded.onResize();
+            }
+        });
+        scenes.put("mods", modrinthScene);
         progress = new DelayedComponent<>(new DelayedComponentLoader<LaunchProgress>() {
             @Override
             public LaunchProgress loadComponent() {
@@ -257,6 +272,15 @@ public class MainPane extends ExtendedLayeredPane {
 
     public void openVersionManager() {
         setScene(versionManager.get());
+    }
+
+    public void openModrinthScene() {
+        ModrinthScene mods = modrinthScene.get();
+        mods.onResize();
+        setScene(mods);
+        // PseudoScene.setShown is a no-op the first time a scene is opened, so the panel
+        // is refreshed from here rather than from an onShown hook
+        mods.panel.onShown();
     }
 
     public LegacyLauncherFrame getRootFrame() {

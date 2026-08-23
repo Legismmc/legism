@@ -19,7 +19,7 @@ class LegacyLauncherBrandPlugin : Plugin<Project> {
         })
         extension.productName.convention(System.getenv("PRODUCT_NAME") ?: "Legacy by tgsko")
         extension.version.convention(extension.brand.map { brand ->
-            "${project.version}+${brand.replace(Regex("[^\dA-Za-z\-]"), "-")}${System.getenv("VERSION_SUFFIX") ?: ""}"
+            "${project.version}+${brand.replace(Regex("[^\\dA-Za-z\\-]"), "-")}${System.getenv("VERSION_SUFFIX") ?: ""}"
         })
 
         // set SUPPORT_EMAIL in the environment before building a release
