@@ -181,10 +181,15 @@ public class LegacyLauncherFrame extends JFrame {
                 log.warn("Hidden exception on setVisible(true)", rE);
             }
             int windowState = getExtendedStateFor(settings.getInteger("gui.window"));
-            if (windowState == 0) {
+            if (windowState <= 0) {
                 setLocationRelativeTo(null);
             } else {
-                setExtendedState(windowState);
+                // Requesting a maximized state in the same dispatch as setVisible(true) is
+                // unreliable on Windows: the native peer sometimes hasn't finished realizing
+                // the window yet, and the request is silently dropped. Deferring it to the
+                // next event dispatch cycle - after the window has actually been shown - is
+                // the standard fix for that race.
+                SwingUtilities.invokeLater(() -> setExtendedState(windowState));
             }
         });
 
