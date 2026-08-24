@@ -151,7 +151,14 @@ public class LegacyLauncherFrame extends JFrame {
             // maximizing/restoring can change mp's size without a componentResized
             // reliably reaching every scene first (mp itself has no parent to cascade
             // from), which used to leave a scene's last-known bounds stale - a blank
-            // strip below its content - until the next manual resize
+            // strip below its content - until the next manual resize.
+            //
+            // The frame's own bounds are already correct by the time this event fires,
+            // but mp - a plain BorderLayout.CENTER child - isn't guaranteed to have been
+            // laid out to match yet on a maximize/restore. Forcing that with validate()
+            // first means the scenes below read mp's real new size instead of whatever
+            // it still had from before the state change.
+            validate();
             for (Component comp : mp.getComponents()) {
                 if (comp instanceof ResizeableComponent) {
                     ((ResizeableComponent) comp).onResize();
