@@ -86,6 +86,20 @@ public class ModInstaller {
         return installed;
     }
 
+    /**
+     * Downloads a newer version of a file already installed, replacing it - including
+     * removing the old file when the new one has a different name, which is the usual case
+     * since a filename normally carries its own version number.
+     */
+    public void update(InstalledMod old, ContentFile newFile) throws IOException {
+        FileUtil.createFolder(getDirectory());
+        downloadInto(newFile, getDirectory());
+        String newName = sanitizeFileName(newFile.getFileName(), type);
+        if (!old.getFile().getName().equals(newName) && old.getFile().exists()) {
+            old.getFile().delete();
+        }
+    }
+
     private void downloadInto(ContentFile file, File targetDir) throws IOException {
         String fileName = sanitizeFileName(file.getFileName(), type);
         File destination = new File(targetDir, fileName);
@@ -151,6 +165,22 @@ public class ModInstaller {
         if (!expected.equalsIgnoreCase(actual)) {
             throw new ModrinthException(fileName + " does not match the published " + algorithm
                     + " hash (expected " + expected + ", got " + actual + ")");
+        }
+    }
+
+    /**
+     * SHA-1 of a file already on disk, hex encoded - what Modrinth's {@code version_files}
+     * lookup expects, for identifying an installed file that was not necessarily installed
+     * through this launcher.
+     *
+     * @return the hash, or {@code null} if the file could not be read
+     */
+    public static String sha1(File file) {
+        try {
+            return digest(Files.readAllBytes(file.toPath()), "SHA-1");
+        } catch (IOException e) {
+            log.debug("Could not hash {}: {}", file, e.toString());
+            return null;
         }
     }
 

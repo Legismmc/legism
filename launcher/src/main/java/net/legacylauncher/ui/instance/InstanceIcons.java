@@ -1,6 +1,7 @@
 package net.legacylauncher.ui.instance;
 
 import net.legacylauncher.instance.Instance;
+import net.legacylauncher.ui.images.IconLoader;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.util.Lazy;
 
@@ -13,6 +14,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,8 +104,50 @@ public final class InstanceIcons {
         if (instance == null) {
             return getIcon((String) null, size);
         }
+        File custom = instance.getCustomIconFile();
+        if (custom != null && custom.isFile()) {
+            Icon icon = getCustomIcon(instance.getId(), custom, size);
+            if (icon != null) {
+                return icon;
+            }
+            // fall through to a built-in icon if the file turned out unreadable
+        }
         String id = instance.getIcon();
         return getIcon(id == null ? pickDefault(instance.getId()) : id, size);
+    }
+
+    /**
+     * A user-uploaded icon, cropped to a centered square and scaled like the built-in grass
+     * texture is. Cached per instance rather than by file content, keyed on the file's own
+     * modification time so re-uploading a different picture invalidates it.
+     */
+    private static Icon getCustomIcon(String instanceId, File file, int size) {
+        String key = "custom:" + instanceId + ":" + file.lastModified() + "@" + size;
+        Icon cached = CACHE.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        BufferedImage decoded;
+        try {
+            decoded = IconLoader.decode(Files.readAllBytes(file.toPath()), file.getName(), size);
+        } catch (Exception e) {
+            return null;
+        }
+        if (decoded == null) {
+            return null;
+        }
+        int side = Math.min(decoded.getWidth(), decoded.getHeight());
+        BufferedImage square = decoded.getSubimage(
+                (decoded.getWidth() - side) / 2, (decoded.getHeight() - side) / 2, side, side);
+        BufferedImage scaled = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = scaled.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(square, 0, 0, size, size, null);
+        g.dispose();
+        Icon icon = new ImageIcon((Image) scaled);
+        CACHE.put(key, icon);
+        return icon;
     }
 
     public static Icon getIcon(String id, int size) {

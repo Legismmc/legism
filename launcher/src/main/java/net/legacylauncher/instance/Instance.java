@@ -27,6 +27,7 @@ public class Instance {
     private String versionId;
     private String group;
     private String icon;
+    private String customIcon;
     private long created;
     private long lastPlayed;
     private long totalPlayTime;
@@ -106,6 +107,27 @@ public class Instance {
 
     public void setIcon(String icon) {
         this.icon = icon;
+    }
+
+    /**
+     * File name of a user-uploaded icon image kept inside the instance folder, or
+     * {@code null} when the instance uses one of the built-in icons instead. Takes priority
+     * over {@link #getIcon()} whenever it is set.
+     */
+    public String getCustomIcon() {
+        return customIcon;
+    }
+
+    public void setCustomIcon(String customIcon) {
+        this.customIcon = customIcon;
+    }
+
+    /**
+     * The custom icon file this instance points at, resolved against its own folder;
+     * {@code null} when it has none.
+     */
+    public File getCustomIconFile() {
+        return customIcon == null ? null : new File(folder, customIcon);
     }
 
     /**

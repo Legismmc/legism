@@ -12,6 +12,8 @@ import net.legacylauncher.modrinth.ContentProject;
 import net.legacylauncher.modrinth.ContentProvider;
 import net.legacylauncher.modrinth.ContentProviders;
 import net.legacylauncher.modrinth.ContentSearchResult;
+import net.legacylauncher.modrinth.ModrinthInstalledLookup;
+import net.legacylauncher.modrinth.ModrinthMatch;
 import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
@@ -49,6 +51,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +87,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
     private final JPanel installedBox = new JPanel();
     private final JTabbedPane tabs = new JTabbedPane();
     private final JButton loadMoreButton = new JButton();
+    private final JButton updateAllButton = new JButton();
 
     /**
      * The pieces whose text has to be redone when the user switches the launcher's
@@ -273,13 +277,24 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         bar.setOpaque(false);
         bar.add(statusLabel, BorderLayout.CENTER);
 
-        bar.add(button("refresh", "refresh", e -> {
+        JPanel east = new JPanel(new FlowLayout(FlowLayout.RIGHT, SwingUtil.magnify(4), 0));
+        east.setOpaque(false);
+
+        updateAllButton.setText(ModrinthStrings.get("update-all"));
+        updateAllButton.setIcon(Images.getIcon16("download"));
+        updateAllButton.setVisible(false);
+        updateAllButton.addActionListener(e -> updateAll());
+        localizedButtons.put("update-all", updateAllButton);
+        east.add(updateAllButton);
+
+        east.add(button("refresh", "refresh", e -> {
             if (tabs.getSelectedIndex() == 1) {
                 refreshInstalled();
             } else {
                 startSearch(true);
             }
-        }), BorderLayout.EAST);
+        }));
+        bar.add(east, BorderLayout.EAST);
         return bar;
     }
 
@@ -623,24 +638,142 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
 
     // ------------------------------------------------------------ installed tab
 
+    /**
+     * What {@link ModrinthInstalledLookup} last found out about each installed file, keyed
+     * by the file itself. Cleared implicitly whenever the target changes, since a fresh
+     * {@link #refreshInstalled()} always kicks off a fresh lookup before this is consulted.
+     */
+    private Map<File, ModrinthMatch> installedMatches = Collections.emptyMap();
+
+    /**
+     * Bumped on every lookup so a slow one cannot clobber a newer one's results - the same
+     * trick {@link #searchGeneration} plays for the browse tab.
+     */
+    private int installedGeneration;
+
     private void refreshInstalled() {
+        List<InstalledMod> mods = installer == null
+                ? Collections.<InstalledMod>emptyList() : installer.listInstalled();
+        renderInstalled(mods);
+        if (installer != null) {
+            identifyInstalledAsync(mods);
+        }
+    }
+
+    private void renderInstalled(List<InstalledMod> mods) {
         installedBox.removeAll();
 
         if (installer == null) {
             installedBox.add(new JLabel(ModrinthStrings.get("no-version-selected")));
+            updateAllButton.setVisible(false);
+        } else if (mods.isEmpty()) {
+            installedBox.add(new JLabel(ModrinthStrings.get("empty.installed")));
+            updateAllButton.setVisible(false);
         } else {
-            List<InstalledMod> mods = installer.listInstalled();
-            if (mods.isEmpty()) {
-                installedBox.add(new JLabel(ModrinthStrings.get("empty.installed")));
-            } else {
-                for (InstalledMod mod : mods) {
-                    installedBox.add(new InstalledModCell(this, mod));
-                }
+            for (InstalledMod mod : mods) {
+                installedBox.add(new InstalledModCell(this, mod, installedMatches.get(mod.getFile())));
             }
+            updateAllButton.setVisible(hasAnyUpdate());
         }
 
         installedBox.revalidate();
         installedBox.repaint();
+    }
+
+    private boolean hasAnyUpdate() {
+        for (ModrinthMatch match : installedMatches.values()) {
+            if (match.hasUpdate()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Identifies every installed file by hash and checks each match for a newer compatible
+     * version - both against Modrinth specifically, regardless of which library the browse
+     * tab happens to be searching, since a file already on disk carries no metadata of its
+     * own about where it came from.
+     */
+    private void identifyInstalledAsync(List<InstalledMod> mods) {
+        final ModTarget currentTarget = target;
+        final int generation = ++installedGeneration;
+        AsyncThread.execute(() -> {
+            Map<File, ModrinthMatch> matches = ModrinthInstalledLookup.identify(
+                    mods, type,
+                    currentTarget == null ? null : currentTarget.getGameVersion(),
+                    currentTarget == null || currentTarget.getLoader() == null
+                            ? null : currentTarget.getLoader().getId());
+            SwingUtil.later(() -> {
+                if (generation != installedGeneration) {
+                    return; // a newer lookup already owns the list
+                }
+                installedMatches = matches;
+                if (tabs.getSelectedIndex() == 1) {
+                    renderInstalled(mods);
+                }
+            });
+        });
+    }
+
+    void updateInstalled(InstalledMod mod, ModrinthMatch match, InstalledModCell cell) {
+        if (installer == null || match.getLatestFile() == null) {
+            return;
+        }
+        final ModInstaller currentInstaller = installer;
+        AsyncThread.execute(() -> {
+            try {
+                currentInstaller.update(mod, match.getLatestFile());
+                SwingUtil.later(this::refreshInstalled);
+            } catch (IOException e) {
+                log.warn("Could not update {}", mod, e);
+                SwingUtil.later(() -> Alert.showError(ModrinthStrings.get("error.title"),
+                        ModrinthStrings.get("error.update") + "\n" + e.getMessage()));
+            }
+        });
+    }
+
+    private void updateAll() {
+        if (installer == null) {
+            return;
+        }
+        final ModInstaller currentInstaller = installer;
+        List<InstalledMod> toUpdate = new java.util.ArrayList<>();
+        for (InstalledMod mod : currentInstaller.listInstalled()) {
+            ModrinthMatch match = installedMatches.get(mod.getFile());
+            if (match != null && match.hasUpdate()) {
+                toUpdate.add(mod);
+            }
+        }
+        if (toUpdate.isEmpty()) {
+            return;
+        }
+
+        updateAllButton.setEnabled(false);
+        updateAllButton.setText(ModrinthStrings.get("updating"));
+
+        AsyncThread.execute(() -> {
+            int done = 0;
+            for (InstalledMod mod : toUpdate) {
+                ModrinthMatch match = installedMatches.get(mod.getFile());
+                if (match == null || match.getLatestFile() == null) {
+                    continue;
+                }
+                try {
+                    currentInstaller.update(mod, match.getLatestFile());
+                    done++;
+                } catch (IOException e) {
+                    log.warn("Could not update {}", mod, e);
+                }
+            }
+            final int updatedCount = done;
+            SwingUtil.later(() -> {
+                updateAllButton.setEnabled(true);
+                updateAllButton.setText(ModrinthStrings.get("update-all"));
+                setStatus(ModrinthStrings.get("update-all.done", updatedCount));
+                refreshInstalled();
+            });
+        });
     }
 
     void deleteInstalled(InstalledMod mod) {

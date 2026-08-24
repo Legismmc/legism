@@ -11,7 +11,8 @@ import java.util.List;
  * @see <a href="https://docs.modrinth.com/api/operations/searchprojects/">Modrinth API: search</a>
  */
 public class ModrinthProject {
-    @SerializedName("project_id")
+    // search hits key this "project_id"; the /projects batch endpoint keys it "id" instead
+    @SerializedName(value = "project_id", alternate = {"id"})
     private String projectId;
     @SerializedName("project_type")
     private String projectType;

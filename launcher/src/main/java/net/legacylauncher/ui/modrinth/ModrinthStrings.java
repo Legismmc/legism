@@ -130,6 +130,24 @@ public final class ModrinthStrings {
         en("empty.installed", "No mods installed for this version yet.");
         ru("empty.installed", "Для этой версии ещё нет установленных модов.");
 
+        en("update", "Update");
+        ru("update", "Обновить");
+
+        en("update-available", "Update available");
+        ru("update-available", "Доступно обновление");
+
+        en("update-all", "Update all");
+        ru("update-all", "Обновить всё");
+
+        en("updating", "Updating...");
+        ru("updating", "Обновление...");
+
+        en("update-all.done", "Updated %0 file(s)");
+        ru("update-all.done", "Обновлено файлов: %0");
+
+        en("error.update", "Could not update the file.");
+        ru("error.update", "Не удалось обновить файл.");
+
         en("no-version-selected", "Select an installed Minecraft version first.");
         ru("no-version-selected", "Сначала выберите установленную версию Minecraft.");
 
@@ -309,6 +327,9 @@ public final class ModrinthStrings {
         en("instances.change-icon", "Change icon...");
         ru("instances.change-icon", "Изменить значок...");
 
+        en("instances.change-icon.upload", "Upload image...");
+        ru("instances.change-icon.upload", "Загрузить изображение...");
+
         en("instances.group", "Change group...");
         ru("instances.group", "Изменить группу...");
 
@@ -392,6 +413,12 @@ public final class ModrinthStrings {
         ru("instance.servers.name-prompt", "Название сервера:");
         en("instance.servers.address-prompt", "Server address (host:port):");
         ru("instance.servers.address-prompt", "Адрес сервера (хост:порт):");
+        en("instance.servers.pinging", "Pinging...");
+        ru("instance.servers.pinging", "Пингуем...");
+        en("instance.servers.offline", "Offline or not responding");
+        ru("instance.servers.offline", "Не отвечает");
+        en("instance.servers.players", "players");
+        ru("instance.servers.players", "игроков");
 
         en("instance.screenshots.empty", "No screenshots yet.");
         ru("instance.screenshots.empty", "Скриншотов пока нет.");

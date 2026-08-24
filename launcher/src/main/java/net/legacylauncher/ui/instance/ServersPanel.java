@@ -4,11 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.instance.Instance;
 import net.legacylauncher.minecraft.NBTServer;
 import net.legacylauncher.minecraft.Server;
+import net.legacylauncher.minecraft.ping.ServerPinger;
+import net.legacylauncher.minecraft.ping.ServerStatus;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.SwingUtil;
+import net.legacylauncher.util.async.AsyncThread;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -25,7 +28,9 @@ import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -36,6 +41,7 @@ import java.util.function.Supplier;
 public class ServersPanel extends BackdropPanel {
     private static final String CARD_LIST = "list";
     private static final String CARD_EMPTY = "empty";
+    private static final long PING_TIMEOUT_SECONDS = 6;
 
     private final Supplier<Instance> instanceSource;
     private final DefaultListModel<NBTServer> model = new DefaultListModel<>();
@@ -43,18 +49,35 @@ public class ServersPanel extends BackdropPanel {
     private final CardLayout cards = new CardLayout();
     private final JPanel center = new JPanel(cards);
 
+    /**
+     * What the last ping of each server came back with, so the list can show it without
+     * pinging again on every repaint. Rebuilt from scratch each time the tab is shown.
+     */
+    private final Map<NBTServer, PingState> pingStates = new HashMap<>();
+
     public ServersPanel(Supplier<Instance> instanceSource) {
         this.instanceSource = instanceSource;
         setVgap(SwingUtil.magnify(8));
 
         list.setCellRenderer((l, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.getName() + "  —  " + value.getFullAddress());
-            label.setOpaque(true);
-            label.setBorder(BorderFactory.createEmptyBorder(
+            JPanel row = new JPanel(new BorderLayout());
+            row.setOpaque(true);
+            row.setBorder(BorderFactory.createEmptyBorder(
                     SwingUtil.magnify(4), SwingUtil.magnify(8), SwingUtil.magnify(4), SwingUtil.magnify(8)));
-            label.setBackground(isSelected ? l.getSelectionBackground() : l.getBackground());
-            label.setForeground(isSelected ? l.getSelectionForeground() : l.getForeground());
-            return label;
+            row.setBackground(isSelected ? l.getSelectionBackground() : l.getBackground());
+
+            JLabel name = new JLabel(value.getName() + "  —  " + value.getFullAddress());
+            name.setForeground(isSelected ? l.getSelectionForeground() : l.getForeground());
+            row.add(name, BorderLayout.NORTH);
+
+            JLabel status = new JLabel(describe(pingStates.get(value)));
+            status.setForeground(isSelected ? l.getSelectionForeground() : l.getForeground());
+            if (!isSelected) {
+                status.setEnabled(false);
+            }
+            row.add(status, BorderLayout.SOUTH);
+
+            return row;
         });
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -88,12 +111,17 @@ public class ServersPanel extends BackdropPanel {
         down.setToolTipText(ModrinthStrings.get("instance.servers.down"));
         down.addActionListener(e -> move(1));
 
+        JButton refresh = new JButton(ModrinthStrings.get("refresh"));
+        refresh.setIcon(Images.getIcon16("refresh"));
+        refresh.addActionListener(e -> pingAll());
+
         JPanel south = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(4), 0));
         south.setOpaque(false);
         south.add(add);
         south.add(remove);
         south.add(up);
         south.add(down);
+        south.add(refresh);
         setSouth(south);
     }
 
@@ -113,6 +141,73 @@ public class ServersPanel extends BackdropPanel {
             }
         }
         showCurrentCard();
+        pingAll();
+    }
+
+    /**
+     * Pings every server in the list, without making the user leave the launcher to find
+     * out who's online - the same thing joining would tell them, minus the wait.
+     */
+    private void pingAll() {
+        pingStates.clear();
+        for (int i = 0; i < model.size(); i++) {
+            NBTServer server = model.get(i);
+            pingStates.put(server, PingState.PENDING);
+            // Blocking socket I/O does not reliably respond to interruption, so a hung DNS
+            // lookup or connect() could otherwise wedge the ping forever; the timeout here
+            // guarantees the UI moves on even if the underlying thread is still stuck.
+            AsyncThread.completableTimeout(PING_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> ServerPinger.ping(server.getAddress(), server.getPort())
+            ).whenComplete((status, error) -> {
+                PingState result = error == null ? new PingState(status) : PingState.FAILED;
+                if (error != null) {
+                    log.debug("Could not ping {}: {}", server.getFullAddress(), error.toString());
+                }
+                SwingUtil.later(() -> {
+                    pingStates.put(server, result);
+                    list.repaint();
+                });
+            });
+        }
+        list.repaint();
+    }
+
+    private static String describe(PingState state) {
+        if (state == null || state == PingState.PENDING) {
+            return ModrinthStrings.get("instance.servers.pinging");
+        }
+        if (state.status == null) {
+            return ModrinthStrings.get("instance.servers.offline");
+        }
+        ServerStatus status = state.status;
+        StringBuilder text = new StringBuilder();
+        text.append(status.getOnlinePlayers()).append('/').append(status.getMaxPlayers())
+                .append(' ').append(ModrinthStrings.get("instance.servers.players"))
+                .append("  ·  ").append(status.getLatencyMs()).append(" ms");
+        String motd = status.getMotd() == null ? "" : status.getMotd().trim().replace('\n', ' ');
+        // legacy servers often bake color/formatting codes straight into the MOTD text
+        // instead of using the chat component's structured fields
+        motd = motd.replaceAll("§.", "").trim();
+        if (!motd.isEmpty()) {
+            text.append("  ·  ").append(motd);
+        }
+        return text.toString();
+    }
+
+    /**
+     * What {@link #pingAll} found out about one server: {@link #PENDING} while the ping is
+     * still in flight, {@link #FAILED} when the server did not answer at all, or a real
+     * {@link ServerStatus} otherwise.
+     */
+    private static final class PingState {
+        static final PingState PENDING = new PingState(null);
+        static final PingState FAILED = new PingState(null);
+
+        private final ServerStatus status;
+
+        private PingState(ServerStatus status) {
+            this.status = status;
+        }
     }
 
     private void addServer() {

@@ -634,16 +634,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         if (instance == null) {
             return;
         }
-        String chosen = InstanceIconPicker.pick(SwingUtilities.getWindowAncestor(this), instance.getIcon());
-        if (chosen == null) {
-            return;
-        }
-        try {
-            manager().setIcon(instance, chosen);
-        } catch (IOException e) {
-            log.warn("Could not change the icon of {}", instance, e);
-            Alert.showError(ModrinthStrings.get("error.title"), String.valueOf(e.getMessage()));
-        }
+        InstanceIconPicker.show(SwingUtilities.getWindowAncestor(this), instance, manager());
         refresh();
     }
 

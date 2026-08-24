@@ -2,6 +2,8 @@ package net.legacylauncher.modrinth;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Thin read-only client for the Modrinth v2 API.
@@ -40,6 +43,10 @@ public final class ModrinthApi {
     private static final Type VERSION_LIST = new TypeToken<List<ModrinthVersion>>() {
     }.getType();
     private static final Type GAME_VERSION_LIST = new TypeToken<List<GameVersion>>() {
+    }.getType();
+    private static final Type PROJECT_LIST = new TypeToken<List<ModrinthProject>>() {
+    }.getType();
+    private static final Type VERSION_FILES_MAP = new TypeToken<Map<String, ModrinthVersion>>() {
     }.getType();
 
     private ModrinthApi() {
@@ -120,6 +127,51 @@ public final class ModrinthApi {
     }
 
     /**
+     * Identifies installed files by their SHA-1 hash, for spotting what a jar or zip
+     * already sitting on disk actually is without the user having reinstalled it through
+     * the launcher.
+     *
+     * @return every hash that matched, mapped to the version it belongs to; a hash with no
+     * match on Modrinth is simply absent from the result
+     */
+    public static Map<String, ModrinthVersion> getVersionFiles(List<String> sha1Hashes) throws ModrinthException {
+        if (sha1Hashes.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        JsonObject body = new JsonObject();
+        JsonArray hashes = new JsonArray();
+        for (String hash : sha1Hashes) {
+            hashes.add(hash);
+        }
+        body.add("hashes", hashes);
+        body.addProperty("algorithm", "sha1");
+        Map<String, ModrinthVersion> result = parse(
+                post(BASE_URL + "/version_files", body.toString()), VERSION_FILES_MAP, "version files");
+        return result == null ? Collections.<String, ModrinthVersion>emptyMap() : result;
+    }
+
+    /**
+     * Batch project lookup, for turning the project ids out of {@link #getVersionFiles}
+     * into the titles and icons shown for installed content.
+     */
+    public static List<ModrinthProject> getProjects(List<String> ids) throws ModrinthException {
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        StringBuilder idsJson = new StringBuilder("[");
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                idsJson.append(',');
+            }
+            idsJson.append('"').append(ids.get(i).replace("\"", "")).append('"');
+        }
+        idsJson.append(']');
+        List<ModrinthProject> result = parse(
+                get(BASE_URL + "/projects?ids=" + encode(idsJson.toString())), PROJECT_LIST, "projects");
+        return result == null ? Collections.<ModrinthProject>emptyList() : result;
+    }
+
+    /**
      * @return every Minecraft release known to Modrinth, newest first, snapshots excluded
      */
     public static List<String> listReleaseGameVersions() throws ModrinthException {
@@ -177,6 +229,25 @@ public final class ModrinthApi {
         try {
             body = EHttpClient.toString(
                     Request.get(url)
+                            .addHeader(HttpHeaders.ACCEPT, "application/json")
+                            .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
+            );
+        } catch (IOException e) {
+            throw new ModrinthException("could not reach Modrinth: " + e.getMessage(), e);
+        }
+        if (body == null) {
+            throw new ModrinthException("empty response from " + url);
+        }
+        return body;
+    }
+
+    private static String post(String url, String jsonBody) throws ModrinthException {
+        log.debug("POST {}", url);
+        final String body;
+        try {
+            body = EHttpClient.toString(
+                    Request.post(url)
+                            .bodyString(jsonBody, org.apache.hc.core5.http.ContentType.APPLICATION_JSON)
                             .addHeader(HttpHeaders.ACCEPT, "application/json")
                             .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
             );

@@ -220,7 +220,37 @@ public class InstanceManager {
      * @param icon id of one of the built-in icons in {@code InstanceIcons}
      */
     public synchronized void setIcon(Instance instance, String icon) throws IOException {
+        File oldCustom = instance.getCustomIconFile();
         instance.setIcon(icon);
+        instance.setCustomIcon(null);
+        save(instance);
+        if (oldCustom != null && oldCustom.isFile()) {
+            oldCustom.delete();
+        }
+        refresh();
+    }
+
+    /**
+     * Copies an arbitrary image into the instance's own folder and points it there, in
+     * place of one of the built-in icons.
+     */
+    public synchronized void setCustomIcon(Instance instance, File sourceImage) throws IOException {
+        FileUtil.createFolder(instance.getFolder());
+        String extension = "";
+        String sourceName = sourceImage.getName();
+        int dot = sourceName.lastIndexOf('.');
+        if (dot >= 0 && dot < sourceName.length() - 1) {
+            extension = "." + sourceName.substring(dot + 1).toLowerCase(Locale.ROOT);
+        }
+        String fileName = "icon" + extension;
+        File destination = new File(instance.getFolder(), fileName);
+
+        File oldCustom = instance.getCustomIconFile();
+        if (oldCustom != null && oldCustom.isFile() && !oldCustom.equals(destination)) {
+            oldCustom.delete();
+        }
+        Files.copy(sourceImage.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        instance.setCustomIcon(fileName);
         save(instance);
         refresh();
     }
@@ -245,6 +275,13 @@ public class InstanceManager {
         Instance copy = create(newName, source.getVersionId());
         copy.setGroup(source.getGroup());
         copy.setIcon(source.getIcon());
+        File sourceCustomIcon = source.getCustomIconFile();
+        if (sourceCustomIcon != null && sourceCustomIcon.isFile()) {
+            Files.copy(sourceCustomIcon.toPath(),
+                    new File(copy.getFolder(), source.getCustomIcon()).toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+            copy.setCustomIcon(source.getCustomIcon());
+        }
         save(copy);
         FileUtil.deleteDirectory(copy.getGameDir());
         copyDirectory(source.getGameDir().toPath(), copy.getGameDir().toPath());
