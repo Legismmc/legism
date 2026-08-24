@@ -12,6 +12,7 @@ import net.legacylauncher.ui.swing.extended.ExtendedCheckbox;
 import net.legacylauncher.ui.swing.extended.ExtendedPanel;
 import net.legacylauncher.user.PlainUser;
 import net.legacylauncher.user.User;
+import net.legacylauncher.user.UserSet;
 import net.legacylauncher.util.SwingUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -145,7 +146,9 @@ public class AccountPlainPane extends ExtendedPanel implements AccountMultipaneC
             }
 
             User user = AccountManager.getPlainAuth().authorize(username, elySkins.getState());
-            LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().add(user);
+            UserSet userSet = LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet();
+            userSet.add(user);
+            userSet.select(user);
             AccountPlainPane.this.scene.list.select(new Account<>(user));
             AccountPlainPane.this.scene.multipane.showTip("success-" + mode.toString().toLowerCase(java.util.Locale.ROOT));
             updateNostalgicBackground(username, true);

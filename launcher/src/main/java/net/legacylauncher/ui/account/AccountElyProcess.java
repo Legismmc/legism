@@ -264,6 +264,7 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
         StandardAccountPane.removeAccountIfFound(user.getUsername(), Account.AccountType.ELY_LEGACY);
 
         LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().add(user);
+        LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().select(user);
         scene.multipane.showTip("success-add");
         scene.list.select(new Account<>(user));
     }

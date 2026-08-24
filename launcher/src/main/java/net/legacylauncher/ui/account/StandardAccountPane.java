@@ -214,7 +214,9 @@ public abstract class StandardAccountPane<T extends StandardAuth<Y>, Y extends U
                             LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().remove(newUser);
                             break;
                     }
-                    LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().add(account.getUser());
+                    UserSet userSet = LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet();
+                    userSet.add(account.getUser());
+                    userSet.select(account.getUser());
                     StandardAccountPane.this.scene.list.select(account);
                     StandardAccountPane.this.scene.multipane.showTip("success-" + mode.toString().toLowerCase(java.util.Locale.ROOT));
                 }

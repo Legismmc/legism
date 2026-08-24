@@ -136,6 +136,7 @@ class AccountMinecraftProcessWorker {
             userSet.getSet().stream().filter(u ->
                     u.getType().equals(MojangUser.TYPE) && u.getUUID().equals(minecraftUser.getUUID())
             ).findAny().ifPresent(userSet::remove);
+            userSet.select(minecraftUser);
             parent.scene.multipane.showTip("success-add");
             parent.scene.list.select(new Account<>(minecraftUser));
         });

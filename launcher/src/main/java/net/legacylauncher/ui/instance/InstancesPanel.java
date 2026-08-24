@@ -24,6 +24,7 @@ import net.legacylauncher.user.User;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -158,13 +159,34 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     private void updateAccountButton() {
         Account<? extends User> account = pane.defaultScene.loginForm.accounts.getAccount();
         if (account == null) {
+            accountButton.setIcon(Images.getIcon16("user-circle-o"));
             accountButton.setText(ModrinthStrings.get("instances.accounts"));
             accountButton.setToolTipText(ModrinthStrings.get("instances.accounts"));
             return;
         }
+        accountButton.setIcon(accountTypeIcon(account.getType()));
         accountButton.setText(account.getDisplayName());
         accountButton.setToolTipText(account.getDisplayName() + " ["
                 + account.getType().toString().toLowerCase(Locale.ROOT) + "]");
+    }
+
+    /**
+     * The same per-service icons {@link net.legacylauncher.ui.swing.AccountCellRenderer}
+     * draws in the account list, so the toolbar shows who you're signed in as - Ely.by,
+     * Microsoft or a plain nickname - without having to open that screen to check.
+     */
+    private static Icon accountTypeIcon(Account.AccountType type) {
+        switch (type) {
+            case ELY:
+            case ELY_LEGACY:
+                return Images.getIcon16("logo-ely");
+            case MINECRAFT:
+                return Images.getIcon16("logo-microsoft");
+            case MOJANG:
+                return Images.getIcon16("logo-mojang");
+            default:
+                return Images.getIcon16("user-circle-o");
+        }
     }
 
     private JButton toolbarButton(String key, String icon, ActionListener action) {
