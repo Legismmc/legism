@@ -13,6 +13,7 @@ import net.legacylauncher.ui.block.Blocker;
 import net.legacylauncher.ui.frames.FeedbackFrame;
 import net.legacylauncher.ui.loc.Localizable;
 import net.legacylauncher.ui.loc.LocalizableMenuItem;
+import net.legacylauncher.ui.swing.ResizeableComponent;
 import net.legacylauncher.ui.swing.extended.ExtendedComponentAdapter;
 import net.legacylauncher.ui.theme.SystemTheme;
 import net.legacylauncher.ui.theme.Theme;
@@ -146,6 +147,19 @@ public class LegacyLauncherFrame extends JFrame {
         });
         mp = new MainPane(this);
         add(mp);
+        addWindowStateListener(e -> {
+            // maximizing/restoring can change mp's size without a componentResized
+            // reliably reaching every scene first (mp itself has no parent to cascade
+            // from), which used to leave a scene's last-known bounds stale - a blank
+            // strip below its content - until the next manual resize
+            for (Component comp : mp.getComponents()) {
+                if (comp instanceof ResizeableComponent) {
+                    ((ResizeableComponent) comp).onResize();
+                }
+            }
+            mp.revalidate();
+            mp.repaint();
+        });
         log.trace("Packing main frame...");
         pack();
         log.trace("Resizing main pane...");

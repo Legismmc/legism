@@ -6,7 +6,9 @@ import net.legacylauncher.util.Lazy;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -16,15 +18,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * A small built-in set of block-like instance icons, so a fresh grid of instances does not
  * all wear the same picture.
  * <p>
  * Every icon but {@code grass} - the launcher's original texture crop - is painted in code:
- * a flat colour with a lit bevel and a handful of deterministic speckles, evoking a block
- * without reusing any of Mojang's own artwork.
+ * a rounded tile with a diagonal light-to-dark gradient, evoking a block face without
+ * reusing any of Mojang's own artwork.
  */
 public final class InstanceIcons {
     private static final String DEFAULT_ID = "grass";
@@ -138,35 +139,19 @@ public final class InstanceIcons {
     private static BufferedImage paint(Color base, int size) {
         BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g.setColor(base);
-        g.fillRect(0, 0, size, size);
+        // a smooth diagonal gradient reads as a lit block face; earlier this filled the
+        // middle with random speckles, which at icon size just looked like static
+        int arc = Math.max(2, size / 6);
+        g.setPaint(new GradientPaint(
+                0, 0, mix(base, Color.WHITE, 0.22f),
+                size, size, mix(base, Color.BLACK, 0.22f)));
+        g.fillRoundRect(0, 0, size, size, arc, arc);
 
-        // a lit top/left edge and a shaded bottom/right edge read as a block face, not a flat swatch
-        int bevel = Math.max(1, size / 8);
-        g.setColor(mix(base, Color.WHITE, 0.28f));
-        g.fillRect(0, 0, size, bevel);
-        g.fillRect(0, 0, bevel, size);
-        g.setColor(mix(base, Color.BLACK, 0.28f));
-        g.fillRect(0, size - bevel, size, bevel);
-        g.fillRect(size - bevel, 0, bevel, size);
-
-        // deterministic speckles break up the flat fill the same way a block texture would;
-        // seeded from the colour itself so the same icon always looks the same
-        Random random = new Random(base.getRGB());
-        int cell = Math.max(2, size / 8);
-        for (int y = bevel; y < size - bevel; y += cell) {
-            for (int x = bevel; x < size - bevel; x += cell) {
-                int roll = random.nextInt(3);
-                if (roll == 0) {
-                    g.setColor(mix(base, Color.WHITE, 0.10f));
-                    g.fillRect(x, y, cell, cell);
-                } else if (roll == 1) {
-                    g.setColor(mix(base, Color.BLACK, 0.10f));
-                    g.fillRect(x, y, cell, cell);
-                }
-            }
-        }
+        g.setColor(mix(base, Color.BLACK, 0.35f));
+        g.setStroke(new BasicStroke(Math.max(1f, size / 32f)));
+        g.drawRoundRect(1, 1, size - 2, size - 2, arc, arc);
 
         g.dispose();
         return image;
