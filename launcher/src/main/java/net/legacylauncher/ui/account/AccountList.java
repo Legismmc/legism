@@ -18,6 +18,7 @@ import net.legacylauncher.ui.swing.ScrollPane;
 import net.legacylauncher.ui.swing.extended.BorderPanel;
 import net.legacylauncher.ui.swing.extended.ExtendedPanel;
 import net.legacylauncher.user.User;
+import net.legacylauncher.user.UserSet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,8 +47,21 @@ public class AccountList extends CenterPanel implements ProfileManagerListener, 
         list.setCellRenderer(new AccountCellRenderer(AccountCellRenderer.AccountCellType.EDITOR));
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
             if ("success".equals(scene.multipane.currentTip())) {
                 scene.multipane.showTip("welcome");
+            }
+            // clicking an account in this list is how you switch to it - it was only
+            // ever highlighted here before, the account actually used to log in never
+            // changed unless you went on to open and save it through Edit
+            Account<? extends User> selected = list.getSelectedValue();
+            if (selected != null) {
+                UserSet userSet = LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet();
+                if (!selected.getUser().equals(userSet.getSelected())) {
+                    userSet.select(selected.getUser());
+                }
             }
         });
         //list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

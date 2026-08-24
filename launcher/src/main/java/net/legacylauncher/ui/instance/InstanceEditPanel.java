@@ -60,7 +60,7 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
 
         backButton = new JButton(ModrinthStrings.get("back"));
         backButton.setIcon(Images.getIcon16("arrow-left"));
-        backButton.addActionListener(e -> pane.openInstancesScene());
+        backButton.addActionListener(e -> closeOrGoHome());
         header.add(backButton, BorderLayout.WEST);
 
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -149,8 +149,22 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
 
     private void play() {
         if (instance != null) {
-            pane.openInstancesScene();
+            closeOrGoHome();
             pane.defaultScene.loginForm.startInstance(instance);
+        }
+    }
+
+    /**
+     * This panel now normally lives in its own window over the instance list rather than
+     * replacing it - closing that window is what "back" and "play" mean here. The fallback
+     * covers the rare case where it's still shown the old way.
+     */
+    private void closeOrGoHome() {
+        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
+        if (window instanceof javax.swing.JDialog) {
+            window.dispose();
+        } else {
+            pane.openInstancesScene();
         }
     }
 

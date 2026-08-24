@@ -569,10 +569,32 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         }
     }
 
+    /**
+     * The mod/resourcepack/shader/worlds browser for one instance - same idea as Settings
+     * and the account manager, in its own window rather than replacing the instance grid.
+     * Unlike those two it's meant to be worked in for a while and browsed against a search
+     * list, so this one is resizable and sized generously instead of hugging its content.
+     */
     void edit(Instance instance) {
-        if (instance != null) {
-            pane.openInstanceEditor(instance);
+        if (instance == null) {
+            return;
         }
+        InstanceEditPanel editPanel = pane.instanceEditScene.get().panel;
+        editPanel.setInstance(instance);
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                ModrinthStrings.get("edit.title", instance.getName() + " — " + instance.getVersionId()),
+                Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(editPanel, BorderLayout.CENTER);
+
+        Dimension size = SwingUtil.magnify(new Dimension(1000, 700));
+        dialog.setMinimumSize(SwingUtil.magnify(new Dimension(760, 520)));
+        dialog.setSize(size);
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        editPanel.onShown();
+        dialog.setVisible(true);
     }
 
     /**
