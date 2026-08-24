@@ -66,7 +66,12 @@ public class AccountComboBox extends ExtendedComboBox<Account<? extends User>> i
                     setSelectedIndex(0);
                 } else {
                     selectedAccount = selected;
-                    LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().select(selectedAccount == null ? null : selectedAccount.getUser(), false);
+                    // fireRefresh must stay false while a refreshAccounts() pass is what
+                    // triggered this selection change, or the two would recurse forever;
+                    // for a genuine pick from the dropdown it has to be true, or nothing
+                    // outside this combo box - the instances toolbar included - ever
+                    // learns the active account changed
+                    LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().select(selectedAccount == null ? null : selectedAccount.getUser(), !refreshing);
                     try {
                         LegacyLauncher.getInstance().getProfileManager().saveProfiles();
                     } catch (IOException e1) {

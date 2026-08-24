@@ -100,8 +100,17 @@ public class AccountList extends CenterPanel implements ProfileManagerListener, 
         firstLineButtons.add(edit);
 
         LocalizableButton back = new LocalizableButton(Images.getIcon24("home"), "account.button.home");
-        // the instance list is the home screen this came from
-        back.addActionListener(e -> LegacyLauncher.getInstance().getFrame().mp.openInstancesScene());
+        // the account manager now normally lives in its own window over the instance
+        // list rather than replacing it, so closing it just means closing that window;
+        // the fallback covers the rare case where it's still shown the old way
+        back.addActionListener(e -> {
+            Window window = SwingUtilities.getWindowAncestor(AccountList.this);
+            if (window instanceof JDialog) {
+                window.dispose();
+            } else {
+                LegacyLauncher.getInstance().getFrame().mp.openInstancesScene();
+            }
+        });
         firstLineButtons.add(back);
 
         wrapper.setSouth(buttons);

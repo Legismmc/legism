@@ -14,7 +14,9 @@ import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableComponent;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
+import net.legacylauncher.ui.scenes.AccountManagerScene;
 import net.legacylauncher.ui.scenes.DefaultScene;
+import net.legacylauncher.ui.settings.SettingsPanel;
 import net.legacylauncher.ui.swing.extended.BackdropPanel;
 import net.legacylauncher.util.MinecraftUtil;
 import net.legacylauncher.util.OS;
@@ -27,6 +29,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -38,10 +41,12 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -142,7 +147,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         right.setOpaque(false);
         accountButton = new JButton();
         accountButton.setIcon(Images.getIcon16("user-circle-o"));
-        accountButton.addActionListener(e -> pane.openAccountEditor());
+        accountButton.addActionListener(e -> openAccountManager());
         right.add(accountButton);
         bar.add(right, BorderLayout.EAST);
 
@@ -755,9 +760,64 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         }
     }
 
+    /**
+     * Settings used to take over the whole window (switching away from whatever instance
+     * grid or editor you had open); showing it in its own window instead means the rest of
+     * the launcher stays exactly as you left it underneath.
+     */
     private void openLauncherSettings() {
-        pane.openDefaultScene();
         pane.defaultScene.setSidePanel(DefaultScene.SidePanel.SETTINGS);
+        SettingsPanel settingsPanel = pane.defaultScene.settingsForm.get();
+        settingsPanel.setVisible(true);
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                ModrinthStrings.get("instances.settings"), Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(settingsPanel, BorderLayout.CENTER);
+        // the panel's own Save/Home buttons still call DefaultScene.setSidePanel(null),
+        // which hides it - that's the cue to close the window it's sitting in now
+        settingsPanel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                dialog.dispose();
+            }
+        });
+        dialog.pack();
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
+        // covers closing via the window's own [x] instead of a button inside the panel
+        pane.defaultScene.setSidePanel(null);
+    }
+
+    /**
+     * Same idea as the settings window: the account manager used to replace the whole
+     * window too. It's an absolutely-positioned scene sized for wherever it used to be
+     * shown, so instead of letting it stretch to fill this dialog, it keeps the compact
+     * size it was designed for and the dialog wraps snugly around just that.
+     */
+    private void openAccountManager() {
+        AccountManagerScene scene = pane.accountManager.get();
+
+        int gap = SwingUtil.magnify(15);
+        int width = scene.list.getWidth() + gap + scene.multipane.getWidth();
+        int height = Math.max(scene.list.getHeight(), scene.multipane.getHeight());
+        scene.setPreferredSize(new Dimension(width, height));
+        scene.setSize(width, height);
+        scene.list.setLocation(0, 0);
+        scene.multipane.setLocation(scene.list.getWidth() + gap, 0);
+        scene.multipane.showTip("welcome");
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                ModrinthStrings.get("instances.accounts"), Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(scene, BorderLayout.CENTER);
+        dialog.pack();
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
     }
 
     @Override
