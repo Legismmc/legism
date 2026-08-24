@@ -294,6 +294,9 @@ public final class ModrinthStrings {
         en("instances.stop", "Stop");
         ru("instances.stop", "Остановить");
 
+        en("instances.change-icon", "Change icon...");
+        ru("instances.change-icon", "Изменить значок...");
+
         en("instances.group", "Change group...");
         ru("instances.group", "Изменить группу...");
 

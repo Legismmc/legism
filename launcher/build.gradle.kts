@@ -80,12 +80,14 @@ dependencies {
     implementation(libs.java.statsd.client)
     implementation(libs.jdom)
     implementation(libs.jopt.simple)
+    implementation(libs.jsvg)
     implementation(libs.jvd)
     implementation(libs.nanohttpd)
     implementation(libs.nstweaker)
     implementation(libs.oshi)
     implementation(libs.texttree)
     implementation(libs.toml4j)
+    implementation(libs.twelvemonkeys.webp)
     implementation(libs.xz)
 
     "java11CompileOnly"(projects.common) {

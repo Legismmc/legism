@@ -3,6 +3,7 @@ package net.legacylauncher.ui.modrinth;
 import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.modrinth.ContentProject;
 import net.legacylauncher.modrinth.ModInstaller;
+import net.legacylauncher.ui.images.IconLoader;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.util.EHttpClient;
 import net.legacylauncher.util.OS;
@@ -14,7 +15,6 @@ import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.core5.http.HttpHeaders;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -25,9 +25,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.awt.FlowLayout;
-import java.util.Locale;
 
 /**
  * One search hit: icon, title, description and the buttons that act on it.
@@ -133,12 +131,12 @@ public class ModrinthProjectCell extends JPanel {
     }
 
     /**
-     * Modrinth serves project icons as PNG, WebP or SVG. Only the raster formats Java can
-     * decode are fetched; anything else keeps the generic puzzle-piece placeholder.
+     * Modrinth and CurseForge serve project icons as PNG, JPEG, GIF, WebP or SVG;
+     * {@link IconLoader} is what makes sense of whichever one comes back.
      */
     private void loadIconAsync(int size) {
         final String url = project.getIconUrl();
-        if (StringUtils.isEmpty(url) || url.toLowerCase(Locale.ROOT).endsWith(".svg")) {
+        if (StringUtils.isEmpty(url)) {
             return;
         }
         AsyncThread.execute(() -> {
@@ -150,7 +148,7 @@ public class ModrinthProjectCell extends JPanel {
                 if (content == null) {
                     return;
                 }
-                image = ImageIO.read(new ByteArrayInputStream(content.asBytes()));
+                image = IconLoader.decode(content.asBytes(), url, size);
             } catch (Exception e) {
                 log.debug("Could not load the icon of {}: {}", project, e.toString());
                 return;

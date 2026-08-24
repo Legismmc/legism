@@ -26,6 +26,7 @@ public class Instance {
     private String name;
     private String versionId;
     private String group;
+    private String icon;
     private long created;
     private long lastPlayed;
     private long totalPlayTime;
@@ -91,6 +92,19 @@ public class Instance {
 
     public void setGroup(String group) {
         this.group = group == null || group.trim().isEmpty() ? null : group.trim();
+    }
+
+    /**
+     * Id of the built-in icon picked for this instance, or {@code null} when none was ever
+     * chosen - the UI then picks one deterministically from {@link #getId()}, so the
+     * descriptor does not need migrating just to get an icon that varies between instances.
+     */
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     /**

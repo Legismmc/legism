@@ -1,9 +1,7 @@
 package net.legacylauncher.ui.instance;
 
 import net.legacylauncher.instance.Instance;
-import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.theme.Theme;
-import net.legacylauncher.util.Lazy;
 import net.legacylauncher.util.SwingUtil;
 
 import javax.swing.BorderFactory;
@@ -16,12 +14,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 
 /**
- * One instance in the grid: a grass block icon with the name underneath.
+ * One instance in the grid: its icon with the name underneath.
  * <p>
  * The selected tile gets the accent bar behind its name, which is what keeps the selection
  * readable over the launcher's photographic background.
@@ -29,19 +25,6 @@ import java.awt.image.BufferedImage;
 public class InstanceTile extends JPanel {
     static final int TILE_WIDTH = 96;
     static final int ICON_SIZE = 56;
-
-    /**
-     * The launcher ships a tileable grass texture; a square crop of it makes the block
-     * icon without adding another asset.
-     */
-    private static final Lazy<BufferedImage> GRASS = Lazy.of(() -> {
-        BufferedImage full = Images.loadImageByName("grass.png");
-        if (full == null) {
-            return null;
-        }
-        int side = Math.min(full.getWidth(), full.getHeight());
-        return full.getSubimage(0, 0, side, side);
-    });
 
     private final Instance instance;
 
@@ -55,7 +38,7 @@ public class InstanceTile extends JPanel {
                 SwingUtil.magnify(6), SwingUtil.magnify(6),
                 SwingUtil.magnify(6), SwingUtil.magnify(6)));
 
-        add(buildIcon(SwingUtil.magnify(ICON_SIZE)), BorderLayout.CENTER);
+        add(buildIcon(instance, SwingUtil.magnify(ICON_SIZE)), BorderLayout.CENTER);
 
         JLabel nameLabel = new NameLabel(instance.getName());
         nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -69,22 +52,10 @@ public class InstanceTile extends JPanel {
         setMinimumSize(size);
     }
 
-    static JLabel buildIcon(int size) {
+    static JLabel buildIcon(Instance instance, int size) {
         JLabel icon = new JLabel();
         icon.setHorizontalAlignment(SwingConstants.CENTER);
-        BufferedImage grass = GRASS.get();
-        if (grass == null) {
-            icon.setIcon(Images.getIcon("cube", size));
-        } else {
-            // nearest neighbour keeps the pixels crisp instead of smearing the texture
-            BufferedImage scaled = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = scaled.createGraphics();
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-            g.drawImage(grass, 0, 0, size, size, null);
-            g.dispose();
-            icon.setIcon(new javax.swing.ImageIcon((Image) scaled));
-        }
+        icon.setIcon(InstanceIcons.getIcon(instance, size));
         return icon;
     }
 

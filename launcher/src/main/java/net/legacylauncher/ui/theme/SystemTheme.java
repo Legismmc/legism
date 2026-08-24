@@ -1,5 +1,7 @@
 package net.legacylauncher.ui.theme;
 
+import net.legacylauncher.LegacyLauncher;
+import net.legacylauncher.ui.FlatLaf;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.U;
 
@@ -78,7 +80,7 @@ public final class SystemTheme extends Theme {
 
     @Override
     public int getBorderSize() {
-        return 2;
+        return isMinimalist() ? 1 : 2;
     }
 
     @Override
@@ -93,6 +95,9 @@ public final class SystemTheme extends Theme {
 
     @Override
     public int getArc(Border border) {
+        if (isMinimalist()) {
+            return 0;
+        }
         return border == Border.SETTINGS_PANEL ? 16 : 24;
     }
 
@@ -107,11 +112,26 @@ public final class SystemTheme extends Theme {
     }
 
     private boolean useColorfulIcons() {
-        if (Boolean.getBoolean("tlauncher.ui.noColorfulIcons") || UIManager.getBoolean("laf.dark")) {
+        if (isMinimalist() || Boolean.getBoolean("tlauncher.ui.noColorfulIcons") || UIManager.getBoolean("laf.dark")) {
             return false;
         }
         Color background = getBackground();
         return background.getRed() > BLACK_MIN || background.getGreen() > BLACK_MIN || background.getBlue() > BLACK_MIN;
+    }
+
+    /**
+     * Whether the "Minimalist" theme is the one selected in Settings; checked directly
+     * against the settings map rather than cached, since a theme change swaps it at
+     * runtime and every one of these getters is called fresh on each repaint anyway.
+     */
+    private static boolean isMinimalist() {
+        try {
+            return LegacyLauncher.getInstance().getSettings().getFlatLafConfiguration()
+                    .map(FlatLaf::isMinimalist)
+                    .orElse(false);
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     public void updateUI() {

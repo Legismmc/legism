@@ -117,13 +117,31 @@ public class FlatLaf {
             log.info("FlatLaf is not enabled. Skipping initialization");
             return;
         }
-        FlatLafConfiguration.Theme theme = config.getSelected().orElse(detectTheme());
+        // "Minimalist" is FlatLaf's light theme with square, low-decoration UI defaults
+        // layered on top, rather than a state of its own light/dark base can resolve to
+        boolean minimalist = isMinimalist(config);
+        FlatLafConfiguration.Theme theme = minimalist
+                ? FlatLafConfiguration.Theme.LIGHT
+                : config.getSelected().orElse(detectTheme());
         setUIProperties(config.getUiPropertiesFiles().get(theme));
         setLaf(theme, config.getThemeFiles().get(theme));
+        if (minimalist) {
+            MinimalistLaf.apply();
+            updateLafInWindows();
+        }
     }
 
     public static void initialize(FlatLafConfiguration config) {
         initialize(config, false);
+    }
+
+    /**
+     * Whether the "Minimalist" option is selected - a flatter set of UI defaults on top of
+     * the light theme, tracked separately from {@link FlatLafConfiguration#getSelected()}
+     * because it is not a light/dark base of its own.
+     */
+    public static boolean isMinimalist(FlatLafConfiguration config) {
+        return config != null && config.getState().orElse(null) == FlatLafConfiguration.State.MINIMAL;
     }
 
     private static FlatLafConfiguration.Theme detectTheme() {

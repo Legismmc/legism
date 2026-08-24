@@ -95,17 +95,31 @@ class InstanceManagerTest {
     }
 
     @Test
+    void changesTheIcon() throws IOException {
+        Instance instance = manager.create("Iconic", "1.20.1");
+        assertEquals(null, instance.getIcon());
+
+        manager.setIcon(instance, "diamond");
+
+        assertEquals("diamond", manager.refresh().get(0).getIcon());
+        // a fresh reader off disk should see it too, not just the in-memory instance
+        assertEquals("diamond", new InstanceManager(root.toFile()).refresh().get(0).getIcon());
+    }
+
+    @Test
     void duplicatesTheGameDirectoryToo() throws IOException {
         Instance source = manager.create("Original", "1.20.1");
         File mods = new File(source.getGameDir(), "mods");
         assertTrue(mods.mkdirs());
         Files.write(new File(mods, "sodium.jar").toPath(), "not really a jar".getBytes(StandardCharsets.UTF_8));
         manager.setGroup(source, "Packs");
+        manager.setIcon(source, "emerald");
 
         Instance copy = manager.duplicate(manager.refresh().get(0), "Copy of it");
 
         assertEquals("copy-of-it", copy.getId());
         assertEquals("Packs", copy.getGroup());
+        assertEquals("emerald", copy.getIcon());
         assertEquals("1.20.1", copy.getVersionId());
         File copiedMod = new File(copy.getGameDir(), "mods/sodium.jar");
         assertTrue(copiedMod.isFile(), "the copy should carry the mods over");

@@ -109,7 +109,7 @@ public class FlatLafConfiguration {
     }
 
     public enum State {
-        OFF(false), SYSTEM(false), AUTO, DARK, LIGHT;
+        OFF(false), SYSTEM(false), AUTO, DARK, LIGHT, MINIMAL;
 
         private final boolean enabled;
 

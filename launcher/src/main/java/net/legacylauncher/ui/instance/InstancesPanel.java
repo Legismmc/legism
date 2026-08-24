@@ -476,6 +476,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         menu.add(menuItem("instances.play", "play", e -> play(instance)));
         menu.add(menuItem("instances.edit", "pencil", e -> edit(instance)));
         menu.addSeparator();
+        menu.add(menuItem("instances.change-icon", "cube", e -> changeIcon(instance)));
         menu.add(menuItem("instances.group", "bars", e -> changeGroup(instance)));
         menu.add(menuItem("instances.open-folder", "folder-open", e -> openFolder(instance)));
         menu.add(menuItem("instances.export", "share", e -> export(instance)));
@@ -575,6 +576,23 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
             manager().rename(instance, newName);
         } catch (IOException e) {
             log.warn("Could not rename {}", instance, e);
+            Alert.showError(ModrinthStrings.get("error.title"), String.valueOf(e.getMessage()));
+        }
+        refresh();
+    }
+
+    void changeIcon(Instance instance) {
+        if (instance == null) {
+            return;
+        }
+        String chosen = InstanceIconPicker.pick(SwingUtilities.getWindowAncestor(this), instance.getIcon());
+        if (chosen == null) {
+            return;
+        }
+        try {
+            manager().setIcon(instance, chosen);
+        } catch (IOException e) {
+            log.warn("Could not change the icon of {}", instance, e);
             Alert.showError(ModrinthStrings.get("error.title"), String.valueOf(e.getMessage()));
         }
         refresh();

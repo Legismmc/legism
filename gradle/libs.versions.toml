@@ -19,6 +19,7 @@ javafx-plugin = "0.0.9"
 jdom = "2.0.2"
 jna = "5.17.0"
 jopt-simple = "5.0.4" # Locked, see 92d9c564
+jsvg = "2.0.0"
 junit5 = "5.10.2"
 junixsocket = "2.9.0"
 jvd = "1.0"
@@ -33,6 +34,7 @@ spring-boot = "2.7.18" # Spring Boot 3 requires java 17+, so we stuck here with 
 system-theme-detector = "06bbc431eb" # or use anything newer than df12cda
 text-tree = "2.1.2"
 toml4j = "0.7.3"
+twelvemonkeys = "3.12.0"
 xz = "1.9"
 
 [libraries]
@@ -58,6 +60,7 @@ jdom = { module = "org.jdom:jdom", version.ref = "jdom" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 jopt-simple = { module = "net.sf.jopt-simple:jopt-simple", version.ref = "jopt-simple" }
+jsvg = { module = "com.github.weisj:jsvg", version.ref = "jsvg" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
 junixsocket-core = { module = "com.kohlschutter.junixsocket:junixsocket-core", version.ref = "junixsocket" }
@@ -77,6 +80,7 @@ spring-boot-loader = { module = "org.springframework.boot:spring-boot-loader", v
 system-theme-detector = { module = "com.github.Dansoftowner:jSystemThemeDetector", version.ref = "system-theme-detector" }
 texttree = { module = "org.barfuin.texttree:text-tree", version.ref = "text-tree" }
 toml4j = { module = "io.hotmoka:toml4j", version.ref = "toml4j" }
+twelvemonkeys-webp = { module = "com.twelvemonkeys.imageio:imageio-webp", version.ref = "twelvemonkeys" }
 xz = { module = "org.tukaani:xz", version.ref = "xz" }
 
 [bundles]

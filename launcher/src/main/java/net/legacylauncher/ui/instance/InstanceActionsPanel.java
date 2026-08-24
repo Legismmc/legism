@@ -81,6 +81,7 @@ public class InstanceActionsPanel extends JPanel {
         row("instances.play", "play", e -> owner.play(instance));
         row("instances.stop", "remove", e -> owner.stop());
         row("instances.edit", "pencil", e -> owner.edit(instance));
+        row("instances.change-icon", "cube", e -> owner.changeIcon(instance));
         row("instances.group", "bars", e -> owner.changeGroup(instance));
         row("instances.open-folder", "folder-open", e -> owner.openFolder(instance));
         row("instances.export", "share", e -> owner.export(instance));
@@ -137,7 +138,7 @@ public class InstanceActionsPanel extends JPanel {
             return;
         }
 
-        iconLabel.setIcon(InstanceTile.buildIcon(SwingUtil.magnify(64)).getIcon());
+        iconLabel.setIcon(InstanceIcons.getIcon(instance, SwingUtil.magnify(64)));
         nameLabel.setText(instance.getName());
         versionLabel.setText(instance.getVersionId());
 

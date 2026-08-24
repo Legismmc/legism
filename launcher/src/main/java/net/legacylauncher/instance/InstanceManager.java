@@ -217,6 +217,15 @@ public class InstanceManager {
     }
 
     /**
+     * @param icon id of one of the built-in icons in {@code InstanceIcons}
+     */
+    public synchronized void setIcon(Instance instance, String icon) throws IOException {
+        instance.setIcon(icon);
+        save(instance);
+        refresh();
+    }
+
+    /**
      * @return every group currently in use, sorted, without the default one
      */
     public List<String> getGroups() {
@@ -235,6 +244,7 @@ public class InstanceManager {
     public synchronized Instance duplicate(Instance source, String newName) throws IOException {
         Instance copy = create(newName, source.getVersionId());
         copy.setGroup(source.getGroup());
+        copy.setIcon(source.getIcon());
         save(copy);
         FileUtil.deleteDirectory(copy.getGameDir());
         copyDirectory(source.getGameDir().toPath(), copy.getGameDir().toPath());
