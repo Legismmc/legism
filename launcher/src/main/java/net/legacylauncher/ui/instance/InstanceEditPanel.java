@@ -45,6 +45,14 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
 
     private final List<ModrinthPanel> browsers = new ArrayList<>();
     private final WorldsPanel worlds;
+    private final LogPanel log;
+    private final VersionInfoPanel versionInfo;
+    private final NotesPanel notes;
+    private final ServersPanel servers;
+    private final ScreenshotsPanel screenshots;
+    private final InstanceSettingsPanel instanceSettings;
+    private final OtherLogsPanel otherLogs;
+    private final List<String> tabTitleKeys = new ArrayList<>();
     private final JButton backButton;
     private final JButton playButton;
     private final JButton folderButton;
@@ -83,13 +91,34 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
         header.add(right, BorderLayout.EAST);
         setNorth(header);
 
-        // one browser per Modrinth-backed content type, then the local worlds tab
+        log = new LogPanel(this::getInstance);
+        addTab("tab.log", log);
+
+        versionInfo = new VersionInfoPanel(this::getInstance);
+        addTab("tab.version", versionInfo);
+
+        // one browser per Modrinth-backed content type
         addBrowser(ContentType.MOD);
         addBrowser(ContentType.RESOURCE_PACK);
         addBrowser(ContentType.SHADER);
 
+        notes = new NotesPanel(this::getInstance);
+        addTab("tab.notes", notes);
+
         worlds = new WorldsPanel(this::currentTarget);
-        tabs.addTab(ModrinthStrings.get("tab.worlds"), worlds);
+        addTab("tab.worlds", worlds);
+
+        servers = new ServersPanel(this::getInstance);
+        addTab("tab.servers", servers);
+
+        screenshots = new ScreenshotsPanel(this::getInstance);
+        addTab("tab.screenshots", screenshots);
+
+        instanceSettings = new InstanceSettingsPanel(this::getInstance);
+        addTab("tab.instance-settings", instanceSettings);
+
+        otherLogs = new OtherLogsPanel(this::getInstance);
+        addTab("tab.other-logs", otherLogs);
 
         tabs.addChangeListener(e -> showSelectedTab());
         setCenter(tabs);
@@ -98,7 +127,12 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
     private void addBrowser(ContentType type) {
         ModrinthPanel panel = new ModrinthPanel(pane, type, this::currentTarget, false);
         browsers.add(panel);
-        tabs.addTab(ModrinthStrings.get(type.getTitleKey()), panel);
+        addTab(type.getTitleKey(), panel);
+    }
+
+    private void addTab(String titleKey, java.awt.Component component) {
+        tabTitleKeys.add(titleKey);
+        tabs.addTab(ModrinthStrings.get(titleKey), component);
     }
 
     /**
@@ -144,6 +178,20 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
             ((ModrinthPanel) selected).onShown();
         } else if (selected instanceof WorldsPanel) {
             ((WorldsPanel) selected).onShown();
+        } else if (selected instanceof LogPanel) {
+            ((LogPanel) selected).onShown();
+        } else if (selected instanceof VersionInfoPanel) {
+            ((VersionInfoPanel) selected).onShown();
+        } else if (selected instanceof NotesPanel) {
+            ((NotesPanel) selected).onShown();
+        } else if (selected instanceof ServersPanel) {
+            ((ServersPanel) selected).onShown();
+        } else if (selected instanceof ScreenshotsPanel) {
+            ((ScreenshotsPanel) selected).onShown();
+        } else if (selected instanceof InstanceSettingsPanel) {
+            ((InstanceSettingsPanel) selected).onShown();
+        } else if (selected instanceof OtherLogsPanel) {
+            ((OtherLogsPanel) selected).onShown();
         }
     }
 
@@ -184,10 +232,9 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
         backButton.setText(ModrinthStrings.get("back"));
         playButton.setText(ModrinthStrings.get("instances.play"));
         folderButton.setText(ModrinthStrings.get("instances.open-folder"));
-        tabs.setTitleAt(0, ModrinthStrings.get(ContentType.MOD.getTitleKey()));
-        tabs.setTitleAt(1, ModrinthStrings.get(ContentType.RESOURCE_PACK.getTitleKey()));
-        tabs.setTitleAt(2, ModrinthStrings.get(ContentType.SHADER.getTitleKey()));
-        tabs.setTitleAt(3, ModrinthStrings.get("tab.worlds"));
+        for (int i = 0; i < tabTitleKeys.size(); i++) {
+            tabs.setTitleAt(i, ModrinthStrings.get(tabTitleKeys.get(i)));
+        }
         setInstance(instance);
     }
 

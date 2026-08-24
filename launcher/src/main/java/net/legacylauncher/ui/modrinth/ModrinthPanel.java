@@ -156,7 +156,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
             top.add(targetLabel, BorderLayout.CENTER);
         }
 
-        top.add(button("open-folder", "folder-open", e -> openContentFolder()), BorderLayout.EAST);
+        top.add(button("open-folder." + type.getModrinthType(), "folder-open", e -> openContentFolder()), BorderLayout.EAST);
         header.add(top, BorderLayout.NORTH);
 
         JPanel searchRow = new JPanel(new BorderLayout(SwingUtil.magnify(8), 0));

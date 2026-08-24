@@ -48,6 +48,7 @@ public class MemorySlider extends ExtendedPanel implements EditorField, Localiza
 
     private int value, savedManualValue;
     private boolean auto;
+    private VersionSyncInfo targetVersion;
 
     public MemorySlider(MemoryAllocationService service) {
         this.service = service;
@@ -261,12 +262,21 @@ public class MemorySlider extends ExtendedPanel implements EditorField, Localiza
 
     private final AtomicInteger requestId = new AtomicInteger();
 
+    /**
+     * The version whose recommended memory the "auto" hint queries against - the instance
+     * being edited, in the launcher's normal case. Must be set before this slider is put in
+     * "auto" mode, or there's nothing to query a hint for.
+     */
+    public void setTargetVersion(VersionSyncInfo version) {
+        this.targetVersion = version;
+    }
+
     public void updateForCurrentlySelectedVersion() {
         if (!auto) {
             return;
         }
         int id = requestId.incrementAndGet();
-        VersionSyncInfo version = LegacyLauncher.getInstance().getFrame().mp.defaultScene.loginForm.versions.getVersion();
+        VersionSyncInfo version = targetVersion;
         if (version == null) {
             return;
         }

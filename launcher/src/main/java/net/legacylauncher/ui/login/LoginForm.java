@@ -214,8 +214,9 @@ public class LoginForm extends CenterPanel implements MinecraftListener, Authent
             boolean forceUpdate = checkbox.forceupdate.isSelected();
             final Instance instance = pendingInstance;
             final File instanceGameDir = instance == null ? null : instance.getGameDir();
+            final String instanceXmx = instance == null ? null : instance.getXmx();
             AsyncThread.execute(() -> tlauncher
-                    .newMinecraftLauncher(versionName, server, serverId, forceUpdate, instanceGameDir)
+                    .newMinecraftLauncher(versionName, server, serverId, forceUpdate, instanceGameDir, instanceXmx)
                     .start());
             if (instance != null) {
                 tlauncher.getInstanceManager().startSession(instance);

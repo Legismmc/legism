@@ -30,6 +30,7 @@ public class Instance {
     private long created;
     private long lastPlayed;
     private long totalPlayTime;
+    private String xmx;
 
     /**
      * Set after loading; not part of the descriptor.
@@ -118,6 +119,19 @@ public class Instance {
         if (millis > 0L) {
             this.totalPlayTime += millis;
         }
+    }
+
+    /**
+     * How much memory to give this instance's JVM - {@code "auto"}, a number of MiB, or
+     * {@code null} to use whatever the launcher's own memory setting resolves to. Memory
+     * used to be one setting for every instance; now each one keeps its own.
+     */
+    public String getXmx() {
+        return xmx;
+    }
+
+    public void setXmx(String xmx) {
+        this.xmx = xmx == null || xmx.trim().isEmpty() ? null : xmx.trim();
     }
 
     /**

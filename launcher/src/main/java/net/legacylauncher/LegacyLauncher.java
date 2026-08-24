@@ -9,6 +9,7 @@ import net.legacylauncher.common.exceptions.LocalIOException;
 import net.legacylauncher.configuration.*;
 import net.legacylauncher.downloader.Downloader;
 import net.legacylauncher.handlers.ExceptionHandler;
+import net.legacylauncher.discord.DiscordPresenceManager;
 import net.legacylauncher.instance.InstanceManager;
 import net.legacylauncher.ipc.BootstrapIPC;
 import net.legacylauncher.ipc.ResolverIPC;
@@ -639,16 +640,19 @@ public final class LegacyLauncher {
     }
 
     public MinecraftLauncher newMinecraftLauncher(String versionName, Server server, int serverId, boolean forceUpdate) {
-        return newMinecraftLauncher(versionName, server, serverId, forceUpdate, null);
+        return newMinecraftLauncher(versionName, server, serverId, forceUpdate, null, null);
     }
 
     /**
      * @param forcedGameDir game directory to start in, overriding the one the settings
      *                      would choose; {@code null} to use the shared one. Instances
      *                      pass their own directory here.
+     * @param forcedXmx     memory to give the JVM, overriding the launcher's own setting;
+     *                      {@code null} to use the shared one. Instances pass their own
+     *                      value here.
      */
     public MinecraftLauncher newMinecraftLauncher(String versionName, Server server, int serverId,
-                                                  boolean forceUpdate, File forcedGameDir) {
+                                                  boolean forceUpdate, File forcedGameDir, String forcedXmx) {
         if (isMinecraftLauncherWorking()) {
             throw new IllegalStateException("launcher is working");
         }
@@ -662,6 +666,7 @@ public final class LegacyLauncher {
         minecraftLauncher.setVersion(versionName);
         minecraftLauncher.setServer(server, serverId);
         minecraftLauncher.setForcedGameDir(forcedGameDir);
+        minecraftLauncher.setForcedXmx(forcedXmx);
 
         return minecraftLauncher;
     }
@@ -783,6 +788,8 @@ public final class LegacyLauncher {
         // the instance list is the launcher's home screen; the default scene is only kept
         // around to host the settings panel and to drive the launch itself
         frame.mp.openInstancesScene();
+
+        new DiscordPresenceManager().install();
 
         // upstream pinged its stats server every 30 minutes from here; this fork does not
     }

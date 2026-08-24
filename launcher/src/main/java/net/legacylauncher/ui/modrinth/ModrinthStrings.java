@@ -103,8 +103,20 @@ public final class ModrinthStrings {
         en("refresh", "Refresh");
         ru("refresh", "Обновить");
 
-        en("open-folder", "Open mods folder");
-        ru("open-folder", "Открыть папку модов");
+        en("open-folder.mod", "Open mods folder");
+        ru("open-folder.mod", "Открыть папку модов");
+
+        en("open-folder.resourcepack", "Open resource packs folder");
+        ru("open-folder.resourcepack", "Открыть папку ресурспаков");
+
+        en("open-folder.shader", "Open shaders folder");
+        ru("open-folder.shader", "Открыть папку шейдеров");
+
+        en("open-folder.datapack", "Open data packs folder");
+        ru("open-folder.datapack", "Открыть папку дата-паков");
+
+        en("open-folder.worlds", "Open saves folder");
+        ru("open-folder.worlds", "Открыть папку миров");
 
         en("load-more", "Load more");
         ru("load-more", "Показать ещё");
@@ -349,6 +361,57 @@ public final class ModrinthStrings {
                 + "the shortcut at. This works in the installed or portable build.");
         ru("instances.error.shortcut-target", "Не удалось определить, на какой исполняемый файл "
                 + "сослаться. Это работает в установленной или портативной сборке.");
+
+        en("tab.log", "Log"); ru("tab.log", "Журнал");
+        en("tab.version", "Version"); ru("tab.version", "Версия");
+        en("tab.notes", "Notes"); ru("tab.notes", "Заметки");
+        en("tab.servers", "Servers"); ru("tab.servers", "Серверы");
+        en("tab.screenshots", "Screenshots"); ru("tab.screenshots", "Скриншоты");
+        en("tab.instance-settings", "Settings"); ru("tab.instance-settings", "Параметры");
+        en("tab.other-logs", "Other logs"); ru("tab.other-logs", "Другие журналы");
+
+        en("instance.settings.memory", "Memory");
+        ru("instance.settings.memory", "Память (ОЗУ)");
+        en("instance.settings.folder", "Game folder");
+        ru("instance.settings.folder", "Папка игры");
+        en("instance.settings.save", "Save"); ru("instance.settings.save", "Сохранить");
+        en("instance.settings.saved", "Saved"); ru("instance.settings.saved", "Сохранено");
+        en("instance.settings.invalid", "Check the memory value before saving.");
+        ru("instance.settings.invalid", "Проверьте значение памяти перед сохранением.");
+
+        en("instance.notes.save", "Save"); ru("instance.notes.save", "Сохранить");
+        en("instance.notes.saved", "Saved"); ru("instance.notes.saved", "Сохранено");
+
+        en("instance.servers.empty", "No servers added yet.");
+        ru("instance.servers.empty", "Серверов пока нет.");
+        en("instance.servers.add", "Add server"); ru("instance.servers.add", "Добавить сервер");
+        en("instance.servers.remove", "Remove"); ru("instance.servers.remove", "Удалить");
+        en("instance.servers.up", "Move up"); ru("instance.servers.up", "Переместить вверх");
+        en("instance.servers.down", "Move down"); ru("instance.servers.down", "Переместить вниз");
+        en("instance.servers.name-prompt", "Server name:");
+        ru("instance.servers.name-prompt", "Название сервера:");
+        en("instance.servers.address-prompt", "Server address (host:port):");
+        ru("instance.servers.address-prompt", "Адрес сервера (хост:порт):");
+
+        en("instance.screenshots.empty", "No screenshots yet.");
+        ru("instance.screenshots.empty", "Скриншотов пока нет.");
+        en("instance.screenshots.open", "Open"); ru("instance.screenshots.open", "Открыть");
+        en("instance.screenshots.confirm-delete", "Delete %0?");
+        ru("instance.screenshots.confirm-delete", "Удалить %0?");
+
+        en("instance.version.minecraft", "Minecraft version");
+        ru("instance.version.minecraft", "Версия Minecraft");
+        en("instance.version.loader", "Mod loader"); ru("instance.version.loader", "Загрузчик модов");
+        en("instance.version.id", "Launcher version id"); ru("instance.version.id", "ID версии в лаунчере");
+        en("instance.version.created", "Created"); ru("instance.version.created", "Создана");
+        en("instance.version.last-played", "Last played"); ru("instance.version.last-played", "Последний запуск");
+        en("instance.version.folder", "Instance folder"); ru("instance.version.folder", "Папка сборки");
+
+        en("instance.log.none", "No log yet - nothing has run in this instance.");
+        ru("instance.log.none", "Журнала пока нет — в этой сборке ещё ничего не запускалось.");
+
+        en("instance.other-logs.empty", "No other logs or crash reports yet.");
+        ru("instance.other-logs.empty", "Других журналов и крэш-репортов пока нет.");
     }
 
     private ModrinthStrings() {

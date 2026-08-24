@@ -69,7 +69,7 @@ public class WorldsPanel extends BackdropPanel {
         importButton.addActionListener(e -> importWorld());
         top.add(importButton);
 
-        JButton openFolder = new JButton(ModrinthStrings.get("open-folder"));
+        JButton openFolder = new JButton(ModrinthStrings.get("open-folder.worlds"));
         openFolder.setIcon(Images.getIcon16("folder-open"));
         openFolder.addActionListener(e -> openSavesFolder());
         top.add(openFolder);
@@ -321,7 +321,7 @@ public class WorldsPanel extends BackdropPanel {
 
             JButton open = new JButton();
             open.setIcon(Images.getIcon16("folder-open"));
-            open.setToolTipText(ModrinthStrings.get("open-folder"));
+            open.setToolTipText(ModrinthStrings.get("instances.open-folder"));
             open.addActionListener(e -> AsyncThread.execute(() -> OS.openFolder(world)));
             buttons.add(open);
 

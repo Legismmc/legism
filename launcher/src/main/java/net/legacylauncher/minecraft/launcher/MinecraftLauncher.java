@@ -97,6 +97,7 @@ public class MinecraftLauncher implements JavaProcessListener {
     private File rootDir;
     private File gameDir;
     private File forcedGameDir;
+    private String forcedXmx;
     private File localAssetsDir;
     private File nativeDir;
     private File globalAssetsDir;
@@ -561,7 +562,7 @@ public class MinecraftLauncher implements JavaProcessListener {
             boolean fullScreen = settings.getBoolean("minecraft.fullscreen");
 
 
-            String xmx = settings.get("minecraft.xmx");
+            String xmx = forcedXmx != null ? forcedXmx : settings.get("minecraft.xmx");
             if ("auto".equals(xmx)) {
                 Future<MemoryAllocationService.Hint> hintFuture = null;
                 MemoryAllocationService.Hint hint;
@@ -586,7 +587,11 @@ public class MinecraftLauncher implements JavaProcessListener {
                 }
                 ramSize = hint.getActual();
             } else {
-                ramSize = settings.getInteger("minecraft.xmx");
+                try {
+                    ramSize = Integer.parseInt(xmx);
+                } catch (NumberFormatException e) {
+                    ramSize = 0;
+                }
                 if (ramSize <= 0) {
                     int fallbackRamSize = LegacyLauncher.getInstance().getMemoryAllocationService().getFallbackHint().getActual();
                     log.warn("Using fallback value for -Xmx ({}), because minecraft.memory <= 0 (= {})",
@@ -626,6 +631,15 @@ public class MinecraftLauncher implements JavaProcessListener {
      */
     public void setForcedGameDir(File dir) {
         this.forcedGameDir = dir;
+    }
+
+    /**
+     * Overrides the launcher's own memory setting for this launch - {@code "auto"} or a
+     * number of MiB, same values as {@code minecraft.xmx}. Used to give an instance its own
+     * memory allocation instead of the shared one.
+     */
+    public void setForcedXmx(String xmx) {
+        this.forcedXmx = xmx;
     }
 
     /**

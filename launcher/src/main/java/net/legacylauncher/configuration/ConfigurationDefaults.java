@@ -62,6 +62,9 @@ public final class ConfigurationDefaults {
 
         d.put("curseforge.apikey", "");
 
+        d.put("discord.rpc.enabled", true);
+        d.put("discord.rpc.client-id", "");
+
         d.put("minecraft.crash", true);
         d.put("minecraft.mods.removeUndesirable", true);
 

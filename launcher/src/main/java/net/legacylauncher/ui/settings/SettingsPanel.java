@@ -18,6 +18,7 @@ import net.legacylauncher.ui.explorer.FileExplorer;
 import net.legacylauncher.ui.explorer.ImageFileExplorer;
 import net.legacylauncher.ui.explorer.MediaFileExplorer;
 import net.legacylauncher.ui.images.Images;
+import net.legacylauncher.discord.DiscordPresenceManager;
 import net.legacylauncher.modrinth.CurseForgeProvider;
 import net.legacylauncher.ui.loc.*;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
@@ -55,7 +56,6 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorFieldHandler resolution;
     public final EditorFieldHandler fullscreen;
     public final EditorFieldHandler jre;
-    public final EditorFieldHandler memory;
     public final EditorFieldHandler gpu;
     public final EditorGroupHandler versionHandler;
     public final EditorFieldHandler oldVersionsHandler; // temp
@@ -70,6 +70,8 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorGroupHandler alertUpdates;
     public final EditorFieldHandler switchToBeta;
     public final EditorFieldHandler curseForgeKey;
+    public final EditorFieldHandler discordEnabled;
+    public final EditorFieldHandler discordClientId;
     public final EditorFieldHandler locale;
     public final HTMLPage about;
     private final BorderPanel buttonPanel;
@@ -170,11 +172,9 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
         minecraftTab.nextPane();
         jre = new EditorFieldHandler(JavaManagerConfig.PATH_JRE_TYPE, new JREComboBox(this));
         minecraftTab.add(new EditorPair("settings.jre.type.label", jre));
-        final MemorySlider memorySlider = new MemorySlider(sc.loginForm.tlauncher.getMemoryAllocationService());
 
-        minecraftTab.nextPane();
-        memory = new EditorFieldHandler("minecraft.xmx", memorySlider, warning);
-        minecraftTab.add(new EditorPair("settings.java.memory.label", memory));
+        // memory used to be set here for every instance at once; now each instance keeps
+        // its own, set from its own edit screen instead
 
         if (!tlauncher.getGpuManager().isEmpty()) {
             minecraftTab.nextPane();
@@ -294,6 +294,18 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
         curseForgeKey = new EditorFieldHandler(CurseForgeProvider.API_KEY_SETTING,
                 new EditorTextField("settings.curseforge.apikey.prompt", true));
         tlauncherTab.add(new EditorPair(ModrinthStrings.get("curseforge.apikey"), curseForgeKey));
+        tlauncherTab.nextPane();
+
+        // Rich Presence needs an application id from Discord's own developer portal - there
+        // is no way around registering one, so there is a field to paste it into
+        discordEnabled = new EditorFieldHandler(DiscordPresenceManager.SETTING_ENABLED,
+                new EditorCheckBox("settings.discord.enabled"));
+        tlauncherTab.add(new EditorPair("settings.discord.enabled.label", discordEnabled));
+        tlauncherTab.nextPane();
+
+        discordClientId = new EditorFieldHandler(DiscordPresenceManager.SETTING_CLIENT_ID,
+                new EditorTextField("settings.discord.clientid.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.discord.clientid.label", discordClientId));
         tlauncherTab.nextPane();
 
         switchToBeta = new EditorFieldHandler("bootstrap.switchToBeta", new EditorCheckBox("settings.switch-to-beta"));

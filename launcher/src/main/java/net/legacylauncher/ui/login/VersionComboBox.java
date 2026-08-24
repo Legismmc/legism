@@ -12,7 +12,6 @@ import net.legacylauncher.ui.images.ImageIcon;
 import net.legacylauncher.ui.loc.Localizable;
 import net.legacylauncher.ui.loc.LocalizableComponent;
 import net.legacylauncher.ui.settings.JREComboBox;
-import net.legacylauncher.ui.settings.MemorySlider;
 import net.legacylauncher.ui.swing.VersionCellRenderer;
 import net.legacylauncher.ui.swing.combobox.ComboBoxFilter;
 import net.legacylauncher.ui.swing.combobox.IconText;
@@ -85,8 +84,6 @@ public class VersionComboBox extends ExtendedComboBox<VersionSyncInfo> implement
                 ((JREComboBox) loginForm.scene.settingsForm.get().jre.getComponent())
                         .selectedVersionChanged(selected);
                 loginForm.scene.settingsForm.get().useSeparateDir.getComponent().repaint();
-                ((MemorySlider) loginForm.scene.settingsForm.get().memory.getComponent())
-                        .updateForCurrentlySelectedVersion();
             }
         });
         selectedVersion = lf.global.get("login.version");
