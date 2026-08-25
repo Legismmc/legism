@@ -607,7 +607,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         menu.add(menuItem("instances.accounts.manage", "user-circle-o", e -> openAccountManager()));
 
-        showUnder(menu, event);
+        showUnderRightAligned(menu, event);
     }
 
     /**
@@ -648,6 +648,19 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         if (event.getSource() instanceof JComponent) {
             JComponent source = (JComponent) event.getSource();
             menu.show(source, 0, source.getHeight());
+        }
+    }
+
+    /**
+     * Like {@link #showUnder}, but growing left from the button's right edge instead of
+     * right from its left one - for a button that sits flush against the toolbar's own
+     * right edge, growing rightward the normal way runs the menu straight off the window.
+     */
+    private static void showUnderRightAligned(JPopupMenu menu, ActionEvent event) {
+        if (event.getSource() instanceof JComponent) {
+            JComponent source = (JComponent) event.getSource();
+            int x = source.getWidth() - menu.getPreferredSize().width;
+            menu.show(source, x, source.getHeight());
         }
     }
 
