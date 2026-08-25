@@ -32,7 +32,12 @@ public enum ContentType {
      * Data packs. Minecraft loads these per world, so they are staged in a shared folder
      * and copied into a save by the user.
      */
-    DATA_PACK("datapack", "datapacks", Collections.singletonList(".zip"), false);
+    DATA_PACK("datapack", "datapacks", Collections.singletonList(".zip"), false),
+
+    /**
+     * Bukkit/Spigot/Paper-family server plugins, staged in {@code plugins}.
+     */
+    PLUGIN("plugin", "plugins", Collections.singletonList(".jar"), false);
 
     private final String modrinthType;
     private final String folder;

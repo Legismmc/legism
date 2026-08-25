@@ -11,6 +11,7 @@ import net.legacylauncher.downloader.Downloader;
 import net.legacylauncher.handlers.ExceptionHandler;
 import net.legacylauncher.discord.DiscordPresenceManager;
 import net.legacylauncher.instance.InstanceManager;
+import net.legacylauncher.server.ServerInstanceManager;
 import net.legacylauncher.ipc.BootstrapIPC;
 import net.legacylauncher.ipc.ResolverIPC;
 import net.legacylauncher.logger.Log4j2ContextHelper;
@@ -112,6 +113,8 @@ public final class LegacyLauncher {
     private final GPUManager gpuManager;
     @Getter
     private final InstanceManager instanceManager = new InstanceManager();
+    @Getter
+    private final ServerInstanceManager serverInstanceManager = new ServerInstanceManager();
     @Getter
     private final Downloader downloader;
     @Getter

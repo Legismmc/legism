@@ -145,6 +145,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         left.setOpaque(false);
         left.add(toolbarButton("instances.create", "plus", e -> createInstance()));
+        left.add(toolbarButton("server.title", "plug", e -> openServerHosting()));
         left.add(toolbarButton("instances.folders", "folder-open", this::showFoldersMenu));
         left.add(toolbarButton("instances.settings", "gear", e -> openLauncherSettings()));
         left.add(toolbarButton("instances.help", "question", this::showHelpMenu));
@@ -689,6 +690,23 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
      * Unlike those two it's meant to be worked in for a while and browsed against a search
      * list, so this one is resizable and sized generously instead of hugging its content.
      */
+    void openServerHosting() {
+        net.legacylauncher.ui.server.ServerHostingPanel hostingPanel =
+                new net.legacylauncher.ui.server.ServerHostingPanel(pane);
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                ModrinthStrings.get("server.title"), Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(hostingPanel, BorderLayout.CENTER);
+
+        Dimension size = SwingUtil.magnify(new Dimension(1000, 700));
+        dialog.setMinimumSize(SwingUtil.magnify(new Dimension(760, 520)));
+        dialog.setSize(size);
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
+    }
+
     void edit(Instance instance) {
         if (instance == null) {
             return;

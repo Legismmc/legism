@@ -118,6 +118,9 @@ public final class ModrinthStrings {
         en("open-folder.worlds", "Open saves folder");
         ru("open-folder.worlds", "Открыть папку миров");
 
+        en("open-folder.plugin", "Open plugins folder");
+        ru("open-folder.plugin", "Открыть папку плагинов");
+
         en("load-more", "Load more");
         ru("load-more", "Показать ещё");
 
@@ -193,6 +196,9 @@ public final class ModrinthStrings {
 
         en("type.datapack", "Data packs");
         ru("type.datapack", "Дата-паки");
+
+        en("type.plugin", "Plugins");
+        ru("type.plugin", "Плагины");
 
         // worlds
         en("tab.worlds", "Worlds");
@@ -448,6 +454,104 @@ public final class ModrinthStrings {
 
         en("instance.other-logs.empty", "No other logs or crash reports yet.");
         ru("instance.other-logs.empty", "Других журналов и крэш-репортов пока нет.");
+
+        // server hosting
+        en("server.title", "Local Servers");
+        ru("server.title", "Локальные серверы");
+
+        en("server.empty", "No local servers yet. Create one to host your own Minecraft server.");
+        ru("server.empty", "Локальных серверов пока нет. Создайте сервер, чтобы захостить свой мир.");
+
+        en("server.create", "Create server");
+        ru("server.create", "Создать сервер");
+
+        en("server.delete", "Delete");
+        ru("server.delete", "Удалить");
+
+        en("server.delete.confirm", "Delete server %0? This removes its whole folder, worlds included.");
+        ru("server.delete.confirm", "Удалить сервер %0? Будет удалена вся его папка, включая миры.");
+
+        en("server.error.create", "Could not create the server");
+        ru("server.error.create", "Не удалось создать сервер");
+
+        en("server.error.delete", "Could not delete the server");
+        ru("server.error.delete", "Не удалось удалить сервер");
+
+        en("server.new.title", "New local server");
+        ru("server.new.title", "Новый локальный сервер");
+        en("server.new.name", "Name");
+        ru("server.new.name", "Название");
+        en("server.new.core", "Core");
+        ru("server.new.core", "Ядро");
+        en("server.new.version", "Minecraft version");
+        ru("server.new.version", "Версия Minecraft");
+        en("server.new.ram", "RAM (MB)");
+        ru("server.new.ram", "ОЗУ (МБ)");
+        en("server.new.versions-loading", "Loading...");
+        ru("server.new.versions-loading", "Загрузка...");
+        en("server.new.cancel", "Cancel");
+        ru("server.new.cancel", "Отмена");
+        en("server.new.create", "Create");
+        ru("server.new.create", "Создать");
+
+        en("server.tab.console", "Console");
+        ru("server.tab.console", "Консоль");
+        en("server.tab.properties", "Properties");
+        ru("server.tab.properties", "Свойства");
+        en("server.tab.plugins", "Plugins");
+        ru("server.tab.plugins", "Плагины");
+
+        en("server.console.start", "Start");
+        ru("server.console.start", "Запустить");
+        en("server.console.stop", "Stop");
+        ru("server.console.stop", "Остановить");
+        en("server.console.command-hint", "Type a command and press Enter");
+        ru("server.console.command-hint", "Введите команду и нажмите Enter");
+        en("server.console.running", "Running");
+        ru("server.console.running", "Запущен");
+        en("server.console.stopped", "Stopped");
+        ru("server.console.stopped", "Остановлен");
+        en("server.console.starting", "Starting...");
+        ru("server.console.starting", "Запускается...");
+        en("server.console.downloading", "Downloading %0...");
+        ru("server.console.downloading", "Загрузка %0...");
+        en("server.console.download-failed", "Could not download the server core");
+        ru("server.console.download-failed", "Не удалось загрузить ядро сервера");
+        en("server.console.start-failed", "Could not start the server");
+        ru("server.console.start-failed", "Не удалось запустить сервер");
+
+        en("server.eula.title", "Accept the Minecraft EULA");
+        ru("server.eula.title", "Примите EULA Minecraft");
+        en("server.eula.message", "Running a Minecraft server requires accepting Mojang's EULA "
+                + "(https://aka.ms/MinecraftEULA). Accept it and start the server?");
+        ru("server.eula.message", "Для запуска сервера Minecraft нужно принять EULA от Mojang "
+                + "(https://aka.ms/MinecraftEULA). Принять и запустить сервер?");
+
+        en("server.properties.port", "Port");
+        ru("server.properties.port", "Порт");
+        en("server.properties.motd", "MOTD");
+        ru("server.properties.motd", "MOTD");
+        en("server.properties.max-players", "Max players");
+        ru("server.properties.max-players", "Макс. игроков");
+        en("server.properties.difficulty", "Difficulty");
+        ru("server.properties.difficulty", "Сложность");
+        en("server.properties.gamemode", "Game mode");
+        ru("server.properties.gamemode", "Режим игры");
+        en("server.properties.online-mode", "Online mode (license check)");
+        ru("server.properties.online-mode", "Онлайн-режим (проверка лицензии)");
+        en("server.properties.pvp", "PvP");
+        ru("server.properties.pvp", "PvP");
+        en("server.properties.white-list", "Whitelist");
+        ru("server.properties.white-list", "Белый список");
+        en("server.properties.save", "Save");
+        ru("server.properties.save", "Сохранить");
+        en("server.properties.saved", "Saved. Restart the server to apply.");
+        ru("server.properties.saved", "Сохранено. Перезапустите сервер, чтобы применить.");
+
+        en("server.plugins.vanilla-hint", "Vanilla servers cannot load plugins - switch to Paper "
+                + "or Purpur when creating the server to use this tab.");
+        ru("server.plugins.vanilla-hint", "Vanilla-сервер не умеет загружать плагины — выберите "
+                + "Paper или Purpur при создании сервера, чтобы пользоваться этой вкладкой.");
     }
 
     private ModrinthStrings() {
