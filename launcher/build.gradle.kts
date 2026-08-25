@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.commons.io)
     implementation(libs.flatlaf)
+    implementation(libs.flatlaf.intellij.themes)
     implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.jackson.core)

@@ -111,6 +111,14 @@ public class Configuration extends SimpleConfiguration {
         set("gui.logger", loggerType.toString());
     }
 
+    public UiTheme getUiTheme() {
+        return UiTheme.get(get("gui.uitheme"));
+    }
+
+    public void setUiTheme(UiTheme uiTheme) {
+        set("gui.uitheme", uiTheme.toString());
+    }
+
     public SeparateDirs getSeparateDirs() {
         return SeparateDirs.get(get("minecraft.gamedir.separate"));
     }
@@ -471,6 +479,49 @@ public class Configuration extends SimpleConfiguration {
 
         public static LoggerType getDefault() {
             return NONE;
+        }
+    }
+
+    /**
+     * A user-picked Swing Look and Feel for the launcher's own UI - separate from
+     * {@link FlatLafConfiguration}, which drives remote/branding-controlled theming and is
+     * not under the user's direct control. {@link net.legacylauncher.ui.FlatLaf#applyUiTheme}
+     * maps each value to the actual {@code com.formdev.flatlaf} theme class to instantiate.
+     */
+    public enum UiTheme {
+        SYSTEM,
+        LIGHT,
+        DARK,
+        INTELLIJ,
+        DARCULA,
+        ARC,
+        ARC_DARK,
+        ONE_DARK,
+        DRACULA,
+        NORD,
+        GRAY,
+        CYAN_LIGHT,
+        SOLARIZED_LIGHT,
+        SOLARIZED_DARK,
+        MATERIAL_DESIGN_DARK,
+        HIGH_CONTRAST,
+        GRUVBOX_DARK;
+
+        public String toString() {
+            return super.toString().toLowerCase(java.util.Locale.ROOT);
+        }
+
+        public static UiTheme get(String val) {
+            for (UiTheme theme : values()) {
+                if (theme.toString().equalsIgnoreCase(val)) {
+                    return theme;
+                }
+            }
+            return getDefault();
+        }
+
+        public static UiTheme getDefault() {
+            return SYSTEM;
         }
     }
 

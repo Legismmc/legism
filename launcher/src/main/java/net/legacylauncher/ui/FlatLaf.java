@@ -1,11 +1,13 @@
 package net.legacylauncher.ui;
 
 import com.formdev.flatlaf.*;
+import com.formdev.flatlaf.intellijthemes.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.LegacyLauncher;
+import net.legacylauncher.configuration.Configuration;
 import net.legacylauncher.portals.Portals;
 import net.legacylauncher.util.Lazy;
 import net.legacylauncher.util.shared.FlatLafConfiguration;
@@ -249,6 +251,70 @@ public class FlatLaf {
         }
         log.info("Setting addon properties file: {}", uiPropertiesFile);
         FlatLafAddon.PROPERTIES_FILE = uiPropertiesFile;
+    }
+
+    /**
+     * Applies a user-picked {@link Configuration.UiTheme} directly, independent of the
+     * remote/branding-driven {@link FlatLafConfiguration} path this class otherwise centers
+     * on - this is a plain local preference from Settings.
+     */
+    public static void applyUiTheme(Configuration.UiTheme theme) {
+        switch (theme) {
+            case SYSTEM:
+                setSystemLookAndFeel();
+                return;
+            case LIGHT:
+                setLaf(new FlatLightLaf());
+                return;
+            case DARK:
+                setLaf(new FlatDarkLaf());
+                return;
+            case INTELLIJ:
+                setLaf(new FlatIntelliJLaf());
+                return;
+            case DARCULA:
+                setLaf(new FlatDarculaLaf());
+                return;
+            case ARC:
+                setLaf(new FlatArcIJTheme());
+                return;
+            case ARC_DARK:
+                setLaf(new FlatArcDarkIJTheme());
+                return;
+            case ONE_DARK:
+                setLaf(new FlatOneDarkIJTheme());
+                return;
+            case DRACULA:
+                setLaf(new FlatDraculaIJTheme());
+                return;
+            case NORD:
+                setLaf(new FlatNordIJTheme());
+                return;
+            case GRAY:
+                setLaf(new FlatGrayIJTheme());
+                return;
+            case CYAN_LIGHT:
+                setLaf(new FlatCyanLightIJTheme());
+                return;
+            case SOLARIZED_LIGHT:
+                setLaf(new FlatSolarizedLightIJTheme());
+                return;
+            case SOLARIZED_DARK:
+                setLaf(new FlatSolarizedDarkIJTheme());
+                return;
+            case MATERIAL_DESIGN_DARK:
+                setLaf(new FlatMaterialDesignDarkIJTheme());
+                return;
+            case HIGH_CONTRAST:
+                setLaf(new FlatHighContrastIJTheme());
+                return;
+            case GRUVBOX_DARK:
+                setLaf(new FlatGruvboxDarkHardIJTheme());
+                return;
+            default:
+                log.warn("Unknown UiTheme {}, falling back to system L&F", theme);
+                setSystemLookAndFeel();
+        }
     }
 
     public static void updateLafInWindows() {

@@ -13,6 +13,7 @@ import net.legacylauncher.ui.block.Blocker;
 import net.legacylauncher.ui.converter.ActionOnLaunchConverter;
 import net.legacylauncher.ui.converter.LoggerTypeConverter;
 import net.legacylauncher.ui.converter.SeparateDirsConverter;
+import net.legacylauncher.ui.converter.UiThemeConverter;
 import net.legacylauncher.ui.editor.*;
 import net.legacylauncher.ui.explorer.FileExplorer;
 import net.legacylauncher.ui.explorer.ImageFileExplorer;
@@ -62,6 +63,7 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorGroupHandler extraHandler;
     public final EditorFieldHandler launcherResolution;
     public final EditorFieldHandler laf;
+    public final EditorFieldHandler uiTheme;
     public final EditorFieldHandler background;
     public final EditorFieldHandler logger;
     public final EditorFieldHandler crashManager;
@@ -243,6 +245,16 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
             }
         });
         tlauncherTab.add(new EditorPair("settings.laf.label", laf));
+
+        uiTheme = new EditorFieldHandler("gui.uitheme", new EditorComboBox<>(new UiThemeConverter(), Configuration.UiTheme.values()));
+        uiTheme.addListener(new EditorFieldChangeListener() {
+            protected void onChange(String oldValue, String newValue) {
+                if (ready) {
+                    FlatLaf.applyUiTheme(Configuration.UiTheme.get(newValue));
+                }
+            }
+        });
+        tlauncherTab.add(new EditorPair("settings.uitheme.label", uiTheme));
 
         boolean mediaFxAvailable = sc.getMainPane().background.isMediaFxAvailable();
         FileExplorer backgroundExplorer = null;

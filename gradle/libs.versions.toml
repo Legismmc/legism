@@ -46,6 +46,7 @@ commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "co
 dbus-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbus" }
 dbus-transport-tcp = { module = "com.github.hypfvieh:dbus-java-transport-tcp", version.ref = "dbus" }
 flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
+flatlaf-intellij-themes = { module = "com.formdev:flatlaf-intellij-themes", version.ref = "flatlaf" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 httpcomponents-httpclient-fluent = { module = "org.apache.httpcomponents.client5:httpclient5-fluent", version.ref = "httpcomponents" }

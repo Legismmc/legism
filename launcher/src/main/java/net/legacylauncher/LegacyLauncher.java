@@ -153,6 +153,7 @@ public final class LegacyLauncher {
         this.settings = Configuration.createConfiguration(optionSet);
         bootstrapIPC.setMetadata("client", settings.getClient().toString());
         migrateLafConfigOrSetLaf();
+        FlatLaf.applyUiTheme(settings.getUiTheme());
         this.lang = new LangConfiguration();
         initConfig();
 

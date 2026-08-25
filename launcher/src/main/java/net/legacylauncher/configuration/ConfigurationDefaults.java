@@ -77,6 +77,8 @@ public final class ConfigurationDefaults {
 
         d.putAll(FlatLaf.getDefaults());
 
+        d.put("gui.uitheme", Configuration.UiTheme.getDefault());
+
         d.put("gui.background", null);
 
         d.put("gui.logger", Configuration.LoggerType.getDefault());
