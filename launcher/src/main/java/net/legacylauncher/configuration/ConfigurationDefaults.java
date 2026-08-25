@@ -60,7 +60,10 @@ public final class ConfigurationDefaults {
 
         d.put("minecraft.onlaunch", Configuration.ActionOnLaunch.HIDE);
 
-        d.put("curseforge.apikey", "");
+        // Issued to the "Legacy by tgsko" application by CurseForge's 3rd Party API
+        // program - meant to be shipped with the app, not per user, so every install works
+        // out of the box. A user's own key in Settings still overrides this.
+        d.put("curseforge.apikey", "$2a$10$U/ik1JVOXeYmLxnqIfUcxOsKvrogh/gpVqpL9ra6cmw12qzKP4gli");
 
         d.put("discord.rpc.enabled", true);
         d.put("discord.rpc.client-id", "");
