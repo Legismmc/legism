@@ -40,6 +40,8 @@ import net.legacylauncher.user.ElyUser;
 import net.legacylauncher.user.PlainUser;
 import net.legacylauncher.user.User;
 import net.legacylauncher.util.*;
+import net.legacylauncher.update.SelfUpdateChecker;
+import net.legacylauncher.util.OS;
 import net.legacylauncher.util.async.AsyncThread;
 import net.legacylauncher.util.logging.DelegateServiceProvider;
 import net.legacylauncher.util.shared.FlatLafConfiguration;
@@ -790,6 +792,15 @@ public final class LegacyLauncher {
         frame.mp.openInstancesScene();
 
         new DiscordPresenceManager().install();
+
+        AsyncThread.execute(() -> SelfUpdateChecker.checkForUpdate().ifPresent(release ->
+                SwingUtilities.invokeLater(() -> frame.mp.instancesScene.get().panel.showUpdateAvailable(() -> {
+                    if (Alert.showQuestion(
+                            Localizable.get("update.available.title"),
+                            Localizable.get("update.available.message", release.getTag()))) {
+                        OS.openLink(release.getUrl());
+                    }
+                }))));
 
         // upstream pinged its stats server every 30 minutes from here; this fork does not
     }

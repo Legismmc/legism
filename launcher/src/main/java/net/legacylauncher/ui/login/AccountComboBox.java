@@ -113,6 +113,43 @@ public class AccountComboBox extends ExtendedComboBox<Account<? extends User>> i
         }
     }
 
+    /**
+     * Deselects the active account entirely, so nothing is picked to play with until one is
+     * chosen again - the account list's own item listener only reacts to picking a real
+     * account or "Manage...", so clearing the selection has to go through the same
+     * {@code UserSet} call directly instead.
+     * <p>
+     * {@code fireRefresh} has to stay false here: a true one would have {@link
+     * #refreshAccounts} rebuild the model from scratch mid-call, and a combo box model
+     * auto-selects the first item whenever a list goes from empty to non-empty - silently
+     * reselecting whichever account happens to be first, right back out from under the very
+     * clear this method is trying to do.
+     * <p>
+     * The selection is cleared with {@code setSelectedItem(null)}, not {@link #EMPTY}: a
+     * non-editable {@link javax.swing.JComboBox} silently ignores any selection request for
+     * a value that is not actually in its model, and {@code EMPTY} is only ever added there
+     * when the account list is empty to begin with - so passing it here while real accounts
+     * are still in the model would just be dropped on the floor. {@code null} bypasses that
+     * membership check entirely, and {@link #getAccount} already treats a null selection the
+     * same way it treats {@code EMPTY}.
+     */
+    public void clearAccount() {
+        refreshing = true;
+        try {
+            selectedAccount = null;
+            LegacyLauncher.getInstance().getProfileManager().getAccountManager().getUserSet().select(null, false);
+            try {
+                LegacyLauncher.getInstance().getProfileManager().saveProfiles();
+            } catch (IOException e) {
+                log.warn("Could not save profiles", e);
+            }
+            setSelectedItem(null);
+        } finally {
+            refreshing = false;
+        }
+        updateAccount();
+    }
+
     public void loggingIn() throws LoginException {
         if (loginForm.versions.getVersion() != null &&
                 loginForm.versions.getVersion().getAvailableVersion().getReleaseType() == ReleaseType.LAUNCHER) {

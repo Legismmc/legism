@@ -24,9 +24,12 @@ import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
 import net.legacylauncher.user.User;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -37,6 +40,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
@@ -53,6 +57,8 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -78,6 +84,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     private final JPanel grid = new JPanel();
     private final InstanceActionsPanel sidebar;
     private JButton accountButton;
+    private final JButton updateButton = new JButton();
     private final JLabel statusLeft = new JLabel();
     private final JLabel statusRight = new JLabel();
 
@@ -100,6 +107,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         setNorth(buildToolbar());
         setCenter(buildBody());
         setSouth(buildStatusBar());
+        installAccountShortcuts();
 
         // the game starting or stopping swaps Play for Stop in the sidebar; the callback
         // arrives off the Swing thread when Minecraft exits
@@ -145,15 +153,30 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         right.setOpaque(false);
+        updateButton.setIcon(Images.getIcon16("download"));
+        updateButton.setText(ModrinthStrings.get("instances.update-available"));
+        updateButton.setVisible(false);
+        right.add(updateButton);
         accountButton = new JButton();
         accountButton.setIcon(Images.getIcon16("user-circle-o"));
-        accountButton.addActionListener(e -> openAccountManager());
+        accountButton.addActionListener(this::showAccountMenu);
         right.add(accountButton);
         bar.add(right, BorderLayout.EAST);
 
         updateAccountButton();
 
         return bar;
+    }
+
+    /**
+     * Shows a small "update available" button in the toolbar. This screen, not
+     * {@code DefaultScene}, is what the user actually sees on launch - a notification
+     * posted to {@code DefaultScene.notificationPanel} the way other one-off startup
+     * notices are would never be seen at all.
+     */
+    public void showUpdateAvailable(Runnable onClick) {
+        updateButton.addActionListener(e -> onClick.run());
+        updateButton.setVisible(true);
     }
 
     /**
@@ -541,6 +564,84 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
                 e -> Alert.showMessage(ModrinthStrings.get("instances.help.about"),
                         BuildConfig.PRODUCT_NAME + " " + LegacyLauncher.getVersion())));
         showUnder(menu, event);
+    }
+
+    /**
+     * Every signed-in account, the current one checked off, a number key next to each of
+     * the first nine to switch without opening the menu again, and the two actions that
+     * are not really about any one account: clearing the active pick, and the full manager.
+     */
+    private void showAccountMenu(ActionEvent event) {
+        JPopupMenu menu = new JPopupMenu();
+        List<Account<? extends User>> accounts = new ArrayList<>(
+                LegacyLauncher.getInstance().getProfileManager().getAuthDatabase().getAccounts());
+        Account<? extends User> current = pane.defaultScene.loginForm.accounts.getAccount();
+        Icon check = Images.getIcon16("check-circle-o");
+
+        for (int i = 0; i < accounts.size(); i++) {
+            final Account<? extends User> account = accounts.get(i);
+            JMenuItem item = new JMenuItem(account.getDisplayName() + " ["
+                    + account.getType().toString().toLowerCase(Locale.ROOT) + "]");
+            item.setIcon(account.equals(current) ? check : accountTypeIcon(account.getType()));
+            if (i < 9) {
+                item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1 + i, InputEvent.CTRL_DOWN_MASK));
+            }
+            item.addActionListener(e -> {
+                pane.defaultScene.loginForm.accounts.setAccount(account);
+                updateAccountButton();
+            });
+            menu.add(item);
+        }
+
+        if (!accounts.isEmpty()) {
+            menu.addSeparator();
+        }
+
+        JMenuItem clear = menuItem("instances.accounts.clear", "remove", e -> {
+            pane.defaultScene.loginForm.accounts.clearAccount();
+            updateAccountButton();
+        });
+        clear.setEnabled(current != null);
+        clear.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK));
+        menu.add(clear);
+
+        menu.add(menuItem("instances.accounts.manage", "user-circle-o", e -> openAccountManager()));
+
+        showUnder(menu, event);
+    }
+
+    /**
+     * Backs the same Ctrl+1..Ctrl+9/Ctrl+0 shown as accelerators in {@link #showAccountMenu},
+     * so they work without opening that menu first - a standalone {@link JPopupMenu}'s own
+     * accelerators are only wired up while it is showing, unlike a real menu bar's.
+     */
+    private void installAccountShortcuts() {
+        InputMap input = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actions = getActionMap();
+        for (int i = 0; i < 9; i++) {
+            final int index = i;
+            String name = "account-switch-" + i;
+            input.put(KeyStroke.getKeyStroke(KeyEvent.VK_1 + i, InputEvent.CTRL_DOWN_MASK), name);
+            actions.put(name, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    List<Account<? extends User>> accounts = new ArrayList<>(
+                            LegacyLauncher.getInstance().getProfileManager().getAuthDatabase().getAccounts());
+                    if (index < accounts.size()) {
+                        pane.defaultScene.loginForm.accounts.setAccount(accounts.get(index));
+                        updateAccountButton();
+                    }
+                }
+            });
+        }
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK), "account-clear");
+        actions.put("account-clear", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pane.defaultScene.loginForm.accounts.clearAccount();
+                updateAccountButton();
+            }
+        });
     }
 
     private static void showUnder(JPopupMenu menu, ActionEvent event) {

@@ -320,6 +320,15 @@ public final class ModrinthStrings {
         en("instances.accounts", "Accounts");
         ru("instances.accounts", "Аккаунты");
 
+        en("instances.update-available", "Update");
+        ru("instances.update-available", "Обновление");
+
+        en("instances.accounts.clear", "Clear the active account");
+        ru("instances.accounts.clear", "Убрать аккаунт по умолчанию");
+
+        en("instances.accounts.manage", "Manage accounts...");
+        ru("instances.accounts.manage", "Управление учётными записями...");
+
         // instance screen: sidebar and groups
         en("instances.stop", "Stop");
         ru("instances.stop", "Остановить");
