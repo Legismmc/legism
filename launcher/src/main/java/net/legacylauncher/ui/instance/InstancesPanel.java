@@ -151,7 +151,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         left.add(toolbarButton("instances.folders", "folder-open", this::showFoldersMenu));
         left.add(toolbarButton("instances.settings", "gear", e -> openLauncherSettings()));
         left.add(toolbarButton("instances.help", "question", this::showHelpMenu));
-        left.add(toolbarButton("refresh", "refresh", e -> refresh()));
+        left.add(toolbarIconButton("refresh", "refresh", e -> refresh()));
         bar.add(left, BorderLayout.WEST);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
@@ -225,6 +225,18 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         button.setIcon(Images.getIcon16(icon));
         button.addActionListener(action);
         toolbarButtons.put(key, button);
+        return button;
+    }
+
+    /**
+     * Icon only, no label - for a toolbar that was starting to run out of room. The label
+     * still shows up as a tooltip.
+     */
+    private JButton toolbarIconButton(String key, String icon, ActionListener action) {
+        JButton button = new JButton();
+        button.setIcon(Images.getIcon16(icon));
+        button.setToolTipText(ModrinthStrings.get(key));
+        button.addActionListener(action);
         return button;
     }
 
