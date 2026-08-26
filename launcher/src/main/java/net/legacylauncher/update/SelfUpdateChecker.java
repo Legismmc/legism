@@ -29,7 +29,7 @@ public final class SelfUpdateChecker {
      */
     private static final String CURRENT_TAG = "v1.4.1";
 
-    private static final String REPO = "tgskoZ/legacy-by-tgsko";
+    private static final String REPO = "tgskoZ/legism";
     private static final String API_URL = "https://api.github.com/repos/" + REPO + "/releases/latest";
     private static final String FALLBACK_URL = "https://github.com/" + REPO + "/releases/latest";
 
