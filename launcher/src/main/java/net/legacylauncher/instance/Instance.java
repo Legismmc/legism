@@ -168,6 +168,15 @@ public class Instance {
     }
 
     /**
+     * Reassigns the id - only needed when a folder freshly extracted from an import is
+     * adopted under a fresh id of its own, to rule out any collision with whatever id its
+     * descriptor was originally written with.
+     */
+    void setId(String id) {
+        this.id = id;
+    }
+
+    /**
      * The directory Minecraft is started with - what the game sees as {@code .minecraft}.
      */
     public File getGameDir() {

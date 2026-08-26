@@ -286,6 +286,17 @@ public final class ModrinthStrings {
         en("instances.error.create", "Could not create the instance.");
         ru("instances.error.create", "Не удалось создать сборку.");
 
+        en("instances.import", "Import...");
+        ru("instances.import", "Импортировать...");
+
+        en("instances.error.import", "Could not import the modpack.");
+        ru("instances.error.import", "Не удалось импортировать сборку.");
+
+        en("instances.error.import-format", "Not a recognised modpack: expected a Modrinth "
+                + ".mrpack or an exported instance zip.");
+        ru("instances.error.import-format", "Формат не распознан: ожидался Modrinth .mrpack "
+                + "или zip, экспортированный из этого лаунчера.");
+
         en("instances.error.delete", "Could not delete the instance.");
         ru("instances.error.delete", "Не удалось удалить сборку.");
 

@@ -182,6 +182,26 @@ public class InstanceManager {
     }
 
     /**
+     * Adopts an already-populated instance folder - typically freshly extracted from an
+     * exported zip - into the instance list, moving it under a fresh id so it cannot
+     * collide with whatever id its descriptor happened to be written with.
+     */
+    public synchronized Instance importFolder(File extractedFolder) throws IOException {
+        Instance instance = read(extractedFolder);
+        if (instance == null) {
+            throw new IOException("not a valid exported instance: no readable " + Instance.DESCRIPTOR);
+        }
+        String id = uniqueId(instance.getName());
+        File destination = new File(getRoot(), id);
+        Files.move(extractedFolder.toPath(), destination.toPath());
+        instance.setId(id);
+        instance.setFolder(destination);
+        save(instance);
+        refresh();
+        return instance;
+    }
+
+    /**
      * Renames an instance. Only the display name changes: the folder keeps its id, so
      * nothing that points at it breaks.
      */

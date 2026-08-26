@@ -5,6 +5,7 @@ import net.legacylauncher.LegacyLauncher;
 import net.legacylauncher.configuration.BuildConfig;
 import net.legacylauncher.instance.Instance;
 import net.legacylauncher.instance.InstanceManager;
+import net.legacylauncher.instance.ModpackImporter;
 import net.legacylauncher.managers.ProfileManager;
 import net.legacylauncher.managers.ProfileManagerListener;
 import net.legacylauncher.minecraft.auth.Account;
@@ -145,6 +146,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         left.setOpaque(false);
         left.add(toolbarButton("instances.create", "plus", e -> createInstance()));
+        left.add(toolbarButton("instances.import", "download", e -> importModpack()));
         left.add(toolbarButton("server.title", "plug", e -> openServerHosting()));
         left.add(toolbarButton("instances.folders", "folder-open", this::showFoldersMenu));
         left.add(toolbarButton("instances.settings", "gear", e -> openLauncherSettings()));
@@ -682,6 +684,50 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
             Alert.showError(ModrinthStrings.get("error.title"),
                     ModrinthStrings.get("instances.error.create") + "\n" + e.getMessage());
         }
+    }
+
+    /**
+     * Imports a modpack as a new instance - either a Modrinth {@code .mrpack}, downloading
+     * every file it lists, or this launcher's own exported instance zip, which just needs
+     * extracting. The file is peeked to tell which one it is before committing to either
+     * path.
+     */
+    public void importModpack() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle(ModrinthStrings.get("instances.import"));
+        chooser.setFileFilter(new FileNameExtensionFilter("Modpack (*.mrpack, *.zip)", "mrpack", "zip"));
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File chosen = chooser.getSelectedFile();
+
+        ModpackImporter.Format format = ModpackImporter.detectFormat(chosen);
+        if (format == ModpackImporter.Format.UNKNOWN) {
+            Alert.showError(ModrinthStrings.get("error.title"), ModrinthStrings.get("instances.error.import-format"));
+            return;
+        }
+
+        statusLeft.setText(ModrinthStrings.get("loading"));
+        AsyncThread.execute(() -> {
+            try {
+                Instance imported = format == ModpackImporter.Format.MRPACK
+                        ? ModpackImporter.importMrpack(chosen, manager(), (message, current, total) ->
+                        SwingUtil.later(() -> statusLeft.setText(message + " (" + current + "/" + total + ")")))
+                        : ModpackImporter.importLegacyExport(chosen, manager());
+                SwingUtil.later(() -> {
+                    statusLeft.setText("");
+                    refresh();
+                    select(imported);
+                });
+            } catch (IOException e) {
+                log.warn("Could not import {}", chosen, e);
+                SwingUtil.later(() -> {
+                    statusLeft.setText("");
+                    Alert.showError(ModrinthStrings.get("error.title"),
+                            ModrinthStrings.get("instances.error.import") + "\n" + e.getMessage());
+                });
+            }
+        });
     }
 
     /**
