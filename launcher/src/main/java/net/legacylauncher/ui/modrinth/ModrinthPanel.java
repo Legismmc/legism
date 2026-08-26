@@ -375,9 +375,9 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         if (!sameTarget || resultsBox.getComponentCount() == 0) {
             startSearch(true);
         }
-        if (tabs.getSelectedIndex() == 1) {
-            refreshInstalled();
-        }
+        // always primed, not just while the Installed tab is showing - the browse tab's
+        // own cells need this same lookup to know which search hits are already installed
+        refreshInstalled();
     }
 
     private void updateTargetLabel() {
@@ -621,9 +621,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
                     cell.setInstalled();
                     setStatus(ModrinthStrings.get("installed-into",
                             installed.size(), currentInstaller.getDirectory()));
-                    if (tabs.getSelectedIndex() == 1) {
-                        refreshInstalled();
-                    }
+                    refreshInstalled();
                 });
             } catch (IOException e) {
                 log.warn("Could not install {}", project, e);
@@ -712,8 +710,40 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
                 if (tabs.getSelectedIndex() == 1) {
                     renderInstalled(mods);
                 }
+                refreshBrowseInstalledState();
             });
         });
+    }
+
+    /**
+     * Whether a Modrinth project is already installed into the current target, per the
+     * same hash-based lookup {@link #identifyInstalledAsync} feeds the Installed tab -
+     * lets the browse tab show "Установлен" on a search hit without a second, redundant
+     * lookup of its own.
+     */
+    boolean isProjectInstalled(String projectId) {
+        if (projectId == null) {
+            return false;
+        }
+        for (ModrinthMatch match : installedMatches.values()) {
+            if (projectId.equals(match.getProjectId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Re-checks every currently visible search hit against the installed-project lookup,
+     * so a cell built before the lookup finished - or before an install earlier this
+     * session - still ends up showing the right state once it resolves.
+     */
+    private void refreshBrowseInstalledState() {
+        for (Component c : resultsBox.getComponents()) {
+            if (c instanceof ModrinthProjectCell) {
+                ((ModrinthProjectCell) c).refreshInstalledState();
+            }
+        }
     }
 
     void updateInstalled(InstalledMod mod, ModrinthMatch match, InstalledModCell cell) {

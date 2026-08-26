@@ -55,6 +55,21 @@ public class ModrinthProjectCell extends JPanel {
         add(buildIcon(), BorderLayout.WEST);
         add(buildText(), BorderLayout.CENTER);
         add(buildButtons(), BorderLayout.EAST);
+
+        refreshInstalledState();
+    }
+
+    /**
+     * Checks this cell's project against what the panel currently knows is installed on
+     * disk, and marks the button installed if so - called once when the cell is built (in
+     * case the panel's lookup already resolved from an earlier visit or page of results),
+     * and again whenever that lookup finishes. Never reverts an already-installed button:
+     * the lookup only ever confirms installs, it does not know about deletions.
+     */
+    void refreshInstalledState() {
+        if (panel.isProjectInstalled(project.getId())) {
+            setInstalled();
+        }
     }
 
     private JLabel buildIcon() {
