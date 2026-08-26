@@ -476,12 +476,22 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
             return false;
         } else {
 
+            // every handler's value is read up front, before any of them is applied - a
+            // live L&F change (the "laf" or "uiTheme" fields both trigger one on save)
+            // rebuilds the whole window's UI tree via updateComponentTreeUI, which can
+            // reset a combo box further down this same list back to its first item
+            // before its turn to be read ever comes
+            Map<EditorHandler, String> values = new LinkedHashMap<>();
             for (EditorHandler handler : handlers) {
-                String path = handler.getPath();
-                if (path == null)
-                    continue;
-                String value = handler.getValue();
-                global.set(path, value, false);
+                if (handler.getPath() != null) {
+                    values.put(handler, handler.getValue());
+                }
+            }
+
+            for (Map.Entry<EditorHandler, String> entry : values.entrySet()) {
+                EditorHandler handler = entry.getKey();
+                String value = entry.getValue();
+                global.set(handler.getPath(), value, false);
                 handler.onChange(value);
             }
 
