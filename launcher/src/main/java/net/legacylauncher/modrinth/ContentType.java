@@ -37,7 +37,26 @@ public enum ContentType {
     /**
      * Bukkit/Spigot/Paper-family server plugins, staged in {@code plugins}.
      */
-    PLUGIN("plugin", "plugins", Collections.singletonList(".jar"), false);
+    PLUGIN("plugin", "plugins", Collections.singletonList(".jar"), false),
+
+    /**
+     * CurseForge's "Addons" category - content packs that extend one particular mod
+     * (gun packs for TACZ, hero packs for Fisk's Superheroes, and so on) rather than
+     * standing on their own. Modrinth has no equivalent project type.
+     * <p>
+     * Each extending mod reads these from its own folder, so there is no single correct
+     * destination the launcher could pick; they are staged in {@code addons} for the user
+     * to move where the mod's own instructions say.
+     */
+    ADDON("addon", "addons", Collections.singletonList(".zip"), false),
+
+    /**
+     * A whole modpack. Unlike every other type this is never installed *into* a game
+     * directory - a modpack becomes an instance of its own - so {@link #getFolder()} is
+     * never consulted for it. It is a {@link ContentType} only so the libraries can be
+     * searched for one.
+     */
+    MODPACK("modpack", "modpacks", Arrays.asList(".mrpack", ".zip"), false);
 
     private final String modrinthType;
     private final String folder;

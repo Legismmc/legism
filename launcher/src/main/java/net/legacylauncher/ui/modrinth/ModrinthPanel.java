@@ -66,7 +66,7 @@ import java.util.function.Supplier;
  * which game directory the {@linkplain #targetSource target supplier} points at.
  */
 @Slf4j
-public class ModrinthPanel extends BackdropPanel implements LocalizableComponent {
+public class ModrinthPanel extends BackdropPanel implements LocalizableComponent, ContentCellHost {
     private static final int PAGE_SIZE = 20;
 
     private final MainPane pane;
@@ -189,6 +189,13 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         }
         libraryBox.setModel(new DefaultComboBoxModel<>(providers.toArray(new ContentProvider[0])));
         libraryBox.setRenderer(new LibraryRenderer());
+        // the default library may not offer this content type at all (Modrinth has no
+        // "addons"), and a JComboBox silently ignores a selection that is not in its
+        // model - which would leave the box showing one library while searches still went
+        // to another. Pick the first one that does offer it instead.
+        if (!provider.supports(type) && !providers.isEmpty()) {
+            provider = providers.get(0);
+        }
         libraryBox.setSelectedItem(provider);
         libraryBox.addActionListener(e -> onLibraryChanged());
         filters.add(libraryBox);
@@ -425,6 +432,10 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
                 target = target.withLoader((ModLoader) fallback);
                 installer = new ModInstaller(target, type);
             }
+        } else if (type == ContentType.ADDON) {
+            // there is no single folder these belong in - say so rather than let the user
+            // assume the launcher put them somewhere the game will read
+            targetWarning = ModrinthStrings.get("addon.notice");
         } else {
             targetWarning = null;
         }
@@ -579,7 +590,8 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
      * Finds a build of the project that fits the current target and installs it.
      * Runs off the Swing thread; the cell is told about progress and the outcome.
      */
-    void install(ContentProject project, ModrinthProjectCell cell) {
+    @Override
+    public void install(ContentProject project, ModrinthProjectCell cell) {
         final ModTarget currentTarget = target;
         final ModInstaller currentInstaller = installer;
         final ContentProvider currentProvider = provider;
@@ -721,7 +733,8 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
      * lets the browse tab show "Установлен" on a search hit without a second, redundant
      * lookup of its own.
      */
-    boolean isProjectInstalled(String projectId) {
+    @Override
+    public boolean isProjectInstalled(String projectId) {
         if (projectId == null) {
             return false;
         }

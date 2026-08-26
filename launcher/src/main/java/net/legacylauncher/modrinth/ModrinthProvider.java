@@ -46,7 +46,8 @@ public class ModrinthProvider implements ContentProvider {
 
     @Override
     public boolean supports(ContentType type) {
-        return true;
+        // "Addons" is a CurseForge category; Modrinth publishes no such project type
+        return type != ContentType.ADDON;
     }
 
     @Override

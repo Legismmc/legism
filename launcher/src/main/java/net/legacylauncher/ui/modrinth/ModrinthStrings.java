@@ -200,6 +200,37 @@ public final class ModrinthStrings {
         en("type.plugin", "Plugins");
         ru("type.plugin", "Плагины");
 
+        en("type.addon", "Addons");
+        ru("type.addon", "Аддоны");
+
+        en("type.modpack", "Modpacks");
+        ru("type.modpack", "Модпаки");
+
+        en("modpack.title", "Modpack catalog");
+        ru("modpack.title", "Каталог модпаков");
+        en("modpack.search.hint", "Search for a modpack");
+        ru("modpack.search.hint", "Поиск модпака");
+        en("modpack.any-version", "Any version");
+        ru("modpack.any-version", "Любая версия");
+        en("modpack.downloading", "Downloading...");
+        ru("modpack.downloading", "Загрузка...");
+        en("modpack.no-version", "This modpack has no build for the selected Minecraft version.");
+        ru("modpack.no-version", "У этого модпака нет сборки под выбранную версию Minecraft.");
+        en("modpack.installed", "Installed as the instance \"%0\".");
+        ru("modpack.installed", "Установлен как сборка «%0».");
+        en("modpack.error.install", "Could not install the modpack.");
+        ru("modpack.error.install", "Не удалось установить модпак.");
+
+        en("open-folder.addon", "Open addons folder");
+        ru("open-folder.addon", "Открыть папку аддонов");
+
+        en("addon.notice", "Addons extend one particular mod - each mod reads them from "
+                + "its own folder. They are downloaded into \"addons\"; check the addon's "
+                + "own page for where it belongs.");
+        ru("addon.notice", "Аддоны дополняют конкретный мод — каждый мод читает их из своей "
+                + "папки. Они скачиваются в «addons»; куда положить, смотрите на странице "
+                + "самого аддона.");
+
         // worlds
         en("tab.worlds", "Worlds");
         ru("tab.worlds", "Миры");
@@ -288,6 +319,11 @@ public final class ModrinthStrings {
 
         en("instances.import", "Import...");
         ru("instances.import", "Импортировать...");
+
+        en("instances.import.file", "From a file...");
+        ru("instances.import.file", "Из файла...");
+        en("instances.import.catalog", "From the catalog...");
+        ru("instances.import.catalog", "Из каталога...");
 
         en("instances.error.import", "Could not import the modpack.");
         ru("instances.error.import", "Не удалось импортировать сборку.");

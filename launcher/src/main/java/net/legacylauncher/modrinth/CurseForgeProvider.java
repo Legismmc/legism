@@ -65,7 +65,9 @@ public class CurseForgeProvider implements ContentProvider {
 
     @Override
     public boolean supports(ContentType type) {
-        return type != ContentType.DATA_PACK;
+        // CurseForge files data packs under a class of their own (6945), so they are
+        // browsable here after all - this used to claim otherwise.
+        return true;
     }
 
     @Override

@@ -55,6 +55,12 @@ public final class CurseForgeApi {
                 return 6552;
             case DATA_PACK:
                 return 6945;
+            case PLUGIN:
+                return 5;
+            case ADDON:
+                return 4559;
+            case MODPACK:
+                return 4471;
             case MOD:
             default:
                 return 6;

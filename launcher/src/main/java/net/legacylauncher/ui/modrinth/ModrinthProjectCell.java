@@ -35,13 +35,13 @@ public class ModrinthProjectCell extends JPanel {
     private static final int ICON_SIZE = 48;
     private static final int DESCRIPTION_WIDTH = 340;
 
-    private final ModrinthPanel panel;
+    private final ContentCellHost panel;
     private final ContentProject project;
 
     private final JButton installButton = new JButton();
     private final JLabel iconLabel = new JLabel();
 
-    public ModrinthProjectCell(ModrinthPanel panel, ContentProject project) {
+    public ModrinthProjectCell(ContentCellHost panel, ContentProject project) {
         this.panel = panel;
         this.project = project;
 

@@ -101,6 +101,8 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
         addBrowser(ContentType.MOD);
         addBrowser(ContentType.RESOURCE_PACK);
         addBrowser(ContentType.SHADER);
+        addBrowser(ContentType.DATA_PACK);
+        addBrowser(ContentType.ADDON);
 
         notes = new NotesPanel(this::getInstance);
         addTab("tab.notes", notes);

@@ -14,6 +14,7 @@ import net.legacylauncher.ui.MainPane;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.ui.loc.LocalizableComponent;
+import net.legacylauncher.ui.modrinth.ModpackBrowserPanel;
 import net.legacylauncher.ui.modrinth.ModrinthStrings;
 import net.legacylauncher.ui.scenes.AccountManagerScene;
 import net.legacylauncher.ui.scenes.DefaultScene;
@@ -150,7 +151,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         left.setOpaque(false);
         left.add(toolbarButton("instances.create", "plus", e -> createInstance()));
-        left.add(toolbarButton("instances.import", "download", e -> importModpack()));
+        left.add(toolbarButton("instances.import", "download", this::showImportMenu));
         left.add(toolbarButton("server.title", "plug", e -> openServerHosting()));
         left.add(toolbarButton("instances.folders", "folder-open", this::showFoldersMenu));
         left.add(toolbarButton("instances.settings", "gear", e -> openLauncherSettings()));
@@ -729,10 +730,39 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     }
 
     /**
-     * Imports a modpack as a new instance - either a Modrinth {@code .mrpack}, downloading
-     * every file it lists, or this launcher's own exported instance zip, which just needs
-     * extracting. The file is peeked to tell which one it is before committing to either
-     * path.
+     * A modpack can come from a file the user already has or straight out of a library,
+     * and the toolbar has no room left for a button each.
+     */
+    private void showImportMenu(ActionEvent event) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(menuItem("instances.import.file", "folder-open", e -> importModpack()));
+        menu.add(menuItem("instances.import.catalog", "download", e -> openModpackBrowser()));
+        showUnder(menu, event);
+    }
+
+    /**
+     * The modpack catalog, in a window of its own like the other browsers - installing a
+     * pack from here creates a whole new instance rather than touching the current one.
+     */
+    void openModpackBrowser() {
+        ModpackBrowserPanel browser = new ModpackBrowserPanel(this::refresh);
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                ModrinthStrings.get("modpack.title"), Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(browser, BorderLayout.CENTER);
+
+        dialog.setMinimumSize(SwingUtil.magnify(new Dimension(760, 520)));
+        dialog.setSize(SwingUtil.magnify(new Dimension(1000, 700)));
+        dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+        dialog.setVisible(true);
+    }
+
+    /**
+     * Imports a modpack as a new instance - either a Modrinth {@code .mrpack}, a
+     * CurseForge modpack zip, or this launcher's own exported instance zip. The file is
+     * peeked to tell which one it is before committing to any of those paths.
      */
     public void importModpack() {
         JFileChooser chooser = new JFileChooser();
@@ -752,10 +782,9 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         statusLeft.setText(ModrinthStrings.get("loading"));
         AsyncThread.execute(() -> {
             try {
-                Instance imported = format == ModpackImporter.Format.MRPACK
-                        ? ModpackImporter.importMrpack(chosen, manager(), (message, current, total) ->
-                        SwingUtil.later(() -> statusLeft.setText(message + " (" + current + "/" + total + ")")))
-                        : ModpackImporter.importLegacyExport(chosen, manager());
+                Instance imported = ModpackImporter.importAny(chosen, manager(),
+                        (message, current, total) -> SwingUtil.later(() ->
+                                statusLeft.setText(message + " (" + current + "/" + total + ")")));
                 SwingUtil.later(() -> {
                     statusLeft.setText("");
                     refresh();
