@@ -1,4 +1,4 @@
-# Legacy by tgsko
+# Legism
 
 An independent fork of [Legacy Launcher](https://llaun.ch/) — a free alternative
 Minecraft launcher — with two goals:
@@ -56,7 +56,7 @@ SHORT_BRAND=tgsko PORTABLE_ENABLED=true INSTALLER_ENABLED=true ./gradlew :packag
 ISCC.exe packages/installer/build/innosetup/tgsko/main.iss
 ```
 
-Result: `packages/installer/build/innosetup/tgsko/Output/LegacyByTgsko_tgsko_Installer.exe`.
+Result: `packages/installer/build/innosetup/tgsko/Output/Legism_tgsko_Installer.exe`.
 
 The product name, brand and support email come from
 `buildSrc/src/main/kotlin/net/legacylauncher/gradle/LegacyLauncherBrandPlugin.kt`

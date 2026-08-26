@@ -1,6 +1,6 @@
-TL;DR: If you're reading this file please open Legacy by tgsko with Java, not with archiver!
+TL;DR: If you're reading this file please open Legism with Java, not with archiver!
 
-Hello! Thanks for installing Legacy by tgsko!
+Hello! Thanks for installing Legism!
 If an archive with this file was opened instead of our launcher:
 1. Click LL.jar with right mouse button
 2. Select "properties"
@@ -21,7 +21,7 @@ Have troubles? Or questions? Need help? Here is some useful links:
   Our Discord server: llaun.ch/discord/intl
   Our support e-mail: support@tln4.ru
 
-Legacy by tgsko download links:
+Legism download links:
   Stable:
     Exe (for Windows): llaun.ch/dl/mcl/exe
     Jar (for Windows, Linux, macOS): llaun.ch/dl/mcl/jar
@@ -57,7 +57,7 @@ Legacy by tgsko download links:
 
 
 ===========================================
-     Legacy by tgsko features for experienced users
+     Legism features for experienced users
 ===========================================
 * This arguments can be used in tl.bootargs file in same folder launcher is
 * or as Java arguments (java THIS-ARGUMENTS -jar LL.jar)
@@ -77,7 +77,7 @@ Can be used for moving launcher files to other hard drive
 
 ===========================================
 * This arguments can be used in tl.args file in same folder launcher is
-* or as Legacy by tgsko arguments (java -jar LL.jar THIS-ARGUMENTS)
+* or as Legism arguments (java -jar LL.jar THIS-ARGUMENTS)
 
 Overrides game folder path. Locks this setting in the launcher
 Used for Portable client mode
@@ -89,7 +89,7 @@ Overrides Java arguments. Locks this setting in the launcher
 Overrides Minecraft arguments. Locks this setting in the launcher
 --margs <arguments>
 
-Overrides Legacy by tgsko settings file
+Overrides Legism settings file
 Used for Portable client mode
 --settings <path/to/file>
 

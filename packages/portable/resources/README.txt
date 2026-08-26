@@ -1,6 +1,6 @@
--- Portable Legacy by tgsko --
+-- Portable Legism --
 
-Legacy by tgsko is a free alternative launcher for Minecraft.
+Legism is a free alternative launcher for Minecraft.
 It is an independent fork of Legacy Launcher, with the advertising removed
 and a built-in Modrinth mod browser added.
 
@@ -8,9 +8,9 @@ This is an example on how you can create portable Minecraft installations.
 
 How do I start it? LL.exe
 
--- Портативная сборка Legacy by tgsko --
+-- Портативная сборка Legism --
 
-Legacy by tgsko – свободный и бесплатный лаунчер для Minecraft.
+Legism – свободный и бесплатный лаунчер для Minecraft.
 Это независимый форк Legacy Launcher: реклама вырезана, добавлен встроенный
 браузер модов Modrinth.
 
@@ -20,5 +20,5 @@ Legacy by tgsko – свободный и бесплатный лаунчер д
 
 --
 
-Legacy by tgsko @version@
+Legism @version@
 @date@

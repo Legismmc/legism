@@ -11,7 +11,7 @@ import java.util.List;
 
 public class LauncherUserAgent {
     public static final String USER_AGENT = UserAgent.of(
-            "LegacyByTgsko",
+            "Legism",
             LegacyLauncher.getVersion().toString(),
             constructPlatform()
     );

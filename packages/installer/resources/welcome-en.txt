@@ -1,4 +1,4 @@
-Legacy by tgsko is a free alternative Minecraft launcher with a built-in Modrinth mod browser and no advertising.
+Legism is a free alternative Minecraft launcher with a built-in Modrinth mod browser and no advertising.
 
 It is an independent fork of Legacy Launcher (https://llaun.ch/) and is not affiliated with or endorsed by the Legacy Launcher team.
 

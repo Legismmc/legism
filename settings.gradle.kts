@@ -4,7 +4,7 @@ plugins {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "legacy-by-tgsko"
+rootProject.name = "legism"
 
 include(":utils")
 include(":bootstrap")

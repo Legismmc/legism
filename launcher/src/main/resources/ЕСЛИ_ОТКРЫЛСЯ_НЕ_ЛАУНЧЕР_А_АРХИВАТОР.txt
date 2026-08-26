@@ -1,4 +1,4 @@
-Если Вы не можете запустить Legacy by tgsko, а вместо лаунчера открывается архиватор (WinRar, 7zip, etc) попробуйте следующее:
+Если Вы не можете запустить Legism, а вместо лаунчера открывается архиватор (WinRar, 7zip, etc) попробуйте следующее:
 
--- Скачайте EXE-версию Legacy by tgsko (для Windows): https://llaun.ch/installer
+-- Скачайте EXE-версию Legism (для Windows): https://llaun.ch/installer
 -- Попробуйте переустановить Java с сайта: https://java.com/

@@ -88,7 +88,7 @@ public final class DiscordRpc {
         try {
             JsonObject activity = new JsonObject();
             activity.addProperty("state", state);
-            activity.addProperty("details", "Legacy by tgsko");
+            activity.addProperty("details", "Legism");
             JsonObject timestamps = new JsonObject();
             timestamps.addProperty("start", sinceMs);
             activity.add("timestamps", timestamps);
