@@ -30,6 +30,7 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -49,13 +50,16 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -156,8 +160,7 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, SwingUtil.magnify(4), SwingUtil.magnify(2)));
         right.setOpaque(false);
-        updateButton.setIcon(Images.getIcon16("download"));
-        updateButton.setText(ModrinthStrings.get("instances.update-available"));
+        updateButton.setIcon(tintGreen(Images.getIcon16("download")));
         updateButton.setVisible(false);
         right.add(updateButton);
         accountButton = new JButton();
@@ -172,14 +175,41 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     }
 
     /**
-     * Shows a small "update available" button in the toolbar. This screen, not
-     * {@code DefaultScene}, is what the user actually sees on launch - a notification
+     * Lights up a small green "update available" icon in the toolbar - no label, so it
+     * cannot push the account button off the edge the way it did with one. This screen,
+     * not {@code DefaultScene}, is what the user actually sees on launch - a notification
      * posted to {@code DefaultScene.notificationPanel} the way other one-off startup
      * notices are would never be seen at all.
      */
-    public void showUpdateAvailable(Runnable onClick) {
+    public void showUpdateAvailable(String tag, Runnable onClick) {
+        updateButton.setToolTipText(ModrinthStrings.get("instances.update-available", tag));
         updateButton.addActionListener(e -> onClick.run());
         updateButton.setVisible(true);
+    }
+
+    /**
+     * A green-tinted copy of an otherwise plain toolbar icon, for the one button that
+     * needs to catch the eye - a color swap on the recognisable "download" icon rather
+     * than a whole separate asset.
+     */
+    private static ImageIcon tintGreen(Icon source) {
+        int width = source.getIconWidth();
+        int height = source.getIconHeight();
+        BufferedImage buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = buffer.createGraphics();
+        source.paintIcon(null, g, 0, 0);
+        g.dispose();
+
+        int green = new Color(0x22, 0xC5, 0x5E).getRGB() & 0x00ffffff;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int alpha = buffer.getRGB(x, y) & 0xff000000;
+                if (alpha != 0) {
+                    buffer.setRGB(x, y, alpha | green);
+                }
+            }
+        }
+        return new ImageIcon(buffer);
     }
 
     /**

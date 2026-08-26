@@ -337,8 +337,8 @@ public final class ModrinthStrings {
         en("instances.accounts", "Accounts");
         ru("instances.accounts", "Аккаунты");
 
-        en("instances.update-available", "Update");
-        ru("instances.update-available", "Обновление");
+        en("instances.update-available", "Update available: %0");
+        ru("instances.update-available", "Доступно обновление: %0");
 
         en("instances.accounts.clear", "Clear the active account");
         ru("instances.accounts.clear", "Убрать аккаунт по умолчанию");

@@ -798,7 +798,8 @@ public final class LegacyLauncher {
         new DiscordPresenceManager().install();
 
         AsyncThread.execute(() -> SelfUpdateChecker.checkForUpdate().ifPresent(release ->
-                SwingUtilities.invokeLater(() -> frame.mp.instancesScene.get().panel.showUpdateAvailable(() -> {
+                SwingUtilities.invokeLater(() -> frame.mp.instancesScene.get().panel.showUpdateAvailable(
+                        release.getTag(), () -> {
                     if (Alert.showQuestion(
                             Localizable.get("update.available.title"),
                             Localizable.get("update.available.message", release.getTag()))) {
