@@ -1,8 +1,33 @@
-Uhhh
+GNU General Public License v2.0
 
-This is more of a "All rights reserved", than anything else.
+Copyright (C) 2026 Legism Organization
 
-We don't recommend using this source code to build your own Minecraft
-launcher due to a good amount of low quality legacy code, but it still
-can be used as a reference to build, for example Microsoft authentication
-or CurseForge integration.
+Legism Launcher is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2.0,
+as published by the Free Software Foundation.
+
+Legism Launcher is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Legism Launcher. If not, see
+https://www.gnu.org/licenses/old-licenses/gpl-2.0.html.
+
+⸻
+
+Project Information
+
+Project: Legism Launcher
+Organization: Legism
+License: GNU General Public License v2.0 (GPL-2.0)
+
+Copyright © 2026 Legism Organization.
+
+This license applies to the source code of Legism Launcher unless
+a particular file or component explicitly states otherwise.
+
+Third-party components may be distributed under their own licenses.
+Their respective copyright notices and license terms must be
+preserved.
