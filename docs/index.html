@@ -14,17 +14,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0c0f;
-    --bg-soft:#0f141a;
-    --card:#12181f;
-    --card-hi:#161d26;
-    --line:#1e2733;
-    --line-hi:#2b3745;
+    --bg:#151719;
+    --bg-soft:#1b1e22;
+    --card:#202328;
+    --card-hi:#272b31;
+    --line:#343941;
+    --line-hi:#4a515b;
     --text:#e9eef4;
-    --muted:#8ea0b4;
-    --accent:#46d17c;
-    --accent-dim:#2a8f52;
-    --accent-glow:rgba(70,209,124,.14);
+    --muted:#b2bac4;
+    --accent:#c2c9d1;
+    --accent-dim:#858f9a;
+    --accent-glow:rgba(194,201,209,.16);
     --danger:#ff6b6b;
     --radius:6px;
     --maxw:1120px;
@@ -58,7 +58,7 @@
       linear-gradient(var(--line) 1px,transparent 1px),
       linear-gradient(90deg,var(--line) 1px,transparent 1px);
     background-size:64px 64px;
-    opacity:.28;
+    opacity:.2;
     mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);
     -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);
   }
@@ -71,7 +71,7 @@
   /* ---------------- nav ---------------- */
   nav{
     position:sticky;top:0;z-index:50;
-    background:rgba(10,12,15,.78);
+    background:rgba(21,23,25,.82);
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
     border-bottom:1px solid var(--line);
@@ -80,7 +80,7 @@
   .brand{
     display:flex;align-items:center;gap:10px;
     font-family:Unbounded,sans-serif;font-weight:800;font-size:19px;
-    letter-spacing:-.02em;text-decoration:none;margin-right:auto;
+    letter-spacing:0;text-decoration:none;margin-right:auto;
   }
   .brand-logo{display:block;width:29px;height:29px;object-fit:contain}
   .nav-links{display:flex;gap:26px;align-items:center}
@@ -93,7 +93,7 @@
      least important links rather than let the whole page scroll sideways */
   @media (max-width:760px){.nav-links a[data-optional]{display:none}}
   @media (max-width:560px){
-    .nav-links{gap:18px}
+    .nav-links{display:none}
     .nav-links a[data-optional-sm]{display:none}
     .brand{font-size:17px}
   }
@@ -107,8 +107,8 @@
     transition:transform .12s ease,background .15s,border-color .15s;
   }
   .btn:active{transform:translateY(1px)}
-  .btn-primary{background:var(--accent);color:#062012;box-shadow:0 0 0 1px var(--accent-dim),0 8px 28px var(--accent-glow)}
-  .btn-primary:hover{background:#5ce08d}
+  .btn-primary{background:var(--accent);color:#16191d;box-shadow:0 0 0 1px var(--accent-dim),0 8px 28px var(--accent-glow)}
+  .btn-primary:hover{background:#d6dce3}
   .btn-ghost{background:transparent;border-color:var(--line-hi);color:var(--text)}
   .btn-ghost:hover{background:var(--card-hi);border-color:var(--muted)}
   .btn svg{width:18px;height:18px;flex:none}
@@ -121,7 +121,7 @@
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     font:500 13px/1 "JetBrains Mono",monospace;
-    color:var(--accent);letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);letter-spacing:0;text-transform:uppercase;
     padding:7px 12px;border:1px solid var(--line-hi);border-radius:100px;
     background:var(--card);margin-bottom:24px;
   }
@@ -129,7 +129,7 @@
 
   h1{
     font-family:Unbounded,sans-serif;font-weight:800;
-    font-size:clamp(40px,6.4vw,68px);line-height:1.02;letter-spacing:-.035em;
+    font-size:clamp(40px,6.4vw,68px);line-height:1.02;letter-spacing:0;
     margin:0 0 20px;
   }
   h1 .dim{color:var(--muted)}
@@ -165,7 +165,7 @@
   .head{max-width:64ch;margin-bottom:40px}
   h2{
     font-family:Unbounded,sans-serif;font-weight:600;
-    font-size:clamp(27px,3.6vw,40px);line-height:1.12;letter-spacing:-.03em;margin:0 0 14px;
+    font-size:clamp(27px,3.6vw,40px);line-height:1.12;letter-spacing:0;margin:0 0 14px;
   }
   .head p{color:var(--muted);margin:0;font-size:17px}
 
@@ -182,7 +182,7 @@
   .ico{
     width:38px;height:38px;border-radius:var(--radius);
     display:grid;place-items:center;margin-bottom:16px;
-    background:var(--accent-glow);border:1px solid rgba(70,209,124,.22);
+    background:var(--accent-glow);border:1px solid rgba(194,201,209,.24);
   }
   .ico svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
   .card h3{margin:0 0 8px;font:700 17px/1.35 Manrope,sans-serif}
@@ -194,7 +194,7 @@
   .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px}
   .panel h3{
     margin:0 0 18px;font:700 15px/1 "JetBrains Mono",monospace;
-    letter-spacing:.06em;text-transform:uppercase;
+    letter-spacing:0;text-transform:uppercase;
   }
   .panel.out h3{color:var(--danger)}
   .panel.in h3{color:var(--accent)}
@@ -213,12 +213,12 @@
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:30px 28px;display:flex;flex-direction:column;
   }
-  .dl-card.featured{border-color:var(--accent-dim);background:linear-gradient(180deg,rgba(70,209,124,.06),transparent 60%),var(--card)}
+  .dl-card.featured{border-color:var(--accent-dim);background:linear-gradient(180deg,rgba(194,201,209,.08),transparent 60%),var(--card)}
   .dl-card h3{margin:0 0 8px;font:700 20px/1.2 Manrope,sans-serif}
   .dl-card p{margin:0 0 22px;color:var(--muted);font-size:15px;flex:1}
   .tag{
     display:inline-block;font:500 12px/1 "JetBrains Mono",monospace;
-    color:var(--accent);border:1px solid rgba(70,209,124,.3);border-radius:100px;
+    color:var(--accent);border:1px solid rgba(194,201,209,.34);border-radius:100px;
     padding:6px 10px;margin-bottom:14px;align-self:flex-start;
   }
   .req{font:400 14px/1.7 "JetBrains Mono",monospace;color:var(--muted)}
