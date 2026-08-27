@@ -82,7 +82,7 @@
     font-family:Unbounded,sans-serif;font-weight:800;font-size:19px;
     letter-spacing:-.02em;text-decoration:none;margin-right:auto;
   }
-  .brand svg{display:block;width:26px;height:26px}
+  .brand-logo{display:block;width:29px;height:29px;object-fit:contain}
   .nav-links{display:flex;gap:26px;align-items:center}
   .nav-links a{
     color:var(--muted);text-decoration:none;font-size:15px;font-weight:600;
@@ -144,7 +144,10 @@
   .sep{opacity:.4;padding:0 8px}
 
   .hero-art{display:flex;justify-content:center}
-  .hero-art svg{width:min(100%,290px);height:auto;filter:drop-shadow(0 24px 48px rgba(0,0,0,.55))}
+  .hero-logo{
+    display:block;width:min(100%,300px);height:auto;
+    filter:drop-shadow(0 24px 48px rgba(0,0,0,.55));
+  }
 
   /* ---------------- guarantees ---------------- */
   .guards{
@@ -234,11 +237,7 @@
 <nav>
   <div class="wrap nav-in">
     <a class="brand" href="#top">
-      <svg viewBox="0 0 100 100" aria-hidden="true">
-        <polygon points="50,8 92,32 50,56 8,32" fill="#5ac06f"/>
-        <polygon points="8,32 50,56 50,92 8,68" fill="#6f7b86"/>
-        <polygon points="92,32 92,68 50,92 50,56" fill="#525c66"/>
-      </svg>
+      <img class="brand-logo" src="images/legism-logo.png" alt="" width="29" height="29">
       Legism
     </a>
     <div class="nav-links">
@@ -275,17 +274,7 @@
       </p>
     </div>
     <div class="hero-art">
-      <svg viewBox="0 0 100 100" role="img" aria-label="Логотип Legism — изометрический блок">
-        <polygon points="50,8 92,32 50,56 8,32" fill="#5ac06f"/>
-        <polygon points="50,12 86,32 50,52 14,32" fill="#66cc7a" opacity=".55"/>
-        <polygon points="8,32 50,56 50,92 8,68" fill="#6f7b86"/>
-        <polygon points="92,32 92,68 50,92 50,56" fill="#525c66"/>
-        <g opacity=".22" fill="#000">
-          <rect x="16" y="42" width="9" height="9"/><rect x="31" y="52" width="9" height="9"/>
-          <rect x="16" y="62" width="9" height="9"/><rect x="60" y="52" width="9" height="9"/>
-          <rect x="75" y="44" width="9" height="9"/><rect x="60" y="72" width="9" height="9"/>
-        </g>
-      </svg>
+      <img class="hero-logo" src="images/legism-logo.png" alt="Логотип Legism" width="300" height="300">
     </div>
   </div>
 </header>
