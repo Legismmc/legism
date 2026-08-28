@@ -13,7 +13,7 @@
   <key>CFBundleIconFile</key>
   <string>TL.icns</string>
   <key>CFBundleIdentifier</key>
-  <string>ru.turikhay.tlauncher.@short_brand@</string>
+  <string>io.github.legismmc.legism.@short_brand@</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>

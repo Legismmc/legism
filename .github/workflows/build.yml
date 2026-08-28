@@ -1,0 +1,140 @@
+name: Build
+
+# Windows can be built here on a laptop; Linux and macOS cannot, and a macOS .dmg needs
+# macOS tooling outright. This runs each package on its own OS so every artifact is
+# produced - and proven to assemble - on the platform it targets.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SHORT_BRAND: tgsko
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build portable
+        env:
+          PORTABLE_ENABLED: 'true'
+        run: ./gradlew --no-daemon :packages:portable:createPortableBuild
+
+      - name: Prepare installer
+        run: ./gradlew --no-daemon :packages:installer:prepareInstaller
+
+      - name: Compile installer
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
+            "packages\installer\build\innosetup\${env:SHORT_BRAND}\main.iss"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            packages/portable/build/update/${{ env.SHORT_BRAND }}/portable.zip
+            packages/installer/build/innosetup/${{ env.SHORT_BRAND }}/Output/*.exe
+          if-no-files-found: error
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build portable tarball
+        env:
+          LINUX_ENABLED: 'true'
+        run: ./gradlew --no-daemon :packages:linux:createLinuxBuild
+
+      # The tar is built on Windows too, where there are no unix permissions to preserve,
+      # so confirm on a real Linux runner that what ships is actually runnable.
+      - name: Check the archive is usable
+        run: |
+          set -eu
+          tar xzf "packages/linux/build/update/${SHORT_BRAND}/linux.tar.gz"
+          test -x legism/legism.sh || { echo "legism.sh is not executable"; exit 1; }
+          test -x legism/jre/x64/bin/java || { echo "bundled x64 java missing"; exit 1; }
+          test -x legism/jre/aarch64/bin/java || { echo "bundled aarch64 java missing"; exit 1; }
+          legism/jre/x64/bin/java -version
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: packages/linux/build/update/${{ env.SHORT_BRAND }}/linux.tar.gz
+          if-no-files-found: error
+
+  # A .app bundle holds one runtime, so Intel and Apple Silicon are separate images.
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, x64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Assemble the app bundle
+        env:
+          DMG_ENABLED: 'true'
+        run: ./gradlew --no-daemon -PdmgArch=${{ matrix.arch }} :packages:dmg:assemble
+
+      - name: Build the disk image
+        run: |
+          set -eu
+          brew install create-dmg
+          cd "packages/dmg/build/dmg/${SHORT_BRAND}"
+          bash create.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: packages/dmg/build/dmg/${{ env.SHORT_BRAND }}/*.dmg
+          if-no-files-found: error
+
+  # Only attaches to a release that already exists for the tag, so publishing stays a
+  # deliberate act rather than something a pushed tag does on its own.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Attach artifacts to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          find artifacts -type f -print0 \
+            | xargs -0 gh release upload "${GITHUB_REF_NAME}" --clobber --repo "${GITHUB_REPOSITORY}"

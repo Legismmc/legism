@@ -1,0 +1,4 @@
+-Dtlauncher.bootstrap.restartExec=legism.sh
+-Xmx64M
+-jar
+launcher/bootstrap.jar

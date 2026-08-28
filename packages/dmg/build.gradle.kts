@@ -8,10 +8,22 @@ plugins {
     net.legacylauncher.brand
 }
 
-val jreZipDownload = "https://cdn.azul.com/zulu/bin/zulu21.32.17-ca-fx-jre21.0.2-macosx_x64.zip"
-val jreZipSha256 = "49c9ab085278660c7f3236a70be07a9d15077ce6815f97239d3d3a066c6ad1dd"
-val jreZipEntry = "zulu21.32.17-ca-fx-jre21.0.2-macosx_x64/zulu-21.jre"
-val jreZipFile = layout.buildDirectory.file("jreZip/macOsJre.zip")
+// A .app bundle carries exactly one runtime, so the architecture is chosen at build time
+// and each one produces its own disk image. Defaults to Apple Silicon, which is what
+// nearly every Mac sold since 2020 is; pass -PdmgArch=x64 for an Intel build.
+val dmgArch = (findProperty("dmgArch") as String? ?: "aarch64").also {
+    require(it == "aarch64" || it == "x64") { "dmgArch must be aarch64 or x64, got '$it'" }
+}
+
+// Checksums are Azul's own, from api.azul.com/metadata/v1/zulu/packages.
+val jreZipSha256 = when (dmgArch) {
+    "aarch64" -> "7c10a9ca05bb19d0b7179e65d3ad7e7f514afa4a53030b5af83d8f8f06be7f1b"
+    else -> "49c9ab085278660c7f3236a70be07a9d15077ce6815f97239d3d3a066c6ad1dd"
+}
+val jreZipName = "zulu21.32.17-ca-fx-jre21.0.2-macosx_$dmgArch"
+val jreZipDownload = "https://cdn.azul.com/zulu/bin/$jreZipName.zip"
+val jreZipEntry = "$jreZipName/zulu-21.jre"
+val jreZipFile = layout.buildDirectory.file("jreZip/macOsJre-$dmgArch.zip")
 
 val bundleName = "${brand.productName.get()} ${brand.displayName.get()}"
 
@@ -36,7 +48,8 @@ val tokens = mapOf(
     "bundle_name" to bundleName,
     "short_brand" to brand.brand.get(),
     "full_brand" to brand.displayName.get(),
-    "version" to projects.launcher.version
+    "version" to projects.launcher.version,
+    "arch" to dmgArch
 )
 
 val verifyMacOsJre by tasks.registering(Verify::class) {
