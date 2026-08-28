@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.jdom)
     implementation(libs.jopt.simple)
     implementation(libs.jsvg)
+    implementation(libs.junixsocket.core)
     implementation(libs.jvd)
     implementation(libs.nanohttpd)
     implementation(libs.nstweaker)

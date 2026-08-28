@@ -7,58 +7,71 @@ import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.util.OS;
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * A minimal Discord Rich Presence client - just enough of Discord's local IPC protocol to
  * show what's running in the launcher on your profile.
  * <p>
- * Talks to Discord over a named pipe ({@code \\.\pipe\discord-ipc-0} through {@code -9}),
- * the same channel Discord's own SDK uses; there is no official Java client for it. Windows
- * only for now, since that is what this fork ships. Every failure here - Discord not
- * running being the normal case, not an error - is swallowed and logged at debug level:
- * this is a nice-to-have, never something that should get in the way of playing.
+ * Discord listens on a local channel named {@code discord-ipc-0} through {@code -9}, which
+ * is a named pipe on Windows and a Unix domain socket everywhere else; the wire format on
+ * top is identical, so only the transport differs. There is no official Java client for
+ * any of it.
+ * <p>
+ * Every failure here - Discord simply not running being the normal case, not an error - is
+ * swallowed and logged at debug level: this is a nice-to-have, and must never get in the
+ * way of playing.
  */
 @Slf4j
 public final class DiscordRpc {
     private static final int OP_HANDSHAKE = 0;
     private static final int OP_FRAME = 1;
-    private static final int OP_CLOSE = 2;
 
-    private WinNT.HANDLE pipe;
+    /**
+     * Where to look for the socket on Linux and macOS. Discord puts it straight into the
+     * runtime directory, but the sandboxed builds people actually install - Flatpak, Snap -
+     * each nest it somewhere of their own, and a client that only checks the plain path
+     * silently does nothing for those users.
+     */
+    private static final String[] UNIX_SUBDIRECTORIES = {
+            "",
+            "app/com.discordapp.Discord/",
+            "app/com.discordapp.DiscordCanary/",
+            "snap.discord/",
+            "snap.discord-canary/",
+            ".flatpak/dev.vencord.Vesktop/xdg-run/",
+    };
+
     private final String clientId;
+    private Transport transport;
 
     public DiscordRpc(String clientId) {
         this.clientId = clientId;
     }
 
     /**
-     * @return whether a pipe was found and the handshake sent - not a guarantee Discord
+     * @return whether a channel was found and the handshake sent - not a guarantee Discord
      * accepted it, just that this is worth trying to keep updating
      */
     public synchronized boolean connect() {
-        if (!OS.WINDOWS.isCurrent()) {
-            return false;
-        }
         if (clientId == null || clientId.trim().isEmpty()) {
             return false;
         }
         close();
         try {
-            for (int i = 0; i < 10; i++) {
-                WinNT.HANDLE handle = Kernel32.INSTANCE.CreateFile(
-                        "\\\\.\\pipe\\discord-ipc-" + i,
-                        WinNT.GENERIC_READ | WinNT.GENERIC_WRITE,
-                        0, null, WinNT.OPEN_EXISTING, 0, null);
-                if (handle != null && !handle.equals(WinBase.INVALID_HANDLE_VALUE)) {
-                    pipe = handle;
-                    break;
-                }
-            }
-            if (pipe == null) {
+            transport = openTransport();
+            if (transport == null) {
                 return false;
             }
             JsonObject handshake = new JsonObject();
@@ -66,9 +79,9 @@ public final class DiscordRpc {
             handshake.addProperty("client_id", clientId);
             write(OP_HANDSHAKE, handshake);
             // one best-effort read for Discord's own READY dispatch - if nothing comes
-            // back the pipe is probably dead, and every SET_ACTIVITY after this will just
-            // silently fail the same way, which is fine
-            read();
+            // back the channel is probably dead, and every SET_ACTIVITY after this will
+            // just silently fail the same way, which is fine
+            readReady();
             return true;
         } catch (Throwable t) {
             log.debug("Could not connect to Discord: {}", t.toString());
@@ -77,12 +90,19 @@ public final class DiscordRpc {
         }
     }
 
+    private Transport openTransport() {
+        if (OS.WINDOWS.isCurrent()) {
+            return WindowsPipeTransport.open();
+        }
+        return UnixSocketTransport.open();
+    }
+
     /**
-     * @param state    what to show - the instance name, normally
-     * @param sinceMs  epoch millis the activity started, for the "elapsed" clock
+     * @param state   what to show - the instance name, normally
+     * @param sinceMs epoch millis the activity started, for the "elapsed" clock
      */
     public synchronized void setActivity(String state, long sinceMs) {
-        if (pipe == null) {
+        if (transport == null) {
             return;
         }
         try {
@@ -97,11 +117,7 @@ public final class DiscordRpc {
             args.addProperty("pid", currentPid());
             args.add("activity", activity);
 
-            JsonObject frame = new JsonObject();
-            frame.addProperty("cmd", "SET_ACTIVITY");
-            frame.add("args", args);
-            frame.addProperty("nonce", UUID.randomUUID().toString());
-            write(OP_FRAME, frame);
+            write(OP_FRAME, activityFrame(args));
         } catch (Throwable t) {
             log.debug("Could not update Discord activity: {}", t.toString());
             close();
@@ -109,58 +125,55 @@ public final class DiscordRpc {
     }
 
     public synchronized void clearActivity() {
-        if (pipe == null) {
+        if (transport == null) {
             return;
         }
         try {
             JsonObject args = new JsonObject();
             args.addProperty("pid", currentPid());
-
-            JsonObject frame = new JsonObject();
-            frame.addProperty("cmd", "SET_ACTIVITY");
-            frame.add("args", args);
-            frame.addProperty("nonce", UUID.randomUUID().toString());
-            write(OP_FRAME, frame);
+            write(OP_FRAME, activityFrame(args));
         } catch (Throwable t) {
             log.debug("Could not clear Discord activity: {}", t.toString());
         }
     }
 
+    private static JsonObject activityFrame(JsonObject args) {
+        JsonObject frame = new JsonObject();
+        frame.addProperty("cmd", "SET_ACTIVITY");
+        frame.add("args", args);
+        frame.addProperty("nonce", UUID.randomUUID().toString());
+        return frame;
+    }
+
     public synchronized void close() {
-        if (pipe != null) {
-            try {
-                Kernel32.INSTANCE.CloseHandle(pipe);
-            } catch (Throwable ignored) {
-            }
-            pipe = null;
+        if (transport != null) {
+            transport.close();
+            transport = null;
         }
     }
 
-    private void write(int opcode, JsonObject payload) {
+    private void write(int opcode, JsonObject payload) throws IOException {
         byte[] json = payload.toString().getBytes(StandardCharsets.UTF_8);
         byte[] buffer = new byte[8 + json.length];
         writeIntLE(buffer, 0, opcode);
         writeIntLE(buffer, 4, json.length);
         System.arraycopy(json, 0, buffer, 8, json.length);
-        IntByReference written = new IntByReference();
-        Kernel32.INSTANCE.WriteFile(pipe, buffer, buffer.length, written, null);
+        transport.write(buffer);
     }
 
     /**
-     * One best-effort, non-blocking-ish read of whatever Discord already sent back. Named
-     * pipes here are opened in blocking mode, so this only exists right after the
-     * handshake, where Discord is expected to answer quickly; nothing else calls it.
+     * One best-effort read of whatever Discord already sent back. The channel is blocking,
+     * so this only runs right after the handshake, where Discord is expected to answer
+     * quickly; nothing else calls it.
      */
-    private void read() {
+    private void readReady() throws IOException {
         byte[] header = new byte[8];
-        IntByReference readCount = new IntByReference();
-        if (!Kernel32.INSTANCE.ReadFile(pipe, header, 8, readCount, null) || readCount.getValue() < 8) {
+        if (transport.read(header, 8) < 8) {
             return;
         }
         int length = readIntLE(header, 4);
         if (length > 0 && length < 1 << 20) {
-            byte[] body = new byte[length];
-            Kernel32.INSTANCE.ReadFile(pipe, body, length, readCount, null);
+            transport.read(new byte[length], length);
         }
     }
 
@@ -185,6 +198,136 @@ public final class DiscordRpc {
             return Long.parseLong(at > 0 ? name.substring(0, at) : name);
         } catch (NumberFormatException e) {
             return 0;
+        }
+    }
+
+    /**
+     * The half of the protocol that differs per platform. Discord numbers its channels 0
+     * through 9 and uses the first free one, so every implementation has to try all ten.
+     */
+    private interface Transport {
+        void write(byte[] data) throws IOException;
+
+        /**
+         * @return how many bytes were actually read, which may be short of what was asked
+         */
+        int read(byte[] buffer, int length) throws IOException;
+
+        void close();
+    }
+
+    private static final class WindowsPipeTransport implements Transport {
+        private final WinNT.HANDLE pipe;
+
+        private WindowsPipeTransport(WinNT.HANDLE pipe) {
+            this.pipe = pipe;
+        }
+
+        static Transport open() {
+            for (int i = 0; i < 10; i++) {
+                WinNT.HANDLE handle = Kernel32.INSTANCE.CreateFile(
+                        "\\\\.\\pipe\\discord-ipc-" + i,
+                        WinNT.GENERIC_READ | WinNT.GENERIC_WRITE,
+                        0, null, WinNT.OPEN_EXISTING, 0, null);
+                if (handle != null && !handle.equals(WinBase.INVALID_HANDLE_VALUE)) {
+                    return new WindowsPipeTransport(handle);
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void write(byte[] data) {
+            Kernel32.INSTANCE.WriteFile(pipe, data, data.length, new IntByReference(), null);
+        }
+
+        @Override
+        public int read(byte[] buffer, int length) {
+            IntByReference readCount = new IntByReference();
+            if (!Kernel32.INSTANCE.ReadFile(pipe, buffer, length, readCount, null)) {
+                return -1;
+            }
+            return readCount.getValue();
+        }
+
+        @Override
+        public void close() {
+            try {
+                Kernel32.INSTANCE.CloseHandle(pipe);
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private static final class UnixSocketTransport implements Transport {
+        private final AFUNIXSocket socket;
+        private final OutputStream out;
+        private final InputStream in;
+
+        private UnixSocketTransport(AFUNIXSocket socket) throws IOException {
+            this.socket = socket;
+            this.out = socket.getOutputStream();
+            this.in = socket.getInputStream();
+        }
+
+        static Transport open() {
+            for (File directory : candidateDirectories()) {
+                for (int i = 0; i < 10; i++) {
+                    File candidate = new File(directory, "discord-ipc-" + i);
+                    if (!candidate.exists()) {
+                        continue;
+                    }
+                    try {
+                        return new UnixSocketTransport(
+                                AFUNIXSocket.connectTo(AFUNIXSocketAddress.of(candidate)));
+                    } catch (Throwable t) {
+                        log.debug("Discord socket {} did not accept us: {}", candidate, t.toString());
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static List<File> candidateDirectories() {
+            List<File> roots = new ArrayList<>();
+            addIfSet(roots, System.getenv("XDG_RUNTIME_DIR"));
+            addIfSet(roots, System.getenv("TMPDIR"));
+            addIfSet(roots, System.getenv("TMP"));
+            addIfSet(roots, System.getenv("TEMP"));
+            roots.add(new File("/tmp"));
+
+            List<File> directories = new ArrayList<>();
+            for (File root : roots) {
+                for (String subdirectory : UNIX_SUBDIRECTORIES) {
+                    directories.add(subdirectory.isEmpty() ? root : new File(root, subdirectory));
+                }
+            }
+            return directories;
+        }
+
+        private static void addIfSet(List<File> roots, String path) {
+            if (path != null && !path.trim().isEmpty()) {
+                roots.add(new File(path));
+            }
+        }
+
+        @Override
+        public void write(byte[] data) throws IOException {
+            out.write(data);
+            out.flush();
+        }
+
+        @Override
+        public int read(byte[] buffer, int length) throws IOException {
+            return in.read(buffer, 0, length);
+        }
+
+        @Override
+        public void close() {
+            try {
+                socket.close();
+            } catch (Throwable ignored) {
+            }
         }
     }
 }
