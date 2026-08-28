@@ -27,7 +27,7 @@ public final class SelfUpdateChecker {
     /**
      * Bump this to match the git tag on every release.
      */
-    private static final String CURRENT_TAG = "v1.4.2";
+    private static final String CURRENT_TAG = "v1.4.2.0.1";
 
     private static final String REPO = "Legismmc/legism";
     private static final String API_URL = "https://api.github.com/repos/" + REPO + "/releases/latest";

@@ -166,6 +166,24 @@
   .shot img{display:block;width:100%;height:auto}
   .shot figcaption{padding:12px 16px;color:var(--white-3);font-size:14px;border-top:1px solid var(--black-3)}
 
+  /* ---------------- downloads ---------------- */
+  .downloads{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media (max-width:760px){.downloads{grid-template-columns:1fr}}
+  .dl{
+    background:var(--black-2);border:1px solid var(--black-3);border-radius:8px;
+    padding:24px 22px;display:flex;flex-direction:column;transition:border-color .18s;
+  }
+  .dl:hover{border-color:var(--line)}
+  .dl h2{font-size:17px;margin-bottom:4px}
+  .dl .arch{color:var(--white-3);font-size:13.5px;margin:0 0 18px}
+  .dl .files{display:grid;gap:8px;margin-top:auto}
+  .dl .files a{
+    display:block;padding:10px 14px;text-align:center;text-decoration:none;
+    border:1px solid var(--line);border-radius:8px;font-size:14.5px;font-weight:500;
+    transition:background .15s,border-color .15s;
+  }
+  .dl .files a:hover{background:var(--black-3);border-color:var(--white-2)}
+
   /* ---------------- faq ---------------- */
   .faq{display:grid;gap:10px}
   details{
@@ -215,18 +233,18 @@
     <p class="tagline">A Legacy Launcher fork with no ads and no telemetry — instances, a Modrinth and CurseForge catalog, and your own server.</p>
 
     <div class="actions">
-      <a class="btn primary" href="https://github.com/Legismmc/legism/releases/download/v1.4.2/Legism_Installer.exe">
+      <a class="btn primary" href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_installer.exe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
         </svg>
         Download for Windows
       </a>
-      <a class="btn" href="https://github.com/Legismmc/legism/releases/download/v1.4.2/Legism_portable.zip">Portable version</a>
+      <a class="btn" href="#download">Other platforms</a>
       <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
     </div>
 
     <p class="under">
-      v1.4.2 · Windows 10/11 · x64 ·
+      v1.4.2.0.1 · Windows, Linux, macOS ·
       <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">all versions</a>
     </p>
   </div>
@@ -340,7 +358,7 @@
   <section id="screenshots">
     <div class="wrap">
       <h1 class="reveal">Screenshots</h1>
-      <p class="sub reveal">Straight from a running v1.4.2 build.</p>
+      <p class="sub reveal">Straight from a running build.</p>
 
       <div class="shots reveal">
         <figure class="shot">
@@ -352,6 +370,47 @@
           <figcaption>Mod catalog</figcaption>
         </figure>
       </div>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <h1 class="reveal">Download</h1>
+      <p class="sub reveal">Version 1.4.2.0.1. Java is bundled with every build, so there is nothing else to install.</p>
+
+      <div class="downloads reveal">
+        <div class="dl">
+          <h2>Windows</h2>
+          <p class="arch">10 and 11 · x64 and ARM64</p>
+          <div class="files">
+            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_installer.exe">Installer</a>
+            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_portable.zip">Portable .zip</a>
+          </div>
+        </div>
+
+        <div class="dl">
+          <h2>Linux</h2>
+          <p class="arch">x86_64 and aarch64 in one archive</p>
+          <div class="files">
+            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_linux.tar.gz">Portable .tar.gz</a>
+          </div>
+        </div>
+
+        <div class="dl">
+          <h2>macOS</h2>
+          <p class="arch">Pick the one matching your Mac</p>
+          <div class="files">
+            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_macos_apple_silicon.dmg">Apple Silicon .dmg</a>
+            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_macos_intel.dmg">Intel .dmg</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint reveal">
+        On Linux, unpack the archive and run <code>./legism.sh</code>.
+        The macOS builds are not signed by Apple, so the first launch needs
+        Control-click → Open rather than a double click.
+      </p>
     </div>
   </section>
 
@@ -382,8 +441,8 @@
         </details>
 
         <details>
-          <summary>What Windows version do I need?</summary>
-          <p>Windows 10 or 11, 64-bit. Java ships with it — nothing else to install separately.</p>
+          <summary>Which systems does it run on?</summary>
+          <p>Windows 10 or 11 (x64 or ARM64), Linux (x86_64 or aarch64), and macOS on both Apple Silicon and Intel. Java ships with every build — nothing else to install separately.</p>
         </details>
 
         <details>

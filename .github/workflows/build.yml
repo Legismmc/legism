@@ -131,10 +131,35 @@ jobs:
         with:
           path: artifacts
 
+      # Each job's build names its output for the build, not for a download page:
+      # "portable.zip" and "linux.tar.gz" say nothing next to four other files on a
+      # release. Rename to something a person can tell apart before uploading.
+      - name: Name the files for humans
+        run: |
+          set -eu
+          mkdir -p upload
+
+          # Located by pattern rather than by path: upload-artifact roots each artifact at
+          # the common ancestor of what it was given, so how deeply these sit depends on
+          # which paths a job happened to collect.
+          take() {
+            found=$(find "artifacts/$1" -type f -name "$2" | head -1)
+            test -n "$found" || { echo "missing: $1/$2"; exit 1; }
+            cp "$found" "upload/$3"
+          }
+
+          take windows        'portable.zip' Legism_windows_portable.zip
+          take windows        '*.exe'        Legism_windows_installer.exe
+          take linux          'linux.tar.gz' Legism_linux.tar.gz
+          take macos-aarch64  '*.dmg'        Legism_macos_apple_silicon.dmg
+          take macos-x64      '*.dmg'        Legism_macos_intel.dmg
+
+          ls -la upload
+
       - name: Attach artifacts to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          find artifacts -type f -print0 \
+          find upload -type f -print0 \
             | xargs -0 gh release upload "${GITHUB_REF_NAME}" --clobber --repo "${GITHUB_REPOSITORY}"
