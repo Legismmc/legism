@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Legism</title>
-<meta name="description" content="Legism — форк Legacy Launcher без рекламы и телеметрии, со сборками, встроенным каталогом Modrinth и CurseForge и локальными серверами.">
+<meta name="description" content="Legism is a Legacy Launcher fork with no ads and no telemetry — instances, a built-in Modrinth and CurseForge catalog, and local servers.">
 <link rel="icon" type="image/png" href="images/favicon.png">
 <meta property="og:title" content="Legism">
-<meta property="og:description" content="Форк Legacy Launcher без рекламы и телеметрии. Сборки, каталог Modrinth и CurseForge, свой сервер.">
+<meta property="og:description" content="A Legacy Launcher fork with no ads and no telemetry. Instances, a Modrinth and CurseForge catalog, your own server.">
 <meta property="og:image" content="images/legism-logo.png">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,6 +155,17 @@
   .feat:hover h2 svg{stroke:var(--white-1)}
   .feat p{margin:0;color:var(--white-3);font-size:14.5px;line-height:1.6}
 
+  /* ---------------- screenshots ---------------- */
+  .shots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:720px){.shots{grid-template-columns:1fr}}
+  .shot{
+    background:var(--black-2);border:1px solid var(--black-3);border-radius:8px;
+    overflow:hidden;transition:border-color .18s,transform .18s;
+  }
+  .shot:hover{border-color:var(--line);transform:translateY(-3px)}
+  .shot img{display:block;width:100%;height:auto}
+  .shot figcaption{padding:12px 16px;color:var(--white-3);font-size:14px;border-top:1px solid var(--black-3)}
+
   /* ---------------- faq ---------------- */
   .faq{display:grid;gap:10px}
   details{
@@ -197,43 +208,43 @@
 <header>
   <div class="wrap">
     <span class="logo-wrap">
-      <img class="logo" src="images/legism-logo.png" width="124" height="124" alt="Логотип Legism">
+      <img class="logo" src="images/legism-logo.png" width="124" height="124" alt="Legism logo">
     </span>
     <h1 class="name">Legism</h1>
-    <p class="formerly">(ранее Legacy by tgsko)</p>
-    <p class="tagline">Форк Legacy Launcher без рекламы и телеметрии — со сборками, каталогом Modrinth и CurseForge и своим сервером.</p>
+    <p class="formerly">(formerly Legacy by tgsko)</p>
+    <p class="tagline">A Legacy Launcher fork with no ads and no telemetry — instances, a Modrinth and CurseForge catalog, and your own server.</p>
 
     <div class="actions">
       <a class="btn primary" href="https://github.com/Legismmc/legism/releases/download/v1.4.2/Legism_Installer.exe">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
         </svg>
-        Скачать установщик
+        Download for Windows
       </a>
-      <a class="btn" href="https://github.com/Legismmc/legism/releases/download/v1.4.2/Legism_portable.zip">Портативная версия</a>
+      <a class="btn" href="https://github.com/Legismmc/legism/releases/download/v1.4.2/Legism_portable.zip">Portable version</a>
       <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
     </div>
 
     <p class="under">
       v1.4.2 · Windows 10/11 · x64 ·
-      <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">все версии</a>
+      <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">all versions</a>
     </p>
   </div>
 </header>
 
 <div class="stats">
-  <div class="stat"><b>2</b><span>библиотеки контента</span></div>
-  <div class="stat"><b>6</b><span>типов контента</span></div>
-  <div class="stat"><b>3</b><span>ядра сервера</span></div>
-  <div class="stat"><b>17</b><span>тем оформления</span></div>
+  <div class="stat"><b>2</b><span>content libraries</span></div>
+  <div class="stat"><b>6</b><span>content types</span></div>
+  <div class="stat"><b>3</b><span>server cores</span></div>
+  <div class="stat"><b>17</b><span>themes</span></div>
 </div>
 
 <main>
 
   <section id="why">
     <div class="wrap">
-      <h1 class="reveal">Зачем этот форк?</h1>
-      <p class="sub reveal">Legism вырос из Legacy Launcher. Вот что в нём изменилось по сравнению с оригиналом.</p>
+      <h1 class="reveal">Why this fork?</h1>
+      <p class="sub reveal">Legism grew out of Legacy Launcher. Here's what actually changed compared to the original.</p>
 
       <div class="scroller reveal">
         <table>
@@ -246,125 +257,143 @@
           </thead>
           <tbody>
             <tr>
-              <th scope="row">Рекламные баннеры и промо-блоки</th>
-              <td class="yes">Вырезаны</td>
-              <td class="no">Есть</td>
+              <th scope="row">Ad banners and promo blocks</th>
+              <td class="yes">Removed</td>
+              <td class="no">Present</td>
             </tr>
             <tr>
-              <th scope="row">Серверы, добавляемые в список игры</th>
-              <td class="yes">Нет, старые вычищаются</td>
-              <td class="no">Добавляются</td>
+              <th scope="row">Servers injected into the in-game list</th>
+              <td class="yes">None, old ones get cleared</td>
+              <td class="no">Injected</td>
             </tr>
             <tr>
-              <th scope="row">Телеметрия и «маячок» раз в 30 минут</th>
-              <td class="yes">Отключены</td>
-              <td class="no">Есть</td>
+              <th scope="row">Telemetry, incl. a ping every 30 minutes</th>
+              <td class="yes">Disabled</td>
+              <td class="no">Present</td>
             </tr>
             <tr>
-              <th scope="row">Каталог модов Modrinth и CurseForge</th>
-              <td class="yes">Встроен</td>
-              <td class="no">Нет</td>
+              <th scope="row">Modrinth and CurseForge mod catalog</th>
+              <td class="yes">Built in</td>
+              <td class="no">None</td>
             </tr>
             <tr>
-              <th scope="row">Модпаки: каталог и импорт файлом</th>
-              <td class="yes">Есть</td>
-              <td class="no">Нет</td>
+              <th scope="row">Modpacks: catalog and file import</th>
+              <td class="yes">Yes</td>
+              <td class="no">None</td>
             </tr>
             <tr>
-              <th scope="row">Локальный сервер с консолью</th>
+              <th scope="row">Local server with a console</th>
               <td class="yes">Vanilla, Paper, Purpur</td>
-              <td class="no">Нет</td>
+              <td class="no">None</td>
             </tr>
             <tr>
-              <th scope="row">Темы оформления</th>
+              <th scope="row">Themes</th>
               <td class="yes">17</td>
-              <td class="partial">Базовые</td>
+              <td class="partial">Basic</td>
             </tr>
             <tr>
-              <th scope="row">Открытый исходный код</th>
-              <td class="yes">Да</td>
-              <td class="yes">Да</td>
+              <th scope="row">Open source</th>
+              <td class="yes">Yes</td>
+              <td class="yes">Yes</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="hint reveal">Таблицу можно прокручивать вбок. Строки описывают только то, что действительно менялось в коде форка.</p>
+      <p class="hint reveal">The table scrolls sideways. Rows only describe what actually changed in the fork's own code.</p>
     </div>
   </section>
 
   <section id="features">
     <div class="wrap">
-      <h1 class="reveal">Возможности</h1>
-      <p class="sub reveal">Всё внутри лаунчера — без сторонних утилит и ручного копирования файлов.</p>
+      <h1 class="reveal">Features</h1>
+      <p class="sub reveal">Everything lives inside the launcher — no third-party tools, no copying files by hand.</p>
 
       <div class="feats reveal">
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Сборки</h2>
-          <p>Отдельные установки со своими модами, мирами и настройками. Свои иконки, группы, копирование и экспорт одним файлом.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Instances</h2>
+          <p>Separate installs with their own mods, worlds and settings. Custom icons, groups, cloning and one-file export.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Каталог контента</h2>
-          <p>Моды, ресурспаки, шейдеры, датапаки и аддоны с Modrinth и CurseForge — поиск и установка прямо в нужную сборку.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Content catalog</h2>
+          <p>Mods, resource packs, shaders, data packs and addons from Modrinth and CurseForge — search and install straight into the instance you need.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 22V12.5"/></svg>Модпаки</h2>
-          <p>Готовые сборки ставятся из каталога одной кнопкой. Скачанный <code>.mrpack</code> или zip с CurseForge импортируется из файла.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 22V12.5"/></svg>Modpacks</h2>
+          <p>Install a whole pack from the catalog in one click. A downloaded <code>.mrpack</code> or CurseForge zip imports from file too.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Локальный сервер</h2>
-          <p>Ядро скачивается само, сервер запускается с живой консолью, редактором server.properties и каталогом плагинов.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Local server</h2>
+          <p>The core downloads itself, and the server runs with a live console, a server.properties editor, and its own plugin catalog.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 15.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/></svg>Список серверов</h2>
-          <p>Пинг, онлайн игроков и MOTD видны прямо в лаунчере — не запуская игру.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 15.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/></svg>Server list</h2>
+          <p>Ping, player count and MOTD, right inside the launcher — without opening the game.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Аккаунты и темы</h2>
-          <p>Несколько учётных записей с переключением по Ctrl+1…9 и 17 тем оформления, применяемых без перезапуска.</p>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Accounts and themes</h2>
+          <p>Multiple accounts with Ctrl+1…9 switching, and 17 themes that apply instantly without a restart.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <div class="wrap">
+      <h1 class="reveal">Screenshots</h1>
+      <p class="sub reveal">Straight from a running v1.4.2 build.</p>
+
+      <div class="shots reveal">
+        <figure class="shot">
+          <img src="images/screenshot-instances.png" width="1000" height="600" loading="lazy" alt="The instance list, showing a single instance and its actions panel">
+          <figcaption>Instance list</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="images/screenshot-mods.png" width="1000" height="692" loading="lazy" alt="The Modrinth mod catalog inside an instance, with search and install buttons">
+          <figcaption>Mod catalog</figcaption>
+        </figure>
       </div>
     </div>
   </section>
 
   <section id="faq">
     <div class="wrap">
-      <h1 class="reveal">Частые вопросы</h1>
-      <p class="sub reveal">Коротко о главном.</p>
+      <h1 class="reveal">Frequently asked questions</h1>
+      <p class="sub reveal">The short version.</p>
 
       <div class="faq reveal">
         <details>
-          <summary>Что такое Legism?</summary>
-          <p>Независимый любительский форк <a href="https://llaun.ch/" target="_blank" rel="noopener">Legacy Launcher</a> — лаунчера Minecraft. Из него вырезаны реклама и телеметрия, а взамен добавлены встроенный каталог модов, модпаки и локальные серверы. Раньше проект назывался «Legacy by tgsko».</p>
+          <summary>What is Legism?</summary>
+          <p>An independent, hobbyist fork of <a href="https://llaun.ch/" target="_blank" rel="noopener">Legacy Launcher</a>, a Minecraft launcher. Ads and telemetry are cut out, and a built-in mod catalog, modpacks and local servers are added in their place. The project used to be called "Legacy by tgsko".</p>
         </details>
 
         <details>
-          <summary>Нужна ли лицензия Minecraft?</summary>
-          <p>Minecraft — платная игра, и лаунчер её не распространяет и не выдаёт. Legism только запускает игру и управляет сборками.</p>
+          <summary>Do I need a Minecraft license?</summary>
+          <p>Minecraft is a paid game, and the launcher doesn't distribute or grant it. Legism only launches the game and manages instances.</p>
         </details>
 
         <details>
-          <summary>Это безопасно?</summary>
-          <p>Исходный код открыт целиком — его можно прочитать и собрать самому. Скачивайте только со <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">страницы релизов на GitHub</a>: сборки с других сайтов никем не проверены.</p>
+          <summary>Is it safe?</summary>
+          <p>The source is fully open — you can read it and build it yourself. Only download it from the <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">GitHub releases page</a>: builds from other sites are unverified.</p>
         </details>
 
         <details>
-          <summary>Чем установщик отличается от портативной версии?</summary>
-          <p>Установщик ставит лаунчер как обычную программу с ярлыками. Портативная версия распаковывается в любую папку и ничего не прописывает в систему — её удобно держать на флешке или переносить между дисками вместе со сборками.</p>
+          <summary>What's the difference between the installer and the portable version?</summary>
+          <p>The installer sets the launcher up like a regular program, with shortcuts. The portable version unpacks into any folder and doesn't touch the system — handy to keep on a flash drive or move between drives along with your instances.</p>
         </details>
 
         <details>
-          <summary>Какая нужна Windows?</summary>
-          <p>Windows 10 или 11, 64-разрядная. Java идёт в комплекте — отдельно ставить ничего не нужно.</p>
+          <summary>What Windows version do I need?</summary>
+          <p>Windows 10 or 11, 64-bit. Java ships with it — nothing else to install separately.</p>
         </details>
 
         <details>
-          <summary>Обязательно ли иметь ключ CurseForge?</summary>
-          <p>Нет. Ключ уже встроен, и каталог CurseForge работает сразу. Свой ключ можно указать в настройках, если захочется — он заменит встроенный.</p>
+          <summary>Do I need my own CurseForge key?</summary>
+          <p>No. A key is already built in, so the CurseForge catalog works right away. You can set your own in settings if you want to — it replaces the built-in one.</p>
         </details>
 
         <details>
-          <summary>Куда сообщать об ошибках?</summary>
-          <p>В <a href="https://github.com/Legismmc/legism/issues" target="_blank" rel="noopener">Issues на GitHub</a> или в наши чаты. Не пишите о проблемах этого форка команде Legacy Launcher — они к нему отношения не имеют.</p>
+          <summary>Where do I report bugs?</summary>
+          <p>On <a href="https://github.com/Legismmc/legism/issues" target="_blank" rel="noopener">GitHub Issues</a>, or in our chats. Please don't report problems with this fork to the Legacy Launcher team — they have nothing to do with it.</p>
         </details>
       </div>
     </div>
@@ -372,7 +401,7 @@
 
   <section id="community">
     <div class="wrap">
-      <h1 class="reveal">Сообщество и поддержка</h1>
+      <h1 class="reveal">Community &amp; Support</h1>
 
       <div class="socials reveal">
         <a class="social" href="https://t.me/legismmc" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram">
@@ -387,11 +416,11 @@
       </div>
 
       <p class="community-text reveal">
-        У нас есть <a href="https://t.me/legismmc" target="_blank" rel="noopener">Telegram</a> и
-        <a href="https://discord.gg/csBAgdRuv" target="_blank" rel="noopener">Discord</a>, где помогут
-        другие пользователи. А ещё можно завести issue на GitHub, если хотите
-        <a href="https://github.com/Legismmc/legism/issues/new" target="_blank" rel="noopener">сообщить о баге</a> или
-        <a href="https://github.com/Legismmc/legism/issues/new" target="_blank" rel="noopener">предложить новую функцию</a>.
+        We have a <a href="https://t.me/legismmc" target="_blank" rel="noopener">Telegram</a> and a
+        <a href="https://discord.gg/csBAgdRuv" target="_blank" rel="noopener">Discord</a> where other users can help you.
+        You can also open an issue on GitHub if you want to
+        <a href="https://github.com/Legismmc/legism/issues/new" target="_blank" rel="noopener">report a bug</a> or
+        <a href="https://github.com/Legismmc/legism/issues/new" target="_blank" rel="noopener">suggest a new feature</a>.
       </p>
     </div>
   </section>
@@ -401,9 +430,9 @@
 <footer>
   <div class="wrap">
     <p class="disclaimer">
-      Legism — независимый любительский проект. Он не связан и не сотрудничает с Mojang Studios,
-      Microsoft, командой Legacy Launcher, CurseForge и Modrinth. Minecraft — торговая марка
-      Mojang Studios. Все названия и торговые марки принадлежат их владельцам.
+      Legism is an independent hobby project. It is not affiliated with or endorsed by Mojang Studios,
+      Microsoft, the Legacy Launcher team, CurseForge or Modrinth. Minecraft is a trademark of
+      Mojang Studios. All other names and trademarks belong to their respective owners.
     </p>
   </div>
 </footer>
