@@ -3,31 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Legism — лаунчер Minecraft без рекламы</title>
-<meta name="description" content="Legism — независимый форк Legacy Launcher: без рекламы и телеметрии, со сборками, встроенным каталогом Modrinth и CurseForge и своим сервером в один клик.">
+<title>Legism</title>
+<meta name="description" content="Legism — форк Legacy Launcher без рекламы и телеметрии, со сборками, встроенным каталогом Modrinth и CurseForge и локальными серверами.">
 <link rel="icon" type="image/png" href="images/favicon.png">
-<meta property="og:title" content="Legism — лаунчер Minecraft без рекламы">
-<meta property="og:description" content="Сборки, каталог модов Modrinth и CurseForge, свой сервер в один клик. Без рекламы и телеметрии.">
+<meta property="og:title" content="Legism">
+<meta property="og:description" content="Форк Legacy Launcher без рекламы и телеметрии. Сборки, каталог Modrinth и CurseForge, свой сервер.">
+<meta property="og:image" content="images/legism-logo.png">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#151719;
-    --bg-soft:#1b1e22;
-    --card:#202328;
-    --card-hi:#272b31;
-    --line:#343941;
-    --line-hi:#4a515b;
-    --text:#e9eef4;
-    --muted:#b2bac4;
-    --accent:#c2c9d1;
-    --accent-dim:#858f9a;
-    --accent-glow:rgba(194,201,209,.16);
-    --danger:#ff6b6b;
-    --radius:6px;
-    --maxw:1120px;
+    --black-1:hsl(0,0%,0%);
+    --black-2:hsl(0,0%,8%);
+    --black-3:hsl(0,0%,16%);
+    --white-1:hsl(0,0%,100%);
+    --white-2:hsl(0,0%,75%);
+    --white-3:hsl(0,0%,50%);
+    --line:hsl(0,0%,25%);
+    --green-1:hsl(100,30%,15%);
+    --red-1:hsl(0,30%,15%);
+    --blue-1:hsl(200,30%,15%);
+    --yellow-1:hsl(40,30%,15%);
   }
 
   *{box-sizing:border-box}
@@ -35,420 +33,299 @@
   html{scroll-behavior:smooth}
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
-    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    *,*::before,*::after{transition-duration:.01ms!important}
   }
 
   body{
     margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font:500 17px/1.65 Manrope,system-ui,-apple-system,Segoe UI,sans-serif;
+    background:var(--black-2);
+    color:var(--white-1);
+    font:400 16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
     -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
   }
 
-  /* faint pixel grid, echoing the block the icon is made of */
-  body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:0;
-    background-image:
-      linear-gradient(var(--line) 1px,transparent 1px),
-      linear-gradient(90deg,var(--line) 1px,transparent 1px);
-    background-size:64px 64px;
-    opacity:.2;
-    mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);
-    -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);
-  }
+  .wrap{width:min(100% - 32px,960px);margin-inline:auto}
 
-  .wrap{width:min(100% - 40px,var(--maxw));margin-inline:auto;position:relative;z-index:1}
+  a{color:var(--white-1)}
+  :focus-visible{outline:2px solid var(--white-1);outline-offset:3px;border-radius:4px}
 
-  a{color:inherit}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
-
-  /* ---------------- nav ---------------- */
-  nav{
-    position:sticky;top:0;z-index:50;
-    background:rgba(21,23,25,.82);
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
-  }
-  .nav-in{display:flex;align-items:center;gap:28px;height:64px}
-  .brand{
-    display:flex;align-items:center;gap:10px;
-    font-family:Unbounded,sans-serif;font-weight:800;font-size:19px;
-    letter-spacing:0;text-decoration:none;margin-right:auto;
-  }
-  .brand-logo{display:block;width:29px;height:29px;object-fit:contain}
-  .nav-links{display:flex;gap:26px;align-items:center}
-  .nav-links a{
-    color:var(--muted);text-decoration:none;font-size:15px;font-weight:600;
-    transition:color .15s;
-  }
-  .nav-links a:hover{color:var(--text)}
-  /* the nav row is the one thing that will not fit a narrow phone - drop the
-     least important links rather than let the whole page scroll sideways */
-  @media (max-width:760px){.nav-links a[data-optional]{display:none}}
-  @media (max-width:560px){
-    .nav-links{display:none}
-    .nav-links a[data-optional-sm]{display:none}
-    .brand{font-size:17px}
-  }
-
-  /* ---------------- buttons ---------------- */
-  .btn{
-    display:inline-flex;align-items:center;justify-content:center;gap:10px;
-    padding:14px 24px;border-radius:var(--radius);
-    font:700 16px/1 Manrope,sans-serif;text-decoration:none;
-    border:1px solid transparent;cursor:pointer;
-    transition:transform .12s ease,background .15s,border-color .15s;
-  }
-  .btn:active{transform:translateY(1px)}
-  .btn-primary{background:var(--accent);color:#16191d;box-shadow:0 0 0 1px var(--accent-dim),0 8px 28px var(--accent-glow)}
-  .btn-primary:hover{background:#d6dce3}
-  .btn-ghost{background:transparent;border-color:var(--line-hi);color:var(--text)}
-  .btn-ghost:hover{background:var(--card-hi);border-color:var(--muted)}
-  .btn svg{width:18px;height:18px;flex:none}
+  h1{font-size:32px;font-weight:900;line-height:1.15;margin:0 0 16px}
+  h2{font-size:20px;font-weight:700;margin:0 0 10px}
 
   /* ---------------- hero ---------------- */
-  header{padding:clamp(56px,10vw,110px) 0 clamp(48px,7vw,84px)}
-  .hero{display:grid;grid-template-columns:1.25fr .75fr;gap:56px;align-items:center}
-  @media (max-width:860px){.hero{grid-template-columns:1fr;gap:40px}.hero-art{order:-1}}
-
-  .eyebrow{
-    display:inline-flex;align-items:center;gap:8px;
-    font:500 13px/1 "JetBrains Mono",monospace;
-    color:var(--accent);letter-spacing:0;text-transform:uppercase;
-    padding:7px 12px;border:1px solid var(--line-hi);border-radius:100px;
-    background:var(--card);margin-bottom:24px;
+  header{text-align:center;padding:80px 0 64px;border-bottom:1px solid var(--black-3)}
+  .logo{
+    width:112px;height:112px;display:block;margin:0 auto 22px;
+    image-rendering:auto;
   }
-  .eyebrow b{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .name{font-size:clamp(40px,7vw,60px);font-weight:900;line-height:1;margin:0 0 12px;letter-spacing:-.02em}
+  .formerly{color:var(--white-3);font-size:15px;margin:0 0 8px}
+  .tagline{color:var(--white-2);font-size:18px;margin:0 auto 32px;max-width:52ch}
 
-  h1{
-    font-family:Unbounded,sans-serif;font-weight:800;
-    font-size:clamp(40px,6.4vw,68px);line-height:1.02;letter-spacing:0;
-    margin:0 0 20px;
+  .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:18px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    min-height:44px;padding:0 20px;
+    background:transparent;color:var(--white-1);
+    border:1px solid var(--line);border-radius:8px;
+    font:500 15px/1 Inter,sans-serif;text-decoration:none;cursor:pointer;
+    transition:background .15s,border-color .15s;
   }
-  h1 .dim{color:var(--muted)}
+  .btn:hover{background:var(--black-3);border-color:var(--white-3)}
+  .btn.primary{border-color:var(--white-2)}
+  .btn.primary:hover{background:var(--white-1);color:var(--black-1);border-color:var(--white-1)}
+  .btn svg{width:17px;height:17px;flex:none}
 
-  .lede{font-size:clamp(17px,2.1vw,20px);color:var(--muted);margin:0 0 34px;max-width:52ch}
-  .lede strong{color:var(--text);font-weight:600}
-
-  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px}
-  .meta{font:400 14px/1.7 "JetBrains Mono",monospace;color:var(--muted)}
-  .meta a{color:var(--muted)}
-  .meta a:hover{color:var(--accent)}
-  .sep{opacity:.4;padding:0 8px}
-
-  .hero-art{display:flex;justify-content:center}
-  .hero-logo{
-    display:block;width:min(100%,300px);height:auto;
-    filter:drop-shadow(0 24px 48px rgba(0,0,0,.55));
-  }
-
-  /* ---------------- guarantees ---------------- */
-  .guards{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-    background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
-    overflow:hidden;margin-bottom:clamp(64px,9vw,110px);
-  }
-  @media (max-width:720px){.guards{grid-template-columns:1fr}}
-  .guard{background:var(--bg-soft);padding:26px 24px}
-  .guard h3{margin:0 0 6px;font:700 17px/1.3 Manrope,sans-serif}
-  .guard p{margin:0;color:var(--muted);font-size:15px}
+  .under{color:var(--white-3);font-size:14px;margin:0}
+  .under a{color:var(--white-3)}
+  .under a:hover{color:var(--white-1)}
 
   /* ---------------- sections ---------------- */
-  section{padding-bottom:clamp(64px,9vw,110px)}
-  .head{max-width:64ch;margin-bottom:40px}
-  h2{
-    font-family:Unbounded,sans-serif;font-weight:600;
-    font-size:clamp(27px,3.6vw,40px);line-height:1.12;letter-spacing:0;margin:0 0 14px;
-  }
-  .head p{color:var(--muted);margin:0;font-size:17px}
+  section{padding:64px 0;border-bottom:1px solid var(--black-3)}
+  section > .wrap > h1{text-align:center;margin-bottom:10px}
+  .sub{text-align:center;color:var(--white-3);margin:0 auto 34px;max-width:60ch;font-size:15px}
+
+  /* ---------------- table ---------------- */
+  .scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  thead th{font-weight:700;white-space:nowrap}
+  thead th:first-child{width:44%}
+  tbody th{font-weight:400;color:var(--white-2)}
+  td{text-align:center;white-space:nowrap}
+  .yes{background:var(--green-1)}
+  .no{background:var(--red-1)}
+  .neutral{background:var(--blue-1)}
+  .partial{background:var(--yellow-1)}
+  .hint{color:var(--white-3);font-size:13.5px;margin:14px 0 0;text-align:center}
 
   /* ---------------- features ---------------- */
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
-  @media (max-width:600px){.grid{grid-template-columns:1fr}}
+  .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--black-3);border:1px solid var(--black-3);border-radius:8px;overflow:hidden}
+  @media (max-width:640px){.feats{grid-template-columns:1fr}}
+  .feat{background:var(--black-2);padding:22px 20px}
+  .feat h2{font-size:16px;margin-bottom:6px}
+  .feat p{margin:0;color:var(--white-3);font-size:14.5px;line-height:1.6}
 
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:26px 24px;transition:border-color .18s,background .18s,transform .18s;
+  /* ---------------- faq ---------------- */
+  .faq{display:grid;gap:10px}
+  details{
+    background:var(--black-2);border:1px solid var(--black-3);border-radius:8px;
+    padding:0 18px;transition:border-color .15s;
   }
-  .card:hover{border-color:var(--line-hi);background:var(--card-hi);transform:translateY(-2px)}
-  .ico{
-    width:38px;height:38px;border-radius:var(--radius);
-    display:grid;place-items:center;margin-bottom:16px;
-    background:var(--accent-glow);border:1px solid rgba(194,201,209,.24);
+  details:hover{border-color:var(--line)}
+  details[open]{border-color:var(--line)}
+  summary{
+    cursor:pointer;list-style:none;padding:16px 0;
+    font-weight:700;font-size:16px;display:flex;align-items:center;gap:12px;
   }
-  .ico svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .card h3{margin:0 0 8px;font:700 17px/1.35 Manrope,sans-serif}
-  .card p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
+  summary::-webkit-details-marker{display:none}
+  summary::before{
+    content:"";flex:none;width:9px;height:9px;
+    border-right:2px solid var(--white-3);border-bottom:2px solid var(--white-3);
+    transform:rotate(-45deg);transition:transform .18s;margin-left:2px;
+  }
+  details[open] summary::before{transform:rotate(45deg)}
+  details p{margin:0 0 16px;color:var(--white-2);font-size:15px;line-height:1.65}
+  details p:last-child{margin-bottom:16px}
+  details a{color:var(--white-1)}
 
-  /* ---------------- fork story ---------------- */
-  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media (max-width:760px){.split{grid-template-columns:1fr}}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px}
-  .panel h3{
-    margin:0 0 18px;font:700 15px/1 "JetBrains Mono",monospace;
-    letter-spacing:0;text-transform:uppercase;
-  }
-  .panel.out h3{color:var(--danger)}
-  .panel.in h3{color:var(--accent)}
-  .panel ul{margin:0;padding:0;list-style:none;display:grid;gap:13px}
-  .panel li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px;color:var(--muted)}
-  .panel li b{color:var(--text);font-weight:600}
-  .mark{flex:none;width:19px;height:19px;margin-top:2px}
-  .mark svg{width:19px;height:19px;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
-  .out .mark svg{stroke:var(--danger)}
-  .in .mark svg{stroke:var(--accent)}
-
-  /* ---------------- download ---------------- */
-  .dl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-  @media (max-width:760px){.dl{grid-template-columns:1fr}}
-  .dl-card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:30px 28px;display:flex;flex-direction:column;
-  }
-  .dl-card.featured{border-color:var(--accent-dim);background:linear-gradient(180deg,rgba(194,201,209,.08),transparent 60%),var(--card)}
-  .dl-card h3{margin:0 0 8px;font:700 20px/1.2 Manrope,sans-serif}
-  .dl-card p{margin:0 0 22px;color:var(--muted);font-size:15px;flex:1}
-  .tag{
-    display:inline-block;font:500 12px/1 "JetBrains Mono",monospace;
-    color:var(--accent);border:1px solid rgba(194,201,209,.34);border-radius:100px;
-    padding:6px 10px;margin-bottom:14px;align-self:flex-start;
-  }
-  .req{font:400 14px/1.7 "JetBrains Mono",monospace;color:var(--muted)}
+  /* ---------------- support ---------------- */
+  .links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 
   /* ---------------- footer ---------------- */
-  footer{border-top:1px solid var(--line);padding:44px 0 60px;background:var(--bg-soft)}
-  .foot-top{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-bottom:26px}
-  .foot-links{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
-  .foot-links a{color:var(--muted);text-decoration:none;font-size:15px;font-weight:600}
-  .foot-links a:hover{color:var(--accent)}
-  .disclaimer{color:var(--muted);font-size:13.5px;line-height:1.7;margin:0;max-width:88ch;opacity:.85}
+  footer{padding:36px 0 56px;text-align:center}
+  .disclaimer{color:var(--white-3);font-size:13px;line-height:1.7;margin:0 auto;max-width:80ch}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="wrap nav-in">
-    <a class="brand" href="#top">
-      <img class="brand-logo" src="images/legism-logo.png" alt="" width="29" height="29">
-      Legism
-    </a>
-    <div class="nav-links">
-      <a href="#features" data-optional-sm>Возможности</a>
-      <a href="#fork" data-optional>Чем отличается</a>
-      <a href="#download">Скачать</a>
-      <a href="https://github.com/tgskoZ/legism" target="_blank" rel="noopener">GitHub</a>
-    </div>
-  </div>
-</nav>
+<header>
+  <div class="wrap">
+    <img class="logo" src="images/legism-logo.png" width="112" height="112" alt="Логотип Legism">
+    <h1 class="name">Legism</h1>
+    <p class="formerly">(ранее Legacy by tgsko)</p>
+    <p class="tagline">Форк Legacy Launcher без рекламы и телеметрии — со сборками, каталогом Modrinth и CurseForge и своим сервером.</p>
 
-<header id="top">
-  <div class="wrap hero">
-    <div>
-      <span class="eyebrow"><b></b> Открытый код · без рекламы</span>
-      <h1>Minecraft<br>без <span class="dim">лишнего.</span></h1>
-      <p class="lede">
-        <strong>Legism</strong> — независимый форк Legacy Launcher. Сборки со своими модами,
-        встроенный каталог Modrinth и CurseForge, свой сервер в один клик.
-        Ни баннеров, ни телеметрии, ни подсунутых серверов.
-      </p>
-      <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/tgskoZ/legism/releases/download/v1.4.2/Legism_Installer.exe">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
-          </svg>
-          Скачать для Windows
-        </a>
-        <a class="btn btn-ghost" href="#download">Портативная версия</a>
-      </div>
-      <p class="meta">
-        v1.4.2 <span class="sep">·</span> Windows 10/11 <span class="sep">·</span> x64
-        <span class="sep">·</span> <a href="https://github.com/tgskoZ/legism" target="_blank" rel="noopener">исходники на GitHub</a>
-      </p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/tgskoZ/legism/releases/download/v1.4.2/Legism_Installer.exe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
+        </svg>
+        Скачать установщик
+      </a>
+      <a class="btn" href="https://github.com/tgskoZ/legism/releases/download/v1.4.2/Legism_portable.zip">Портативная версия</a>
+      <a class="btn" href="https://github.com/tgskoZ/legism" target="_blank" rel="noopener">GitHub</a>
     </div>
-    <div class="hero-art">
-      <img class="hero-logo" src="images/legism-logo.png" alt="Логотип Legism" width="300" height="300">
-    </div>
+
+    <p class="under">
+      v1.4.2 · Windows 10/11 · x64 ·
+      <a href="https://github.com/tgskoZ/legism/releases" target="_blank" rel="noopener">все версии</a>
+    </p>
   </div>
 </header>
 
 <main>
-  <div class="wrap">
 
-    <div class="guards">
-      <div class="guard">
-        <h3>Никакой рекламы</h3>
-        <p>Баннеры, промо-блоки и рекламные разделы вырезаны из кода, а не спрятаны за настройкой.</p>
+  <section id="why">
+    <div class="wrap">
+      <h1>Зачем этот форк?</h1>
+      <p class="sub">Legism вырос из Legacy Launcher. Вот что в нём изменилось по сравнению с оригиналом.</p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Legism</th>
+              <th scope="col">Legacy Launcher</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Рекламные баннеры и промо-блоки</th>
+              <td class="yes">Вырезаны</td>
+              <td class="no">Есть</td>
+            </tr>
+            <tr>
+              <th scope="row">Серверы, добавляемые в список игры</th>
+              <td class="yes">Нет, старые вычищаются</td>
+              <td class="no">Добавляются</td>
+            </tr>
+            <tr>
+              <th scope="row">Телеметрия и «маячок» раз в 30 минут</th>
+              <td class="yes">Отключены</td>
+              <td class="no">Есть</td>
+            </tr>
+            <tr>
+              <th scope="row">Каталог модов Modrinth и CurseForge</th>
+              <td class="yes">Встроен</td>
+              <td class="no">Нет</td>
+            </tr>
+            <tr>
+              <th scope="row">Модпаки: каталог и импорт файлом</th>
+              <td class="yes">Есть</td>
+              <td class="no">Нет</td>
+            </tr>
+            <tr>
+              <th scope="row">Локальный сервер с консолью</th>
+              <td class="yes">Vanilla, Paper, Purpur</td>
+              <td class="no">Нет</td>
+            </tr>
+            <tr>
+              <th scope="row">Темы оформления</th>
+              <td class="yes">17</td>
+              <td class="partial">Базовые</td>
+            </tr>
+            <tr>
+              <th scope="row">Открытый исходный код</th>
+              <td class="yes">Да</td>
+              <td class="yes">Да</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="guard">
-        <h3>Никакой слежки</h3>
-        <p>Телеметрия отключена: статистика пишется только в локальный лог и никуда не уходит.</p>
-      </div>
-      <div class="guard">
-        <h3>Всё видно</h3>
-        <p>Исходный код открыт целиком — можно прочитать, собрать самому и проверить каждое слово.</p>
-      </div>
+      <p class="hint">Таблицу можно прокручивать вбок. Строки описывают только то, что действительно менялось в коде форка.</p>
     </div>
+  </section>
 
-    <section id="features">
-      <div class="head">
-        <h2>Что умеет</h2>
-        <p>Всё нужное — внутри лаунчера, без плясок с папками и сторонними утилитами.</p>
-      </div>
+  <section id="features">
+    <div class="wrap">
+      <h1>Возможности</h1>
+      <p class="sub">Всё внутри лаунчера — без сторонних утилит и ручного копирования файлов.</p>
 
-      <div class="grid">
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
-          <h3>Сборки</h3>
+      <div class="feats">
+        <div class="feat">
+          <h2>Сборки</h2>
           <p>Отдельные установки со своими модами, мирами и настройками. Свои иконки, группы, копирование и экспорт одним файлом.</p>
         </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
-          <h3>Каталог контента</h3>
+        <div class="feat">
+          <h2>Каталог контента</h2>
           <p>Моды, ресурспаки, шейдеры, датапаки и аддоны с Modrinth и CurseForge — поиск и установка прямо в нужную сборку.</p>
         </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 22V12.5"/></svg></div>
-          <h3>Модпаки</h3>
-          <p>Готовые сборки из каталога Modrinth и CurseForge ставятся одной кнопкой. Скачанный <code>.mrpack</code> или zip импортируется из файла.</p>
+        <div class="feat">
+          <h2>Модпаки</h2>
+          <p>Готовые сборки ставятся из каталога одной кнопкой. Скачанный <code>.mrpack</code> или zip с CurseForge импортируется из файла.</p>
         </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
-          <h3>Свой сервер</h3>
-          <p>Vanilla, Paper или Purpur — лаунчер сам скачает ядро и запустит сервер с живой консолью, настройками и каталогом плагинов.</p>
+        <div class="feat">
+          <h2>Локальный сервер</h2>
+          <p>Ядро скачивается само, сервер запускается с живой консолью, редактором server.properties и каталогом плагинов.</p>
         </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 15.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/></svg></div>
-          <h3>Список серверов</h3>
-          <p>Пинг, онлайн игроков и MOTD прямо в лаунчере — видно, где кто есть, не запуская игру.</p>
+        <div class="feat">
+          <h2>Список серверов</h2>
+          <p>Пинг, онлайн игроков и MOTD видны прямо в лаунчере — не запуская игру.</p>
         </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
-          <h3>Аккаунты</h3>
-          <p>Несколько учётных записей сразу и переключение между ними по Ctrl+1…9, не открывая менеджер.</p>
-        </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18"/><path d="M12 3a9 9 0 0 1 0 18" fill="currentColor" opacity=".25" stroke="none"/></svg></div>
-          <h3>17 тем оформления</h3>
-          <p>Светлая, тёмная, системная и полтора десятка тем на любой вкус — применяются сразу, без перезапуска.</p>
-        </div>
-
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10"/><path d="m7.5 10 4.5 4.5 4.5-4.5"/><path d="M5 19h14"/></svg></div>
-          <h3>Обновления</h3>
-          <p>Лаунчер сам проверяет, вышла ли новая версия, и подсвечивает это значком — без навязчивых окон.</p>
+        <div class="feat">
+          <h2>Аккаунты и темы</h2>
+          <p>Несколько учётных записей с переключением по Ctrl+1…9 и 17 тем оформления, применяемых без перезапуска.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="fork">
-      <div class="head">
-        <h2>Чем отличается от оригинала</h2>
-        <p>Legism вырос из Legacy Launcher. Вот честный список того, что изменилось.</p>
+  <section id="faq">
+    <div class="wrap">
+      <h1>Частые вопросы</h1>
+      <p class="sub">Коротко о главном.</p>
+
+      <div class="faq">
+        <details>
+          <summary>Что такое Legism?</summary>
+          <p>Независимый любительский форк <a href="https://llaun.ch/" target="_blank" rel="noopener">Legacy Launcher</a> — лаунчера Minecraft. Из него вырезаны реклама и телеметрия, а взамен добавлены встроенный каталог модов, модпаки и локальные серверы. Раньше проект назывался «Legacy by tgsko».</p>
+        </details>
+
+        <details>
+          <summary>Нужна ли лицензия Minecraft?</summary>
+          <p>Minecraft — платная игра, и лаунчер её не распространяет и не выдаёт. Legism только запускает игру и управляет сборками.</p>
+        </details>
+
+        <details>
+          <summary>Это безопасно?</summary>
+          <p>Исходный код открыт целиком — его можно прочитать и собрать самому. Скачивайте только со <a href="https://github.com/tgskoZ/legism/releases" target="_blank" rel="noopener">страницы релизов на GitHub</a>: сборки с других сайтов никем не проверены.</p>
+        </details>
+
+        <details>
+          <summary>Чем установщик отличается от портативной версии?</summary>
+          <p>Установщик ставит лаунчер как обычную программу с ярлыками. Портативная версия распаковывается в любую папку и ничего не прописывает в систему — её удобно держать на флешке или переносить между дисками вместе со сборками.</p>
+        </details>
+
+        <details>
+          <summary>Какая нужна Windows?</summary>
+          <p>Windows 10 или 11, 64-разрядная. Java идёт в комплекте — отдельно ставить ничего не нужно.</p>
+        </details>
+
+        <details>
+          <summary>Обязательно ли иметь ключ CurseForge?</summary>
+          <p>Нет. Ключ уже встроен, и каталог CurseForge работает сразу. Свой ключ можно указать в настройках, если захочется — он заменит встроенный.</p>
+        </details>
+
+        <details>
+          <summary>Куда сообщать об ошибках?</summary>
+          <p>В <a href="https://github.com/tgskoZ/legism/issues" target="_blank" rel="noopener">Issues на GitHub</a>. Не пишите о проблемах этого форка команде Legacy Launcher — они к нему отношения не имеют.</p>
+        </details>
       </div>
+    </div>
+  </section>
 
-      <div class="split">
-        <div class="panel out">
-          <h3>Убрано</h3>
-          <ul>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
-              <span><b>Рекламные баннеры</b> и боковая панель с промо-блоками</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
-              <span><b>Серверы, подсунутые в список</b> — уже добавленные вычищаются при запуске</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
-              <span><b>Телеметрия</b>, включая «маячок» каждые 30 минут</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
-              <span><b>Персональные уведомления</b> с сервера и рекламные картинки</span></li>
-          </ul>
-        </div>
-
-        <div class="panel in">
-          <h3>Добавлено</h3>
-          <ul>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
-              <span><b>Каталог Modrinth и CurseForge</b> — моды, паки, шейдеры, датапаки, аддоны</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
-              <span><b>Модпаки</b> из каталога и импорт из файла</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
-              <span><b>Локальные серверы</b> с консолью и плагинами</span></li>
-            <li><span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
-              <span><b>Темы, быстрые аккаунты</b> и проверка обновлений лаунчера</span></li>
-          </ul>
-        </div>
+  <section id="support">
+    <div class="wrap">
+      <h1>Поддержка</h1>
+      <p class="sub">Исходники, баг-репорты и история версий — на GitHub.</p>
+      <div class="links">
+        <a class="btn" href="https://github.com/tgskoZ/legism" target="_blank" rel="noopener">Исходный код</a>
+        <a class="btn" href="https://github.com/tgskoZ/legism/issues" target="_blank" rel="noopener">Сообщить о баге</a>
+        <a class="btn" href="https://github.com/tgskoZ/legism/releases" target="_blank" rel="noopener">Релизы</a>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="download">
-      <div class="head">
-        <h2>Скачать</h2>
-        <p>Две сборки одной и той же версии — выбирайте, что удобнее.</p>
-      </div>
-
-      <div class="dl">
-        <div class="dl-card featured">
-          <span class="tag">рекомендуем</span>
-          <h3>Установщик</h3>
-          <p>Обычная установка с ярлыками в меню «Пуск» и на рабочем столе. Подойдёт, если просто хочется играть.</p>
-          <a class="btn btn-primary" href="https://github.com/tgskoZ/legism/releases/download/v1.4.2/Legism_Installer.exe">
-            Legism_Installer.exe
-          </a>
-        </div>
-
-        <div class="dl-card">
-          <span class="tag">portable</span>
-          <h3>Портативная версия</h3>
-          <p>Распаковал и запустил — ничего не прописывается в систему. Удобно носить на флешке или держать рядом с игрой.</p>
-          <a class="btn btn-ghost" href="https://github.com/tgskoZ/legism/releases/download/v1.4.2/Legism_portable.zip">
-            Legism_portable.zip
-          </a>
-        </div>
-      </div>
-
-      <p class="req">
-        Windows 10/11 · x64 · Java в комплекте
-        <span class="sep">·</span>
-        <a href="https://github.com/tgskoZ/legism/releases" target="_blank" rel="noopener">все версии и список изменений →</a>
-      </p>
-    </section>
-
-  </div>
 </main>
 
 <footer>
   <div class="wrap">
-    <div class="foot-top">
-      <a class="brand" href="#top">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <polygon points="50,8 92,32 50,56 8,32" fill="#5ac06f"/>
-          <polygon points="8,32 50,56 50,92 8,68" fill="#6f7b86"/>
-          <polygon points="92,32 92,68 50,92 50,56" fill="#525c66"/>
-        </svg>
-        Legism
-      </a>
-      <div class="foot-links">
-        <a href="https://github.com/tgskoZ/legism" target="_blank" rel="noopener">Исходный код</a>
-        <a href="https://github.com/tgskoZ/legism/issues" target="_blank" rel="noopener">Сообщить о баге</a>
-        <a href="https://github.com/tgskoZ/legism/releases" target="_blank" rel="noopener">Релизы</a>
-      </div>
-    </div>
     <p class="disclaimer">
-      Legism — независимый любительский форк Legacy Launcher. Проект не связан и не сотрудничает с
-      Mojang Studios, Microsoft, командой Legacy Launcher, CurseForge и Modrinth. Minecraft —
-      торговая марка Mojang Studios; игра не бесплатна, и лаунчер её не распространяет.
-      Названия и торговые марки принадлежат их владельцам.
+      Legism — независимый любительский проект. Он не связан и не сотрудничает с Mojang Studios,
+      Microsoft, командой Legacy Launcher, CurseForge и Modrinth. Minecraft — торговая марка
+      Mojang Studios. Все названия и торговые марки принадлежат их владельцам.
     </p>
   </div>
 </footer>
