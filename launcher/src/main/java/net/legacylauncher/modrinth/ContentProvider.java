@@ -59,6 +59,18 @@ public interface ContentProvider {
                            String loader, boolean withDependencies) throws IOException;
 
     /**
+     * How deep into the results the library will let anyone page, counted as the largest
+     * {@code offset + limit} it will still answer.
+     * <p>
+     * Only matters once the browser offers numbered pages: with a "load more" button
+     * nobody ever walked far enough to hit a wall, but a page list happily points at the
+     * five-hundredth page, and CurseForge answers 400 rather than an empty list once
+     * {@code offset + limit} passes 10000. Providers with no such wall return
+     * {@link Integer#MAX_VALUE}.
+     */
+    int getMaxSearchDepth();
+
+    /**
      * Sort orders the library offers, in the order they should be listed. The first is
      * used as the default.
      */

@@ -238,6 +238,33 @@ val generateSha256File by tasks.registering {
     }
 }
 
+/**
+ * The git tag this build *is*, or an empty string when it is not a release.
+ *
+ * Deliberately only an exact match: the nearest previous tag would label every development
+ * build as a release it is not, and the launcher would then tell people they were up to
+ * date when they were several commits past it. An empty value turns the update check off
+ * instead, which is the honest answer for a build that was never released.
+ */
+fun resolveReleaseTag(): String {
+    // a tag build on CI, where the checkout is often too shallow for git to know the tag
+    val ref = System.getenv("GITHUB_REF") ?: ""
+    if (ref.startsWith("refs/tags/")) {
+        return ref.removePrefix("refs/tags/")
+    }
+    return try {
+        val process = ProcessBuilder("git", "describe", "--tags", "--exact-match")
+            .directory(rootDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        if (process.waitFor() == 0) output else ""
+    } catch (e: Exception) {
+        logger.info("Could not read the git tag, treating this as a development build: $e")
+        ""
+    }
+}
+
 buildConfig {
     className("BuildConfig")
     packageName("net.legacylauncher.configuration")
@@ -249,6 +276,7 @@ buildConfig {
     buildConfigField("String", "FULL_BRAND", "\"${brand.displayName.get()}\"")
     buildConfigField("String", "VERSION", "\"${brand.version.get()}\"")
     buildConfigField("String", "SUPPORT_EMAIL", "\"${brand.supportEmail.get()}\"")
+    buildConfigField("String", "RELEASE_TAG", "\"${resolveReleaseTag()}\"")
 }
 
 val prepareDeploy by tasks.registering {

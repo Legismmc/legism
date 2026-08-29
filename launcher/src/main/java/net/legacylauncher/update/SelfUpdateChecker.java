@@ -3,6 +3,7 @@ package net.legacylauncher.update;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import net.legacylauncher.configuration.BuildConfig;
 import net.legacylauncher.util.EHttpClient;
 import net.legacylauncher.util.ua.LauncherUserAgent;
 import org.apache.hc.client5.http.fluent.Request;
@@ -25,9 +26,11 @@ import java.util.Optional;
 @Slf4j
 public final class SelfUpdateChecker {
     /**
-     * Bump this to match the git tag on every release.
+     * The tag this build was released under, filled in at build time from the git tag on
+     * the commit being built. Empty for anything built off a commit that is not tagged -
+     * a development build has no release to compare itself against, so it does not ask.
      */
-    private static final String CURRENT_TAG = "v1.4.2.0.1";
+    private static final String CURRENT_TAG = BuildConfig.RELEASE_TAG;
 
     private static final String REPO = "Legismmc/legism";
     private static final String API_URL = "https://api.github.com/repos/" + REPO + "/releases/latest";
@@ -60,6 +63,10 @@ public final class SelfUpdateChecker {
      * unreachable, unexpected response) - never something worth bothering the user with
      */
     public static Optional<LatestRelease> checkForUpdate() {
+        if (CURRENT_TAG == null || CURRENT_TAG.trim().isEmpty()) {
+            log.debug("Not a tagged build, skipping the update check");
+            return Optional.empty();
+        }
         try {
             String body = EHttpClient.toString(
                     Request.get(API_URL)

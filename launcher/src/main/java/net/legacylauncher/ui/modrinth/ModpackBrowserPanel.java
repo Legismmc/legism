@@ -58,11 +58,12 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
     private final JComboBox<String> gameVersionBox = new JComboBox<>();
     private final JPanel resultsBox = new JPanel();
     private final JLabel statusLabel = new JLabel();
-    private final JButton loadMoreButton = new JButton(ModrinthStrings.get("load-more"));
+    private final PagerBar pager = new PagerBar(this::goToPage);
 
     private ContentProvider provider;
     private int searchGeneration;
-    private int nextOffset;
+    private int currentPage;
+    private int totalPages;
     private boolean gameVersionsLoaded;
 
     public ModpackBrowserPanel(Runnable onInstalled) {
@@ -92,9 +93,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
 
         add(statusLabel, BorderLayout.SOUTH);
 
-        loadMoreButton.setAlignmentX(CENTER_ALIGNMENT);
-        loadMoreButton.addActionListener(e -> startSearch(false));
-        loadMoreButton.setVisible(false);
+        pager.setAlignmentX(CENTER_ALIGNMENT);
 
         loadGameVersionsOnce();
         startSearch(true);
@@ -186,19 +185,32 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         });
     }
 
+    /**
+     * Jumps straight to a page. Everything else goes back to the first one, since changing
+     * the query or the version filter makes the old page number meaningless.
+     */
+    private void goToPage(int page) {
+        currentPage = Math.max(0, page);
+        runSearch();
+    }
+
     private void startSearch(boolean reset) {
+        if (reset) {
+            currentPage = 0;
+        }
+        runSearch();
+    }
+
+    private void runSearch() {
         final String query = searchField.getText().trim();
         final String gameVersion = selectedGameVersion();
         final ContentProvider currentProvider = provider;
-        final int offset = reset ? 0 : nextOffset;
+        final int offset = currentPage * PAGE_SIZE;
 
-        if (reset) {
-            nextOffset = 0;
-            resultsBox.removeAll();
-            resultsBox.revalidate();
-            resultsBox.repaint();
-        }
-        loadMoreButton.setVisible(false);
+        resultsBox.removeAll();
+        resultsBox.revalidate();
+        resultsBox.repaint();
+        pager.setVisible(false);
 
         if (!currentProvider.isAvailable()) {
             setStatus(currentProvider.getUnavailableReason());
@@ -231,15 +243,17 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
     }
 
     private void showResults(ContentSearchResult result) {
-        resultsBox.remove(loadMoreButton);
+        resultsBox.remove(pager);
         for (ContentProject project : result.getHits()) {
             resultsBox.add(new ModrinthProjectCell(this, project));
         }
-        nextOffset = result.getOffset() + result.getHits().size();
-        if (result.hasMore()) {
-            resultsBox.add(loadMoreButton);
-            loadMoreButton.setVisible(true);
+
+        totalPages = PagerBar.pageCount(result.getTotal(), PAGE_SIZE, provider.getMaxSearchDepth());
+        if (totalPages > 1) {
+            resultsBox.add(pager);
         }
+        pager.update(currentPage, totalPages);
+
         setStatus(resultsBox.getComponentCount() == 0 ? ModrinthStrings.get("empty") : "");
         resultsBox.revalidate();
         resultsBox.repaint();

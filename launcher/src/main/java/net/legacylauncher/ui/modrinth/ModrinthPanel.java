@@ -86,7 +86,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
     private final JPanel resultsBox = new JPanel();
     private final JPanel installedBox = new JPanel();
     private final JTabbedPane tabs = new JTabbedPane();
-    private final JButton loadMoreButton = new JButton();
+    private final PagerBar pager = new PagerBar(this::goToPage);
     private final JButton updateAllButton = new JButton();
 
     /**
@@ -114,7 +114,13 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
      * overwrite the results of the current one.
      */
     private int searchGeneration;
-    private int nextOffset;
+
+    /**
+     * Which page of results is on screen, counting from zero, and how many there are to
+     * page through once the library's own depth limit is taken into account.
+     */
+    private int currentPage;
+    private int totalPages;
 
     /**
      * Identifies the search currently being waited on, so an identical one is not fired
@@ -263,11 +269,7 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         installedBox.setLayout(new BoxLayout(installedBox, BoxLayout.Y_AXIS));
         installedBox.setOpaque(false);
 
-        loadMoreButton.setText(ModrinthStrings.get("load-more"));
-        loadMoreButton.setAlignmentX(CENTER_ALIGNMENT);
-        loadMoreButton.addActionListener(e -> startSearch(false));
-        loadMoreButton.setVisible(false);
-        localizedButtons.put("load-more", loadMoreButton);
+        pager.setAlignmentX(CENTER_ALIGNMENT);
 
         tabs.addTab(ModrinthStrings.get("tab.browse"), scrollable(resultsBox));
         tabs.addTab(ModrinthStrings.get("tab.installed"), scrollable(installedBox));
@@ -502,14 +504,30 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
 
     // ------------------------------------------------------------ searching
 
+    /**
+     * Jumps straight to a page. Every other search entry point goes back to the first one,
+     * since changing the query or a filter makes the old page number meaningless.
+     */
+    private void goToPage(int page) {
+        currentPage = Math.max(0, page);
+        runSearch();
+    }
+
     private void startSearch(boolean reset) {
+        if (reset) {
+            currentPage = 0;
+        }
+        runSearch();
+    }
+
+    private void runSearch() {
         final String query = searchField.getText().trim();
         final String gameVersion = target == null ? null : target.getGameVersion();
         final String loader = target == null || target.getLoader() == null
                 ? null : target.getLoader().getId();
         final SortItem sort = (SortItem) sortBox.getSelectedItem();
         final ContentProvider currentProvider = provider;
-        final int offset = reset ? 0 : nextOffset;
+        final int offset = currentPage * PAGE_SIZE;
 
         // Several widgets can ask for a search in response to one user action - selecting
         // a game version also repopulates its own combo box, for instance. Firing the same
@@ -523,13 +541,10 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
         }
         inFlightSearch = key;
 
-        if (reset) {
-            nextOffset = 0;
-            resultsBox.removeAll();
-            resultsBox.revalidate();
-            resultsBox.repaint();
-        }
-        loadMoreButton.setVisible(false);
+        resultsBox.removeAll();
+        resultsBox.revalidate();
+        resultsBox.repaint();
+        pager.setVisible(false);
 
         final int generation = ++searchGeneration;
 
@@ -562,17 +577,17 @@ public class ModrinthPanel extends BackdropPanel implements LocalizableComponent
     }
 
     private void showResults(ContentSearchResult result) {
-        resultsBox.remove(loadMoreButton);
+        resultsBox.remove(pager);
 
         for (ContentProject project : result.getHits()) {
             resultsBox.add(new ModrinthProjectCell(this, project));
         }
-        nextOffset = result.getOffset() + result.getHits().size();
 
-        if (result.hasMore()) {
-            resultsBox.add(loadMoreButton);
-            loadMoreButton.setVisible(true);
+        totalPages = PagerBar.pageCount(result.getTotal(), PAGE_SIZE, provider.getMaxSearchDepth());
+        if (totalPages > 1) {
+            resultsBox.add(pager);
         }
+        pager.update(currentPage, totalPages);
 
         if (resultsBox.getComponentCount() == 0) {
             setStatus(ModrinthStrings.get("empty"));

@@ -175,6 +175,15 @@ public class ModrinthProvider implements ContentProvider {
         return fallback;
     }
 
+    /**
+     * No wall worth modelling: an offset of 20000 is answered just as happily as 0, and
+     * the search reports the real total rather than a capped one.
+     */
+    @Override
+    public int getMaxSearchDepth() {
+        return Integer.MAX_VALUE;
+    }
+
     @Override
     public List<SortOption> getSortOptions() {
         return Arrays.asList(

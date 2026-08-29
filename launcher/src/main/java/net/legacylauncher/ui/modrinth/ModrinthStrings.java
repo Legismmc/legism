@@ -262,6 +262,24 @@ public final class ModrinthStrings {
         en("instances.title", "Instances");
         ru("instances.title", "Сборки");
 
+        en("instances.search", "Search instances");
+        ru("instances.search", "Поиск по сборкам");
+
+        en("instances.sort", "Sort");
+        ru("instances.sort", "Сортировка");
+
+        en("instances.sort.name", "By name");
+        ru("instances.sort.name", "По имени");
+
+        en("instances.sort.played", "Recently played");
+        ru("instances.sort.played", "По последнему запуску");
+
+        en("instances.sort.created", "Recently created");
+        ru("instances.sort.created", "По дате создания");
+
+        en("instances.search.empty", "No instances match the search");
+        ru("instances.search.empty", "Ничего не найдено");
+
         en("instances.create", "Create instance");
         ru("instances.create", "Создать сборку");
 

@@ -207,6 +207,16 @@ public class CurseForgeProvider implements ContentProvider {
         return 1; // featured, the closest thing to relevance
     }
 
+    /**
+     * Measured against the live API: {@code index=9980} with a page of 20 is answered,
+     * {@code index=9990} is a 400. The search also reports a totalCount of exactly 10000
+     * however many results there really are, so this is the whole of what it will show.
+     */
+    @Override
+    public int getMaxSearchDepth() {
+        return 10000;
+    }
+
     @Override
     public List<SortOption> getSortOptions() {
         return Arrays.asList(

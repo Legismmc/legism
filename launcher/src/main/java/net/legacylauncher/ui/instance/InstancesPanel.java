@@ -34,6 +34,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -42,6 +44,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
@@ -49,6 +52,8 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -71,6 +76,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,6 +101,15 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
     private final JLabel statusRight = new JLabel();
 
     private final Map<String, JButton> toolbarButtons = new LinkedHashMap<>();
+
+    private final JTextField searchField = new JTextField();
+    private final JComboBox<SortMode> sortBox = new JComboBox<>();
+
+    /**
+     * The instances as last read from disk, before the search box and sort order are
+     * applied. Kept so that typing filters what is already loaded.
+     */
+    private List<Instance> loaded = new ArrayList<>();
     private final List<InstanceTile> tiles = new ArrayList<>();
 
     /**
@@ -144,6 +159,42 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
     // ---------------------------------------------------------------- layout
 
+    /**
+     * How the grid is ordered. Groups always come first - this only decides the order
+     * inside each one.
+     */
+    private enum SortMode {
+        NAME("instances.sort.name"),
+        LAST_PLAYED("instances.sort.played"),
+        CREATED("instances.sort.created");
+
+        private final String labelKey;
+
+        SortMode(String labelKey) {
+            this.labelKey = labelKey;
+        }
+
+        Comparator<Instance> comparator() {
+            switch (this) {
+                case LAST_PLAYED:
+                    // most recent first, and anything never played sinks to the bottom
+                    return (a, b) -> Long.compare(b.getLastPlayed(), a.getLastPlayed());
+                case CREATED:
+                    return (a, b) -> Long.compare(b.getCreated(), a.getCreated());
+                case NAME:
+                default:
+                    return (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+                            a.getName() == null ? "" : a.getName(),
+                            b.getName() == null ? "" : b.getName());
+            }
+        }
+
+        @Override
+        public String toString() {
+            return ModrinthStrings.get(labelKey);
+        }
+    }
+
     private JComponent buildToolbar() {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setOpaque(false);
@@ -172,7 +223,43 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         updateAccountButton();
 
-        return bar;
+        // Search and sort go on a row of their own. The button row above has already run
+        // out of width twice, and a text field is the last thing that should be fighting
+        // for the leftovers.
+        JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(6), SwingUtil.magnify(2)));
+        filters.setOpaque(false);
+
+        searchField.putClientProperty("JTextField.placeholderText", ModrinthStrings.get("instances.search"));
+        searchField.putClientProperty("JTextField.showClearButton", Boolean.TRUE);
+        searchField.setColumns(18);
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                rebuildGrid();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                rebuildGrid();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                rebuildGrid();
+            }
+        });
+        filters.add(searchField);
+
+        filters.add(new JLabel(ModrinthStrings.get("instances.sort") + ':'));
+        sortBox.setModel(new DefaultComboBoxModel<>(SortMode.values()));
+        sortBox.addActionListener(e -> rebuildGrid());
+        filters.add(sortBox);
+
+        JPanel stack = new JPanel(new BorderLayout());
+        stack.setOpaque(false);
+        stack.add(bar, BorderLayout.NORTH);
+        stack.add(filters, BorderLayout.CENTER);
+        return stack;
     }
 
     /**
@@ -376,14 +463,25 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         refresh();
     }
 
+    /**
+     * Reloads the instances from disk and redraws. Typing in the search box only calls
+     * {@link #rebuildGrid()}, so filtering never goes back to the disk.
+     */
     public void refresh() {
-        List<Instance> instances = manager().refresh();
+        loaded = manager().refresh();
+        rebuildGrid();
+    }
+
+    private void rebuildGrid() {
+        List<Instance> instances = filterAndSort(loaded);
+        boolean filteredEverythingOut = instances.isEmpty() && !loaded.isEmpty();
 
         grid.removeAll();
         tiles.clear();
 
         if (instances.isEmpty()) {
-            JLabel empty = new JLabel(ModrinthStrings.get("instances.empty"));
+            JLabel empty = new JLabel(ModrinthStrings.get(
+                    filteredEverythingOut ? "instances.search.empty" : "instances.empty"));
             empty.setAlignmentX(LEFT_ALIGNMENT);
             empty.setBorder(BorderFactory.createEmptyBorder(
                     SwingUtil.magnify(8), SwingUtil.magnify(8), 0, 0));
@@ -426,6 +524,24 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
 
         grid.revalidate();
         grid.repaint();
+    }
+
+    /**
+     * Narrows the list to what the search box asks for and puts it in the chosen order.
+     * Grouping is applied afterwards, so the sort only ever reorders within a group.
+     */
+    private List<Instance> filterAndSort(List<Instance> instances) {
+        String query = searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase(Locale.ROOT);
+        List<Instance> result = new ArrayList<>();
+        for (Instance instance : instances) {
+            String name = instance.getName() == null ? "" : instance.getName();
+            if (query.isEmpty() || name.toLowerCase(Locale.ROOT).contains(query)) {
+                result.add(instance);
+            }
+        }
+        Object mode = sortBox.getSelectedItem();
+        result.sort((mode instanceof SortMode ? (SortMode) mode : SortMode.NAME).comparator());
+        return result;
     }
 
     /**
