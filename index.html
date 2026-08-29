@@ -47,7 +47,9 @@
      texture behind the text rather than something competing with it. Both layers are
      fixed, so the pattern stays put while the page scrolls over it. */
   body::before{
-    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    /* Oversized and fixed: fixed so the pattern holds still while the page scrolls over
+       it, oversized so the drift below never drags an edge into view. */
+    content:"";position:fixed;inset:-50%;z-index:0;pointer-events:none;
     /* Angled on purpose. Run these horizontally and a band eventually lands on a line of
        body text, where it reads as a strikethrough; on the diagonal it never lines up with
        anything and stays a texture. */
@@ -59,6 +61,14 @@
       hsl(0,0%,34%) 220px 223px
     );
     opacity:.15;
+    animation:stripe-drift 34s linear infinite;
+  }
+  /* One full period of the pattern measured along the gradient's own axis: 223px at 115deg
+     is (223*sin115, -223*cos115) = 202.11 by 94.24. Landing exactly on the period is what
+     makes the loop invisible - anything else snaps back at the end of every cycle. */
+  @keyframes stripe-drift{
+    from{transform:translate(0,0)}
+    to{transform:translate(202.11px,94.24px)}
   }
   /* the shine, sweeping across the whole backdrop */
   body::after{
