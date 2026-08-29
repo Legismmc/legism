@@ -34,20 +34,49 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  .wrap{width:min(100% - 32px,900px);margin-inline:auto;padding:40px 0 72px}
+  .wrap{width:min(100% - 32px,900px);margin-inline:auto;padding:0 0 72px}
 
   a{color:var(--white-1)}
   :focus-visible{outline:2px solid var(--white-1);outline-offset:3px;border-radius:4px}
 
-  /* ---------------- heading ---------------- */
-  .head{display:flex;align-items:center;gap:14px;margin-bottom:28px}
-  .back{
-    display:grid;place-items:center;flex:none;
-    width:40px;height:40px;border-radius:8px;border:1px solid transparent;
-    text-decoration:none;transition:background .15s,border-color .15s;
+  /* ---------------- top bar ---------------- */
+  .topbar{
+    width:min(100% - 32px,900px);margin:16px auto 30px;
+    display:flex;align-items:center;gap:16px;
+    padding:10px 12px 10px 14px;
+    border:1px solid var(--line);border-radius:12px;
+    background:hsl(0,0%,11%);
   }
-  .back:hover{background:var(--black-3);border-color:var(--line)}
-  .back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .brand{
+    display:flex;align-items:center;gap:11px;
+    text-decoration:none;color:var(--white-1);
+    font-weight:900;font-size:19px;letter-spacing:-.02em;
+    padding:4px 6px;border-radius:8px;margin-right:auto;
+    transition:opacity .15s;
+  }
+  .brand:hover{opacity:.75}
+  .brand img{width:34px;height:34px;display:block}
+  .topbar .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    min-height:42px;padding:0 18px;
+    border:1px solid var(--line);border-radius:8px;
+    color:var(--white-1);text-decoration:none;
+    font-size:15px;font-weight:500;white-space:nowrap;
+    transition:background .15s,border-color .15s;
+  }
+  .topbar .btn:hover{background:var(--black-3);border-color:var(--white-3)}
+  .topbar .btn svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  /* the wordmark stays at every width - it is half the point of the bar. Only the
+     spacing tightens, which is enough for the whole row to fit a 320px phone. */
+  @media (max-width:420px){
+    .topbar{gap:8px;padding:8px 8px 8px 10px}
+    .brand{font-size:17px;gap:9px}
+    .brand img{width:30px;height:30px}
+    .topbar .btn{padding:0 13px;font-size:14px}
+  }
+
+  /* ---------------- heading ---------------- */
+  .head{margin-bottom:28px}
   h1{font-size:clamp(26px,4.6vw,34px);font-weight:900;letter-spacing:-.02em;margin:0}
 
   /* ---------------- recommended ---------------- */
@@ -110,12 +139,17 @@
 </head>
 <body>
 
+<nav class="topbar">
+  <a class="brand" href="../" aria-label="Legism home page">
+    <img src="../images/legism-logo.png" width="34" height="34" alt="">
+    <span>Legism</span>
+  </a>
+  <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
+</nav>
+
 <div class="wrap">
 
   <div class="head">
-    <a class="back" href="../" aria-label="Back to the Legism home page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-    </a>
     <h1>Download Legism</h1>
   </div>
 
