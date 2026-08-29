@@ -136,6 +136,19 @@
   }
   .brand:hover{opacity:.75}
   .brand img{width:34px;height:34px;display:block}
+  .lang{display:flex;gap:4px;flex:none}
+  .lang-option{width:34px;height:26px;padding:0;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:5px;display:grid;place-items:center;overflow:hidden;opacity:.45;transition:opacity .15s,border-color .15s}
+  .lang-option:hover{opacity:.8}
+  .lang-option.active{opacity:1;border-color:var(--white-2)}
+  .lang-option svg{width:100%;height:100%;display:block}
+  /* the bar now carries a language switch as well as the buttons; below this it stops
+     fitting on one line, so it wraps rather than pushing anything off the edge */
+  @media (max-width:560px){
+    .topbar{flex-wrap:wrap;row-gap:8px}
+    .brand{margin-right:0;flex:1 0 auto}
+    .lang{order:1}
+    .topbar .btn{flex:1 1 auto;justify-content:center}
+  }
   .topbar .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:9px;
     min-height:42px;padding:0 18px;
@@ -228,21 +241,23 @@
     <img src="../images/legism-logo.png" width="34" height="34" alt="">
     <span>Legism</span>
   </a>
+  <div class="lang"></div>
+  <a class="btn" href="../changelog/" data-i18n="nav.changelog">Changelog</a>
   <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
 </nav>
 
 <div class="wrap">
 
   <div class="head">
-    <h1>Download Legism</h1>
+    <h1 data-i18n="dlp.title">Download Legism</h1>
   </div>
 
   <div class="recommend">
-    <p id="recommend-text">Looking for the build that matches your system…</p>
+    <p id="recommend-text" data-i18n="dlp.searching">Looking for the build that matches your system…</p>
     <div id="recommend-slot"></div>
   </div>
 
-  <p class="label">Other downloads:</p>
+  <p class="label" data-i18n="dlp.other">Other downloads:</p>
   <div class="scroller">
     <table>
       <thead>
@@ -269,7 +284,7 @@
         </tr>
       </thead>
       <tbody id="matrix">
-        <tr><td colspan="4" class="empty">Loading…</td></tr>
+        <tr><td colspan="4" class="empty" data-i18n="dlp.loading">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -283,7 +298,7 @@
     </div>
   </div>
 
-  <p class="note">
+  <p class="note" data-i18n="dlp.note">
     Java is bundled with every build, so there is nothing else to install.
     On Linux, unpack the archive and run <code>./legism.sh</code>.
     The macOS builds are not signed by Apple, so the first launch needs
@@ -382,7 +397,7 @@
         var entries = grid[row.key][os];
         if (!entries.length) {
           td.className = 'empty';
-          td.textContent = 'No build';
+          td.textContent = window.i18n.get('dlp.nobuild');
         } else {
           var cell = document.createElement('div');
           cell.className = 'cell';
@@ -427,11 +442,11 @@
     slot.innerHTML = '';
 
     if (found.os === 'android' || found.os === 'ios') {
-      text.textContent = 'Legism is a desktop launcher — there is no build for phones or tablets.';
+      text.textContent = window.i18n.get('dlp.mobile');
       return;
     }
     if (!found.os || !grid[found.arch] || !grid[found.arch][found.os].length) {
-      text.textContent = 'Could not tell which build fits your system. Pick one below.';
+      text.textContent = window.i18n.get('dlp.unknown');
       return;
     }
 
@@ -439,7 +454,7 @@
     var entries = grid[found.arch][found.os];
     var pick = entries.filter(function (e) { return e.kind === 'Installer'; })[0] || entries[0];
 
-    text.textContent = 'This release should be compatible with your OS:';
+    text.textContent = window.i18n.get('dlp.compatible');
     var a = document.createElement('a');
     a.className = 'big';
     a.href = pick.url;
@@ -474,9 +489,10 @@
       el.textContent = '';
       return;
     }
-    el.innerHTML = '<b>' + tally.total.toLocaleString() + '</b> download'
-      + (tally.total === 1 ? '' : 's') + ' across ' + tally.releases + ' release'
-      + (tally.releases === 1 ? '' : 's');
+    el.innerHTML = '<b>' + tally.total.toLocaleString() + '</b> '
+      + window.i18n.plural(tally.total, 'downloads')
+      + (window.i18n.lang() === 'ru' ? ' за ' : ' across ')
+      + tally.releases + ' ' + window.i18n.plural(tally.releases, 'releases');
   }
 
   function apply(release, live, tally) {
@@ -488,8 +504,8 @@
     var source = document.getElementById('source');
     var icon = source.querySelector('svg').outerHTML;
     source.innerHTML = icon + (live
-      ? ' Fetched from the <a href="https://github.com/' + REPO + '/releases" target="_blank" rel="noopener">GitHub API</a>'
-      : ' GitHub was unreachable — showing the last known release');
+      ? ' ' + window.i18n.get('dlp.fetched')
+      : ' ' + window.i18n.get('dlp.unreachable'));
 
     refineArch(detect()).then(function (found) { renderRecommendation(grid, found); });
   }
@@ -497,6 +513,12 @@
   // The whole release list rather than just the newest one: it carries the download counts
   // as well, so the totals and the current version come from a single request. 100 per page
   // is well clear of how many releases there are.
+  var cachedState = null;
+  // the counts and the recommendation carry words, so redraw them on a language switch
+  document.addEventListener('languagechange', function () {
+    if (cachedState) apply(cachedState.release, cachedState.live, cachedState.tally);
+  });
+
   fetch('https://api.github.com/repos/' + REPO + '/releases?per_page=100', {
     headers: { 'Accept': 'application/vnd.github+json' }
   }).then(function (response) {
@@ -512,7 +534,8 @@
     if (!latest || !latest.tag_name) {
       throw new Error('no published release with assets');
     }
-    apply({ tag: latest.tag_name, assets: latest.assets }, true, countDownloads(published));
+    cachedState = { release: { tag: latest.tag_name, assets: latest.assets }, live: true, tally: countDownloads(published) };
+    apply(cachedState.release, true, cachedState.tally);
   }).catch(function (error) {
     if (window.console) console.warn('Falling back to the built-in release list:', error);
     // no invented number: the count is left out rather than shown stale
@@ -521,5 +544,6 @@
 })();
 </script>
 
+<script src="../assets/i18n.js"></script>
 </body>
 </html>

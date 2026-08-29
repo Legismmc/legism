@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legism changelog</title>
+<meta name="description" content="Every Legism release with its notes, downloads and files, straight from GitHub.">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<meta property="og:title" content="Legism changelog">
+<meta property="og:description" content="Every Legism release with its notes, downloads and files.">
+<meta property="og:image" content="https://legismmc.github.io/legism/images/legism-logo.png">
+<meta property="og:image:width" content="1254">
+<meta property="og:image:height" content="1254">
+<meta name="twitter:card" content="summary">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legism">
+<meta property="og:url" content="https://legismmc.github.io/legism/changelog/">
+<link rel="canonical" href="https://legismmc.github.io/legism/changelog/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black-2:hsl(0,0%,8%);
+    --black-3:hsl(0,0%,16%);
+    --white-1:hsl(0,0%,100%);
+    --white-2:hsl(0,0%,75%);
+    --white-3:hsl(0,0%,50%);
+    --line:hsl(0,0%,25%);
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--black-2);
+    color:var(--white-1);
+    font:400 16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* the stripe motif, matching the rest of the site */
+  body::before{
+    content:"";position:fixed;inset:-50%;z-index:0;pointer-events:none;
+    background-image:repeating-linear-gradient(
+      115deg,
+      transparent 0 214px,
+      hsl(0,0%,34%) 214px 217px,
+      hsl(0,0%,92%) 217px 220px,
+      hsl(0,0%,34%) 220px 223px
+    );
+    opacity:.15;
+    animation:stripe-drift 12s linear infinite;
+    will-change:transform;
+  }
+  @keyframes stripe-drift{
+    from{transform:translate(0,0)}
+    to{transform:translate(202.11px,94.24px)}
+  }
+  @media (prefers-reduced-motion:reduce){ body::before{animation:none} }
+
+  .topbar,.wrap,.stripes{position:relative;z-index:1}
+  .wrap{width:min(100% - 32px,900px);margin-inline:auto;padding:0 0 72px}
+
+  a{color:var(--white-1)}
+  :focus-visible{outline:2px solid var(--white-1);outline-offset:3px;border-radius:4px}
+
+  .stripes{
+    position:relative;overflow:hidden;height:6px;width:100%;
+    background:linear-gradient(hsl(0,0%,30%) 0 2px,hsl(0,0%,88%) 2px 4px,hsl(0,0%,30%) 4px 6px);
+  }
+
+  /* ---------------- top bar ---------------- */
+  .topbar{
+    width:min(100% - 32px,900px);margin:16px auto 30px;
+    display:flex;align-items:center;gap:14px;
+    padding:10px 12px 10px 14px;
+    border:1px solid var(--line);border-radius:12px;
+    background:hsl(0,0%,11%);
+  }
+  .brand{
+    display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--white-1);
+    font-weight:900;font-size:19px;letter-spacing:-.02em;
+    padding:4px 6px;border-radius:8px;margin-right:auto;transition:opacity .15s;
+  }
+  .brand:hover{opacity:.75}
+  .brand img{width:34px;height:34px;display:block}
+  .topbar .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    min-height:42px;padding:0 18px;border:1px solid var(--line);border-radius:8px;
+    color:var(--white-1);text-decoration:none;font-size:15px;font-weight:500;white-space:nowrap;
+    transition:background .15s,border-color .15s;
+  }
+  .topbar .btn:hover{background:var(--black-3);border-color:var(--white-3)}
+
+  /* ---------------- language switch ---------------- */
+  .lang{display:flex;gap:4px;flex:none}
+  .lang-option{
+    width:34px;height:26px;padding:0;cursor:pointer;
+    background:transparent;border:1px solid var(--line);border-radius:5px;
+    display:grid;place-items:center;overflow:hidden;
+    opacity:.45;transition:opacity .15s,border-color .15s;
+  }
+  .lang-option:hover{opacity:.8}
+  .lang-option.active{opacity:1;border-color:var(--white-2)}
+  .lang-option svg{width:100%;height:100%;display:block}
+  /* the bar now carries a language switch as well as the buttons; below this it stops
+     fitting on one line, so it wraps rather than pushing anything off the edge */
+  @media (max-width:560px){
+    .topbar{flex-wrap:wrap;row-gap:8px}
+    .brand{margin-right:0;flex:1 0 auto}
+    .lang{order:1}
+    .topbar .btn{flex:1 1 auto;justify-content:center}
+  }
+  @media (max-width:520px){
+    .brand span{font-size:17px}
+    .topbar{gap:8px;padding:8px 8px 8px 10px}
+    .topbar .btn{padding:0 12px;font-size:14px}
+  }
+
+  h1{font-size:clamp(26px,4.6vw,34px);font-weight:900;letter-spacing:-.02em;margin:0 0 8px}
+  .sub{color:var(--white-3);margin:0 0 34px;font-size:15px}
+
+  /* ---------------- releases ---------------- */
+  .release{
+    border:1px solid var(--black-3);border-radius:8px;
+    padding:22px 24px;margin-bottom:16px;background:var(--black-2);
+  }
+  .release:hover{border-color:var(--line)}
+  .rel-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+  .rel-tag{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .rel-date{color:var(--white-3);font-size:14px}
+  .rel-latest{
+    font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    border:1px solid var(--white-3);border-radius:100px;padding:2px 9px;color:var(--white-2);
+  }
+  .rel-stats{color:var(--white-3);font-size:14px;margin:0 0 14px}
+  .notes{color:var(--white-2);font-size:15px;line-height:1.65}
+  .notes h2{font-size:16px;font-weight:700;color:var(--white-1);margin:18px 0 6px}
+  .notes p{margin:0 0 10px}
+  .notes ul{margin:0 0 10px;padding-left:20px}
+  .notes code{background:hsl(0,0%,13%);padding:2px 6px;border-radius:4px;font-size:13.5px}
+  .notes a{color:var(--white-1)}
+  .notes strong{color:var(--white-1)}
+  .rel-links{margin-top:14px;font-size:14px}
+  .rel-links a{color:var(--white-3)}
+  .rel-links a:hover{color:var(--white-1)}
+  .state{color:var(--white-3);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+
+<div class="stripes" aria-hidden="true"></div>
+
+<nav class="topbar">
+  <a class="brand" href="../" aria-label="Legism">
+    <img src="../images/legism-logo.png" width="34" height="34" alt="">
+    <span>Legism</span>
+  </a>
+  <div class="lang"></div>
+  <a class="btn" href="../download/" data-i18n="nav.download">Download</a>
+</nav>
+
+<div class="wrap">
+  <h1 data-i18n="cl.title">Changelog</h1>
+  <p class="sub" data-i18n="cl.sub">Every release, newest first, straight from GitHub.</p>
+
+  <div id="releases">
+    <p class="state" data-i18n="cl.loading">Loading releases…</p>
+  </div>
+</div>
+
+<script src="../assets/i18n.js"></script>
+<script>
+(function () {
+  var REPO = 'Legismmc/legism';
+  var cached = null;
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /**
+   * Just enough Markdown for what release notes actually use: headings, bold, inline
+   * code, links and bullets. Everything is escaped first, so a note can never inject
+   * markup into the page - these are trusted authors, but the page should not depend on
+   * that being true forever.
+   */
+  function renderNotes(markdown) {
+    var html = escapeHtml(markdown);
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    var out = [];
+    var list = false;
+    html.split('\n').forEach(function (line) {
+      var trimmed = line.trim();
+      if (/^##+\s/.test(trimmed)) {
+        if (list) { out.push('</ul>'); list = false; }
+        out.push('<h2>' + trimmed.replace(/^##+\s*/, '') + '</h2>');
+      } else if (/^[-*]\s/.test(trimmed)) {
+        if (!list) { out.push('<ul>'); list = true; }
+        out.push('<li>' + trimmed.replace(/^[-*]\s*/, '') + '</li>');
+      } else if (trimmed === '' || /^-{3,}$/.test(trimmed)) {
+        if (list) { out.push('</ul>'); list = false; }
+      } else {
+        if (list) { out.push('</ul>'); list = false; }
+        out.push('<p>' + trimmed + '</p>');
+      }
+    });
+    if (list) out.push('</ul>');
+    return out.join('');
+  }
+
+  function formatDate(iso) {
+    var date = new Date(iso);
+    if (isNaN(date)) return '';
+    return date.toLocaleDateString(window.i18n.lang() === 'ru' ? 'ru-RU' : 'en-GB',
+      { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function render(releases) {
+    var host = document.getElementById('releases');
+    host.innerHTML = '';
+
+    releases.forEach(function (release, index) {
+      var downloads = (release.assets || []).reduce(function (sum, asset) {
+        return sum + (asset.download_count || 0);
+      }, 0);
+
+      var article = document.createElement('article');
+      article.className = 'release';
+
+      var head = '<div class="rel-head">'
+        + '<span class="rel-tag">' + escapeHtml(release.tag_name) + '</span>'
+        + (index === 0 ? '<span class="rel-latest">latest</span>' : '')
+        + '<span class="rel-date">' + formatDate(release.published_at) + '</span>'
+        + '</div>';
+
+      var stats = '<p class="rel-stats">' + downloads.toLocaleString() + ' '
+        + window.i18n.plural(downloads, 'downloads') + '</p>';
+
+      var body = (release.body || '').trim();
+      var notes = '<div class="notes">'
+        + (body ? renderNotes(body) : '<p>' + window.i18n.get('cl.notes.none') + '</p>')
+        + '</div>';
+
+      var links = '<p class="rel-links"><a href="' + escapeHtml(release.html_url)
+        + '" target="_blank" rel="noopener">' + window.i18n.get('cl.open') + ' →</a></p>';
+
+      article.innerHTML = head + stats + notes + links;
+      host.appendChild(article);
+    });
+  }
+
+  function load() {
+    fetch('https://api.github.com/repos/' + REPO + '/releases?per_page=100', {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    }).then(function (response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    }).then(function (list) {
+      if (!Array.isArray(list) || !list.length) throw new Error('no releases');
+      cached = list.filter(function (r) { return !r.draft && !r.prerelease; });
+      render(cached);
+    }).catch(function (error) {
+      if (window.console) console.warn('Could not load releases:', error);
+      document.getElementById('releases').innerHTML =
+        '<p class="state">' + window.i18n.get('cl.failed')
+        + ' <a href="https://github.com/' + REPO + '/releases" target="_blank" rel="noopener">github.com</a></p>';
+    });
+  }
+
+  // dates and the built-in labels are language-dependent, so redraw on a switch
+  document.addEventListener('languagechange', function () {
+    if (cached) render(cached);
+  });
+
+  load();
+})();
+</script>
+
+</body>
+</html>

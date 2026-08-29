@@ -161,6 +161,19 @@
   }
   .brand:hover{opacity:.75}
   .brand img{width:34px;height:34px;display:block}
+  .lang{display:flex;gap:4px;flex:none}
+  .lang-option{width:34px;height:26px;padding:0;cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:5px;display:grid;place-items:center;overflow:hidden;opacity:.45;transition:opacity .15s,border-color .15s}
+  .lang-option:hover{opacity:.8}
+  .lang-option.active{opacity:1;border-color:var(--white-2)}
+  .lang-option svg{width:100%;height:100%;display:block}
+  /* the bar now carries a language switch as well as the buttons; below this it stops
+     fitting on one line, so it wraps rather than pushing anything off the edge */
+  @media (max-width:560px){
+    .topbar{flex-wrap:wrap;row-gap:8px}
+    .brand{margin-right:0;flex:1 0 auto}
+    .lang{order:1}
+    .topbar .btn{flex:1 1 auto;justify-content:center}
+  }
   .topbar .btn{min-height:42px;padding:0 18px;font-size:15px}
   /* the wordmark stays at every width - it is half the point of the bar. Only the
      spacing tightens, which is enough for the whole row to fit a 320px phone. */
@@ -353,11 +366,13 @@
     <img src="images/legism-logo.png" width="34" height="34" alt="">
     <span>Legism</span>
   </a>
+  <div class="lang"></div>
+  <a class="btn" href="changelog/" data-i18n="nav.changelog">Changelog</a>
   <a class="btn" href="download/">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
     </svg>
-    Download
+    <span data-i18n="hero.download">Download</span>
   </a>
 </nav>
 
@@ -367,15 +382,15 @@
       <img class="logo" src="images/legism-logo.png" width="124" height="124" alt="Legism logo">
     </span>
     <h1 class="name">Legism</h1>
-    <p class="formerly">(formerly Legacy by tgsko)</p>
-    <p class="tagline">A Legacy Launcher fork with no ads and no telemetry — instances, a Modrinth and CurseForge catalog, and your own server.</p>
+    <p class="formerly" data-i18n="hero.formerly">(formerly Legacy by tgsko)</p>
+    <p class="tagline" data-i18n="hero.tagline">A Legacy Launcher fork with no ads and no telemetry — instances, a Modrinth and CurseForge catalog, and your own server.</p>
 
     <div class="actions">
       <a class="btn primary" href="download/">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
         </svg>
-        Download
+        <span data-i18n="hero.download">Download</span>
       </a>
       <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
     </div>
@@ -390,18 +405,18 @@
 <div class="stripes divider" aria-hidden="true"></div>
 
 <div class="stats">
-  <div class="stat"><b>2</b><span>content libraries</span></div>
-  <div class="stat"><b>6</b><span>content types</span></div>
-  <div class="stat"><b>3</b><span>server cores</span></div>
-  <div class="stat"><b>17</b><span>themes</span></div>
+  <div class="stat"><b>2</b><span data-i18n="stats.libraries">content libraries</span></div>
+  <div class="stat"><b>6</b><span data-i18n="stats.types">content types</span></div>
+  <div class="stat"><b>3</b><span data-i18n="stats.cores">server cores</span></div>
+  <div class="stat"><b>17</b><span data-i18n="stats.themes">themes</span></div>
 </div>
 
 <main>
 
   <section id="why">
     <div class="wrap">
-      <h1 class="reveal">Why this fork?</h1>
-      <p class="sub reveal">Legism grew out of Legacy Launcher. Here's what actually changed compared to the original.</p>
+      <h1 class="reveal" data-i18n="why.title">Why this fork?</h1>
+      <p class="sub reveal" data-i18n="why.sub">Legism grew out of Legacy Launcher. Here's what actually changed compared to the original.</p>
 
       <div class="scroller reveal">
         <table>
@@ -456,38 +471,38 @@
           </tbody>
         </table>
       </div>
-      <p class="hint reveal">The table scrolls sideways. Rows only describe what actually changed in the fork's own code.</p>
+      <p class="hint reveal" data-i18n="why.hint">The table scrolls sideways. Rows only describe what actually changed in the fork's own code.</p>
     </div>
   </section>
 
   <section id="features">
     <div class="wrap">
-      <h1 class="reveal">Features</h1>
-      <p class="sub reveal">Everything lives inside the launcher — no third-party tools, no copying files by hand.</p>
+      <h1 class="reveal" data-i18n="feat.title">Features</h1>
+      <p class="sub reveal" data-i18n="feat.sub">Everything lives inside the launcher — no third-party tools, no copying files by hand.</p>
 
       <div class="feats reveal">
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Instances</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span data-i18n="feat.instances">Instances</span></h2>
           <p>Separate installs with their own mods, worlds and settings. Custom icons, groups, cloning and one-file export.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Content catalog</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="feat.catalog">Content catalog</span></h2>
           <p>Mods, resource packs, shaders, data packs and addons from Modrinth and CurseForge — search and install straight into the instance you need.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 22V12.5"/></svg>Modpacks</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 22V12.5"/></svg><span data-i18n="feat.modpacks">Modpacks</span></h2>
           <p>Install a whole pack from the catalog in one click. A downloaded <code>.mrpack</code> or CurseForge zip imports from file too.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Local server</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M7 7.5h.01M7 16.5h.01"/></svg><span data-i18n="feat.server">Local server</span></h2>
           <p>The core downloads itself, and the server runs with a live console, a server.properties editor, and its own plugin catalog.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 15.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/></svg>Server list</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 15.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1"/></svg><span data-i18n="feat.servers">Server list</span></h2>
           <p>Ping, player count and MOTD, right inside the launcher — without opening the game.</p>
         </div>
         <div class="feat">
-          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Accounts and themes</h2>
+          <h2><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span data-i18n="feat.accounts">Accounts and themes</span></h2>
           <p>Multiple accounts with Ctrl+1…9 switching, and 17 themes that apply instantly without a restart.</p>
         </div>
       </div>
@@ -496,8 +511,8 @@
 
   <section id="download">
     <div class="wrap">
-      <h1 class="reveal">Download</h1>
-      <p class="sub reveal">Windows, Linux and macOS. Java is bundled with every build, so there is nothing else to install.</p>
+      <h1 class="reveal" data-i18n="dl.title">Download</h1>
+      <p class="sub reveal" data-i18n="dl.sub">Windows, Linux and macOS. Java is bundled with every build, so there is nothing else to install.</p>
 
       <div class="downloads reveal">
         <div class="dl">
@@ -532,8 +547,8 @@
 
   <section id="maintainers">
     <div class="wrap">
-      <h1 class="reveal">Maintainers</h1>
-      <p class="sub reveal">The people behind the fork.</p>
+      <h1 class="reveal" data-i18n="people.title">Maintainers</h1>
+      <p class="sub reveal" data-i18n="people.sub">The people behind the fork.</p>
 
       <div class="people reveal">
         <a class="person" href="https://github.com/tgskoZ" target="_blank" rel="noopener">
@@ -563,42 +578,42 @@
 
   <section id="faq">
     <div class="wrap">
-      <h1 class="reveal">Frequently asked questions</h1>
-      <p class="sub reveal">The short version.</p>
+      <h1 class="reveal" data-i18n="faq.title">Frequently asked questions</h1>
+      <p class="sub reveal" data-i18n="faq.sub">The short version.</p>
 
       <div class="faq reveal">
         <details>
-          <summary>What is Legism?</summary>
+          <summary data-i18n="faq.q1">What is Legism?</summary>
           <p>An independent, hobbyist fork of <a href="https://llaun.ch/" target="_blank" rel="noopener">Legacy Launcher</a>, a Minecraft launcher. Ads and telemetry are cut out, and a built-in mod catalog, modpacks and local servers are added in their place. The project used to be called "Legacy by tgsko".</p>
         </details>
 
         <details>
-          <summary>Do I need a Minecraft license?</summary>
+          <summary data-i18n="faq.q2">Do I need a Minecraft license?</summary>
           <p>Minecraft is a paid game, and the launcher doesn't distribute or grant it. Legism only launches the game and manages instances.</p>
         </details>
 
         <details>
-          <summary>Is it safe?</summary>
+          <summary data-i18n="faq.q3">Is it safe?</summary>
           <p>The source is fully open — you can read it and build it yourself. Only download it from the <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">GitHub releases page</a>: builds from other sites are unverified.</p>
         </details>
 
         <details>
-          <summary>What's the difference between the installer and the portable version?</summary>
+          <summary data-i18n="faq.q4">What's the difference between the installer and the portable version?</summary>
           <p>The installer sets the launcher up like a regular program, with shortcuts. The portable version unpacks into any folder and doesn't touch the system — handy to keep on a flash drive or move between drives along with your instances.</p>
         </details>
 
         <details>
-          <summary>Which systems does it run on?</summary>
+          <summary data-i18n="faq.q5">Which systems does it run on?</summary>
           <p>Windows 10 or 11 (x64 or ARM64), Linux (x86_64 or aarch64), and macOS on both Apple Silicon and Intel. Java ships with every build — nothing else to install separately.</p>
         </details>
 
         <details>
-          <summary>Do I need my own CurseForge key?</summary>
+          <summary data-i18n="faq.q6">Do I need my own CurseForge key?</summary>
           <p>No. A key is already built in, so the CurseForge catalog works right away. You can set your own in settings if you want to — it replaces the built-in one.</p>
         </details>
 
         <details>
-          <summary>Where do I report bugs?</summary>
+          <summary data-i18n="faq.q7">Where do I report bugs?</summary>
           <p>On <a href="https://github.com/Legismmc/legism/issues" target="_blank" rel="noopener">GitHub Issues</a>, or in our chats. Please don't report problems with this fork to the Legacy Launcher team — they have nothing to do with it.</p>
         </details>
       </div>
@@ -607,7 +622,7 @@
 
   <section id="community">
     <div class="wrap">
-      <h1 class="reveal">Community &amp; Support</h1>
+      <h1 class="reveal" data-i18n="community.title">Community &amp; Support</h1>
 
       <div class="socials reveal">
         <a class="social" href="https://t.me/legismmc" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram">
@@ -635,7 +650,7 @@
 
 <footer>
   <div class="wrap">
-    <p class="disclaimer">
+    <p class="disclaimer" data-i18n="foot.disclaimer">
       Legism is an independent hobby project. It is not affiliated with or endorsed by Mojang Studios,
       Microsoft, the Legacy Launcher team, CurseForge or Modrinth. Minecraft is a trademark of
       Mojang Studios. All other names and trademarks belong to their respective owners.
@@ -698,5 +713,6 @@
   })();
 </script>
 
+<script src="assets/i18n.js"></script>
 </body>
 </html>
