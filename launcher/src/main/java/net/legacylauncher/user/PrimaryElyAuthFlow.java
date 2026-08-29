@@ -199,7 +199,7 @@ public class PrimaryElyAuthFlow extends ElyAuthFlow<PrimaryElyAuthFlowListener> 
                 throw new IllegalArgumentException("state");
             }
 
-            return new ElyAuthCode(queryMap.get(QUERY_CODE_KEY), redirect_uri, state);
+            return new ElyAuthCode(queryMap.get(QUERY_CODE_KEY), redirect_uri, state, getCodeVerifier());
         }
 
         boolean passURI(URI uri, String redirect_uri, int state) {

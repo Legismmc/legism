@@ -7,8 +7,16 @@ import java.util.Objects;
 
 @Slf4j
 public final class ElyAuth implements Auth<ElyUser> {
-    static final String CLIENT_ID = "tlauncher";
-    static final String CLIENT_SECRET = "SbOVmJHBCjMV1NsewphGgA2SbyrVjN7IBcOte6b1HR7JGup2";
+    /**
+     * This fork's own application, registered with Ely.by so its consent screen says
+     * Legism rather than the name of the launcher this was forked from - and so that a
+     * change to that application cannot take sign-in away from here.
+     * <p>
+     * Registered as a public client, which by design has no secret: anything shipped
+     * inside a desktop app can be read out of it, so the authorisation code is protected
+     * with PKCE instead. See {@link ElyPkce}.
+     */
+    static final String CLIENT_ID = "legism";
 
     static final String ACCOUNT_BASE = "https://account.ely.by";
     static final String API_BASE = ACCOUNT_BASE + "/api";

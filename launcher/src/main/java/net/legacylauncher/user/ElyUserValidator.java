@@ -23,8 +23,12 @@ import java.util.Objects;
 @Slf4j
 class ElyUserValidator {
     static final String ACCOUNT_INFO = ElyAuth.API_BASE + "/account/v1/info";
-    static final String TOKEN_REFRESH_REQUEST = "grant_type=refresh_token&client_id=" + ElyAuth.CLIENT_ID + "&" +
-            "client_secret=" + ElyAuth.CLIENT_SECRET + "&refresh_token=${refresh_token}";
+    /**
+     * No client secret: a public client has none. Refreshing is authorised by the refresh
+     * token itself, which is what PKCE protected when it was first handed out.
+     */
+    static final String TOKEN_REFRESH_REQUEST = "grant_type=refresh_token&client_id=" + ElyAuth.CLIENT_ID
+            + "&refresh_token=${refresh_token}";
 
     private String accessToken;
     private String refreshToken;

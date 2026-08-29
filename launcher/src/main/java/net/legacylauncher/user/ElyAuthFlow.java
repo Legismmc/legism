@@ -17,10 +17,17 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 public abstract class ElyAuthFlow<L extends ElyAuthFlowListener> implements Callable<ElyAuthCode> {
 
-    // client_id=tlauncher&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=http://localhost:80
+    // client_id=legism&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=http://localhost:80
     static final String OAUTH2_BASE = ElyAuth.ACCOUNT_BASE + "/oauth2/v1";
     static final String OAUTH2_AUTH_REQUEST = OAUTH2_BASE +
-            "?client_id=" + ElyAuth.CLIENT_ID + "&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=%s&state=%d&prompt=select_account";
+            "?client_id=" + ElyAuth.CLIENT_ID + "&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=%s&state=%d&prompt=select_account"
+            + "&code_challenge=%s&code_challenge_method=%s";
+
+    /**
+     * Invented once per sign-in: the challenge goes out with the browser request, and the
+     * verifier is kept back until the code is exchanged.
+     */
+    private final ElyPkce pkce = new ElyPkce();
 
 
     private final List<L> listenerList = new ArrayList<>(), listenerList_ = Collections.unmodifiableList(listenerList);
@@ -72,7 +79,9 @@ public abstract class ElyAuthFlow<L extends ElyAuthFlowListener> implements Call
 
         URL url;
         try {
-            url = new URL(String.format(java.util.Locale.ROOT, OAUTH2_AUTH_REQUEST, URLEncoder.encode(redirect_uri, StandardCharsets.UTF_8.name()), state));
+            url = new URL(String.format(java.util.Locale.ROOT, OAUTH2_AUTH_REQUEST,
+                    URLEncoder.encode(redirect_uri, StandardCharsets.UTF_8.name()), state,
+                    pkce.getChallenge(), pkce.getChallengeMethod()));
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -132,6 +141,13 @@ public abstract class ElyAuthFlow<L extends ElyAuthFlowListener> implements Call
 
     protected final int generateState() {
         return new SecureRandom().nextInt();
+    }
+
+    /**
+     * The verifier this sign-in has to present when the code is exchanged.
+     */
+    protected final String getCodeVerifier() {
+        return pkce.getVerifier();
     }
 
     protected final List<L> getListenerList() {

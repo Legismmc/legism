@@ -28,18 +28,24 @@ public final class ElyAuthCode {
     static final String ACCOUNT_INFO = API_BASE + "/account/v1/info";
     static final String TOKEN_EXCHANGE = API_BASE + "/oauth2/v1/token";
 
+    /**
+     * A public client sends no secret - it has none - and proves the code is its own with
+     * the PKCE verifier instead.
+     */
     static final String TOKEN_EXCHANGE_REQUEST = "grant_type=authorization_code&client_id=${client_id}&" +
-            "client_secret=${client_secret}&code=${code}&state=${state}&redirect_uri=${redirect_uri}";
+            "code_verifier=${code_verifier}&code=${code}&state=${state}&redirect_uri=${redirect_uri}";
 
     final String code, redirect_uri;
     final int state;
+    private final String codeVerifier;
 
     private final Gson gson;
 
-    ElyAuthCode(String code, String redirect_uri, int state) {
+    ElyAuthCode(String code, String redirect_uri, int state, String codeVerifier) {
         this.code = StringUtil.requireNotBlank(code, "code");
         this.redirect_uri = StringUtil.requireNotBlank(redirect_uri, "redirect_uri");
         this.state = state;
+        this.codeVerifier = StringUtil.requireNotBlank(codeVerifier, "codeVerifier");
 
         this.gson = new GsonBuilder()/*.registerTypeAdapter(ElyUser.class, new ElyUserJsonizer())*/.create();
 
@@ -139,13 +145,15 @@ public final class ElyAuthCode {
         String request = TokenReplacingReader.resolveVars(TOKEN_EXCHANGE_REQUEST, new MapTokenResolver(new HashMap<String, String>() {
             {
                 put("client_id", ElyAuth.CLIENT_ID);
-                put("client_secret", ElyAuth.CLIENT_SECRET);
+                put("code_verifier", codeVerifier);
                 put("code", code);
                 put("state", String.valueOf(state));
                 put("redirect_uri", redirect_uri);
             }
         }));
-        log.debug("Request: {}", request);
+        // not the request itself: it carries the PKCE verifier, which is the one thing
+        // standing between an intercepted authorisation code and someone else's account
+        log.debug("Exchanging the authorisation code for a token");
 
         HttpURLConnection connection = setupConnection("POST", TOKEN_EXCHANGE);
 
