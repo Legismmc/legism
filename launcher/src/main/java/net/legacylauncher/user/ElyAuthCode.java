@@ -52,6 +52,33 @@ public final class ElyAuthCode {
         log.info("Created with: code {}, redirect_uri {}, state {}", code, redirect_uri, state);
     }
 
+    /**
+     * For a flow that already holds a token and never had an authorisation code to
+     * exchange - the device flow, where the token arrives from polling instead.
+     */
+    private ElyAuthCode() {
+        this.code = null;
+        this.redirect_uri = null;
+        this.state = 0;
+        this.codeVerifier = null;
+        this.gson = new GsonBuilder().create();
+    }
+
+    /**
+     * Turns an already-issued token into a user, reusing the same account lookup and
+     * expiry handling as the authorisation-code flow.
+     */
+    static ElyUser userFromToken(String accessToken, String refreshToken, int expiresIn)
+            throws IOException, AuthException {
+        CodeExchangePayload payload = new CodeExchangePayload();
+        payload.access_token = accessToken;
+        payload.refresh_token = refreshToken;
+        payload.token_type = "Bearer";
+        payload.expires_in = expiresIn;
+        payload.checkConsistency();
+        return new ElyAuthCode().getRawUser(payload).create();
+    }
+
     public ElyUser getUser() throws IOException, AuthException {
         CodeExchangePayload codeExchangePayload = exchangeCode();
         return getRawUser(codeExchangePayload).create();

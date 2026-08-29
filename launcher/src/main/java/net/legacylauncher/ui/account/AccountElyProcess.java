@@ -15,6 +15,7 @@ import net.legacylauncher.ui.scenes.AccountManagerScene;
 import net.legacylauncher.ui.swing.extended.BorderPanel;
 import net.legacylauncher.ui.swing.extended.ExtendedPanel;
 import net.legacylauncher.user.*;
+import net.legacylauncher.util.OS;
 import net.legacylauncher.util.SwingUtil;
 import net.legacylauncher.util.async.AsyncThread;
 
@@ -40,6 +41,12 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
     private final LocalizableMenuItem fallbackMenuItem;
 
     private Future<ElyAuthCode> authProcess;
+    private Future<ElyUser> deviceProcess;
+
+    /**
+     * The code the user has to type on Ely.by, shown while waiting for them to do it.
+     */
+    private String deviceCode;
     private ElyUser user;
 
     public AccountElyProcess(final AccountManagerScene scene) {
@@ -117,7 +124,12 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
                 return;
         }
 
-        label.setText(LOC_PREFIX + "flow." + labelText);
+        if (state == FlowState.INPUT_WAITING && deviceCode != null) {
+            // the code is the whole point of this screen, so it goes in the label itself
+            label.setText(LOC_PREFIX + "flow.device", deviceCode);
+        } else {
+            label.setText(LOC_PREFIX + "flow." + labelText);
+        }
         switch (progress) {
             case -1:
                 progressBar.setIndeterminate(true);
@@ -132,6 +144,29 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
                 break;
         }
         button.setEnabled(helpEnabled);
+    }
+
+    /**
+     * Signs in with Ely.by's device flow: a short code shown here, typed by the user on
+     * Ely.by's own page, while this waits for them to finish.
+     * <p>
+     * The redirect flow below cannot be used with this application at all - Ely.by only
+     * offers it to clients that hold a secret, and a desktop launcher cannot.
+     */
+    private void activateDeviceFlow() {
+        cancelCurrentFlow();
+        setState(FlowState.INIT);
+
+        deviceProcess = AsyncThread.future(() -> {
+            ElyDeviceFlow flow = new ElyDeviceFlow();
+            ElyUser user = flow.authorize((code, verificationUri) -> SwingUtil.later(() -> {
+                deviceCode = code;
+                setState(FlowState.INPUT_WAITING);
+                OS.openLink(verificationUri, false);
+            }));
+            SwingUtil.later(() -> acceptUser(user));
+            return user;
+        });
     }
 
     private void activatePrimaryFlow() {
@@ -258,6 +293,13 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
             return;
         }
 
+        acceptUser(user);
+    }
+
+    /**
+     * Puts a freshly signed-in user into the account list, whichever flow produced them.
+     */
+    private void acceptUser(ElyUser user) {
         setState(FlowState.COMPLETE);
 
         StandardAccountPane.removeAccountIfFound(user.getUsername(), Account.AccountType.ELY);
@@ -270,6 +312,10 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
     }
 
     private void cancelCurrentFlow() {
+        if (deviceProcess != null) {
+            deviceProcess.cancel(true);
+            deviceProcess = null;
+        }
         if (authProcess != null) {
             authProcess.cancel(true);
         }
@@ -297,7 +343,7 @@ public class AccountElyProcess extends BorderPanel implements AccountMultipaneCo
 
     @Override
     public void multipaneShown(boolean gotBack) {
-        activatePrimaryFlow();
+        activateDeviceFlow();
     }
 
     @Override

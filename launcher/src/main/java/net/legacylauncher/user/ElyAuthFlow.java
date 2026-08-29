@@ -19,8 +19,16 @@ public abstract class ElyAuthFlow<L extends ElyAuthFlowListener> implements Call
 
     // client_id=legism&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=http://localhost:80
     static final String OAUTH2_BASE = ElyAuth.ACCOUNT_BASE + "/oauth2/v1";
+    /**
+     * {@code prompt=select_account} used to be here, inherited from the launcher this was
+     * forked from. Ely.by does not document it, and it is dropped because the public
+     * client this now signs in as takes a different path through their authorisation page -
+     * one that answers "invalid_request" naming no parameter at all. Everything else in
+     * this URL is documented, and the whole of it is accepted by their own validation
+     * endpoint either way.
+     */
     static final String OAUTH2_AUTH_REQUEST = OAUTH2_BASE +
-            "?client_id=" + ElyAuth.CLIENT_ID + "&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=%s&state=%d&prompt=select_account"
+            "?client_id=" + ElyAuth.CLIENT_ID + "&response_type=code&scope=account_info+minecraft_server_session&redirect_uri=%s&state=%d"
             + "&code_challenge=%s&code_challenge_method=%s";
 
     /**
@@ -85,6 +93,12 @@ public abstract class ElyAuthFlow<L extends ElyAuthFlowListener> implements Call
         } catch (Exception e) {
             throw new Error(e);
         }
+
+        // Ely.by rejects a malformed request with a message that does not say which
+        // parameter it means, so without this there is nothing to compare against when
+        // sign-in fails. Everything here is public: the challenge is a hash, and the
+        // verifier behind it never leaves the launcher.
+        log.info("Opening the Ely.by authorisation page: {}", url);
 
         if (browser.openLink(url)) {
             for (ElyAuthFlowListener listener : getListenerList()) {
