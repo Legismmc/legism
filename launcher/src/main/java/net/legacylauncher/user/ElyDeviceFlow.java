@@ -44,7 +44,29 @@ public final class ElyDeviceFlow {
      * begins.
      */
     public interface Listener {
+        /**
+         * @param verificationUri already carries the code, so the page can confirm it
+         *                        without anyone typing it in
+         */
         void onCodeIssued(String userCode, String verificationUri);
+    }
+
+    /**
+     * The address to send the user to, with the code already in it.
+     * <p>
+     * Ely.by's page reads {@code user_code} straight from the query and checks it itself,
+     * so the code only has to be read off the screen if the browser fails to open at all.
+     * The address it hands back is plain http, which is upgraded here rather than sending
+     * anyone's session over an unencrypted hop.
+     */
+    private static String verificationUrl(DeviceCode device) {
+        String base = device.verification_uri == null || device.verification_uri.isEmpty()
+                ? "https://account.ely.by/code"
+                : device.verification_uri;
+        if (base.startsWith("http://")) {
+            base = "https://" + base.substring("http://".length());
+        }
+        return base + (base.contains("?") ? "&" : "?") + "user_code=" + device.user_code;
     }
 
     /**
@@ -55,8 +77,9 @@ public final class ElyDeviceFlow {
      */
     public ElyUser authorize(Listener listener) throws IOException, AuthException, InterruptedException {
         DeviceCode device = requestDeviceCode();
-        log.info("Ely.by device code issued, user enters {} at {}", device.user_code, device.verification_uri);
-        listener.onCodeIssued(device.user_code, device.verification_uri);
+        String verificationUrl = verificationUrl(device);
+        log.info("Ely.by device code issued: {} confirmed at {}", device.user_code, verificationUrl);
+        listener.onCodeIssued(device.user_code, verificationUrl);
 
         int interval = device.interval > 0 ? device.interval : DEFAULT_INTERVAL_SECONDS;
         long deadline = System.currentTimeMillis()
