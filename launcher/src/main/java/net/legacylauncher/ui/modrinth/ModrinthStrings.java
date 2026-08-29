@@ -262,8 +262,8 @@ public final class ModrinthStrings {
         en("instances.title", "Instances");
         ru("instances.title", "Сборки");
 
-        en("instances.search", "Search instances");
-        ru("instances.search", "Поиск по сборкам");
+        en("instances.search", "Search");
+        ru("instances.search", "Поиск");
 
         en("instances.sort", "Sort");
         ru("instances.sort", "Сортировка");

@@ -229,6 +229,10 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
         JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(6), SwingUtil.magnify(2)));
         filters.setOpaque(false);
 
+        // A label rather than only a placeholder: placeholderText is a FlatLaf property,
+        // and under the system look and feel it leaves an unlabelled box that gives no
+        // clue what it is for. The placeholder stays for the themes that honour it.
+        filters.add(new JLabel(ModrinthStrings.get("instances.search") + ':'));
         searchField.putClientProperty("JTextField.placeholderText", ModrinthStrings.get("instances.search"));
         searchField.putClientProperty("JTextField.showClearButton", Boolean.TRUE);
         searchField.setColumns(18);

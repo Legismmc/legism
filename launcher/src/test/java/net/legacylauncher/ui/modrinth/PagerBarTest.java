@@ -49,4 +49,54 @@ class PagerBarTest {
     void fewerResultsWin() {
         assertEquals(3, PagerBar.pageCount(50, PAGE, CURSEFORGE_DEPTH));
     }
+
+    // ------------------------------------------------------------ the row itself
+
+    /**
+     * What the row reads as, left to right, so the windowing is checked by what a user
+     * would actually see rather than by counting components.
+     */
+    private static String render(int currentPage, int totalPages) {
+        PagerBar bar = new PagerBar(page -> {
+        });
+        bar.update(currentPage, totalPages);
+        StringBuilder text = new StringBuilder();
+        for (java.awt.Component child : bar.getComponents()) {
+            if (text.length() > 0) {
+                text.append(' ');
+            }
+            if (child instanceof javax.swing.JButton) {
+                javax.swing.JButton button = (javax.swing.JButton) child;
+                // the page you are on is the disabled one; mark it so the test can see it
+                text.append(button.isEnabled() ? button.getText() : "[" + button.getText() + "]");
+            } else if (child instanceof javax.swing.JLabel) {
+                text.append(((javax.swing.JLabel) child).getText());
+            }
+        }
+        return text.toString();
+    }
+
+    @Test
+    @DisplayName("hides itself when there is nothing to page through")
+    void hiddenForOnePage() {
+        PagerBar bar = new PagerBar(page -> {
+        });
+        bar.update(0, 1);
+        assertEquals(false, bar.isVisible());
+        assertEquals(0, bar.getComponentCount());
+    }
+
+    @Test
+    @DisplayName("lists every page while they still fit")
+    void listsShortRuns() {
+        assertEquals("[‹] [1] 2 3 4 ›", render(0, 4));
+    }
+
+    @Test
+    @DisplayName("keeps the first and last page and closes the gap with an ellipsis")
+    void windowsLongRuns() {
+        assertEquals("‹ 1 … 8 9 [10] 11 12 … 500 ›", render(9, 500));
+        assertEquals("[‹] [1] 2 3 … 500 ›", render(0, 500));
+        assertEquals("‹ 1 … 498 499 [500] [›]", render(499, 500));
+    }
 }

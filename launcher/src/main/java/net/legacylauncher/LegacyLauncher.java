@@ -41,7 +41,9 @@ import net.legacylauncher.user.ElyUser;
 import net.legacylauncher.user.PlainUser;
 import net.legacylauncher.user.User;
 import net.legacylauncher.util.*;
+import net.legacylauncher.ui.update.UpdateProgressDialog;
 import net.legacylauncher.update.SelfUpdateChecker;
+import net.legacylauncher.update.SelfUpdater;
 import net.legacylauncher.util.OS;
 import net.legacylauncher.util.async.AsyncThread;
 import net.legacylauncher.util.logging.DelegateServiceProvider;
@@ -799,15 +801,72 @@ public final class LegacyLauncher {
 
         AsyncThread.execute(() -> SelfUpdateChecker.checkForUpdate().ifPresent(release ->
                 SwingUtilities.invokeLater(() -> frame.mp.instancesScene.get().panel.showUpdateAvailable(
-                        release.getTag(), () -> {
-                    if (Alert.showQuestion(
-                            Localizable.get("update.available.title"),
-                            Localizable.get("update.available.message", release.getTag()))) {
-                        OS.openLink(release.getUrl());
-                    }
-                }))));
+                        release.getTag(), () -> startUpdate(release)))));
 
         // upstream pinged its stats server every 30 minutes from here; this fork does not
+    }
+
+    /**
+     * Fetches the build of a new release that belongs on this machine and hands it over.
+     * <p>
+     * Falls back to opening the release page whenever the right file cannot be worked out -
+     * an unfamiliar platform, or a release published without the usual set of files. That
+     * was the whole of this feature before, so the worst case is no worse than it was.
+     */
+    private void startUpdate(SelfUpdateChecker.LatestRelease release) {
+        SelfUpdater.Plan plan = SelfUpdater.planFor(release);
+        if (plan == null) {
+            OS.openLink(release.getUrl());
+            return;
+        }
+        if (!Alert.showQuestion(
+                Localizable.get("update.available.title"),
+                Localizable.get("update.available.message", release.getTag()))) {
+            return;
+        }
+
+        UpdateProgressDialog dialog = new UpdateProgressDialog(frame, plan.getAsset().getName());
+        AsyncThread.execute(() -> {
+            final File downloaded;
+            try {
+                downloaded = SelfUpdater.download(plan, MinecraftUtil.getWorkingDirectory(), dialog);
+            } catch (Exception e) {
+                log.warn("Could not download the update", e);
+                SwingUtilities.invokeLater(() -> {
+                    dialog.done();
+                    Alert.showError(
+                            Localizable.get("update.available.title"),
+                            Localizable.get("update.download.failed", e.getMessage()));
+                });
+                return;
+            }
+            SwingUtilities.invokeLater(() -> {
+                dialog.done();
+                finishUpdate(plan, downloaded);
+            });
+        });
+        dialog.showDialog();
+    }
+
+    private void finishUpdate(SelfUpdater.Plan plan, File downloaded) {
+        if (plan.getHandling() == SelfUpdater.Handling.RUN_INSTALLER) {
+            if (!Alert.showQuestion(
+                    Localizable.get("update.download.ready.title"),
+                    Localizable.get("update.download.ready.installer"))) {
+                SelfUpdater.reveal(downloaded);
+                return;
+            }
+            if (SelfUpdater.runInstaller(downloaded)) {
+                // the installer cannot replace files this process is still holding open
+                System.exit(0);
+            }
+            SelfUpdater.reveal(downloaded);
+            return;
+        }
+        Alert.showMessage(
+                Localizable.get("update.download.ready.title"),
+                Localizable.get("update.download.ready.file", downloaded.getName()));
+        SelfUpdater.reveal(downloaded);
     }
 
     private void preloadUI() {
