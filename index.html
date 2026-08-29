@@ -50,6 +50,34 @@
   h1{font-size:32px;font-weight:900;line-height:1.15;margin:0 0 16px}
   h2{font-size:20px;font-weight:700;margin:0 0 10px}
 
+  /* ---------------- brand stripes ---------------- */
+  /* Three bands - grey, white, grey - with a highlight sweeping along them. The sweep is
+     a separate layer rather than an animated gradient on the bands themselves, so the
+     stripe keeps its exact colours while only the shine moves. */
+  .stripes{
+    position:relative;overflow:hidden;
+    height:6px;width:100%;
+    background:linear-gradient(
+      hsl(0,0%,30%) 0 2px,
+      hsl(0,0%,88%) 2px 4px,
+      hsl(0,0%,30%) 4px 6px
+    );
+  }
+  .stripes::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg,
+      transparent 25%,
+      hsla(0,0%,100%,.9) 50%,
+      transparent 75%);
+    transform:translateX(-100%);
+    animation:sheen 6s cubic-bezier(.4,0,.2,1) infinite;
+  }
+  @keyframes sheen{
+    0%{transform:translateX(-100%)}
+    55%,100%{transform:translateX(100%)}
+  }
+  .stripes.divider{margin-top:-1px}
+
   /* ---------------- top bar ---------------- */
   .topbar{
     position:sticky;top:16px;z-index:20;
@@ -87,6 +115,7 @@
     html{scroll-behavior:auto}
     .js .reveal{opacity:1;transform:none;transition:none}
     *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+    .stripes::after{opacity:0}
   }
 
   /* ---------------- hero ---------------- */
@@ -268,6 +297,8 @@
 </head>
 <body>
 
+<div class="stripes" aria-hidden="true"></div>
+
 <nav class="topbar">
   <a class="brand" href="#top" aria-label="Legism home page">
     <img src="images/legism-logo.png" width="34" height="34" alt="">
@@ -306,6 +337,8 @@
     </p>
   </div>
 </header>
+
+<div class="stripes divider" aria-hidden="true"></div>
 
 <div class="stats">
   <div class="stat"><b>2</b><span>content libraries</span></div>

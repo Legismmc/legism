@@ -39,6 +39,36 @@
   a{color:var(--white-1)}
   :focus-visible{outline:2px solid var(--white-1);outline-offset:3px;border-radius:4px}
 
+  /* ---------------- brand stripes ---------------- */
+  /* Three bands - grey, white, grey - with a highlight sweeping along them. The sweep is
+     a separate layer rather than an animated gradient on the bands themselves, so the
+     stripe keeps its exact colours while only the shine moves. */
+  .stripes{
+    position:relative;overflow:hidden;
+    height:6px;width:100%;
+    background:linear-gradient(
+      hsl(0,0%,30%) 0 2px,
+      hsl(0,0%,88%) 2px 4px,
+      hsl(0,0%,30%) 4px 6px
+    );
+  }
+  .stripes::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(100deg,
+      transparent 25%,
+      hsla(0,0%,100%,.9) 50%,
+      transparent 75%);
+    transform:translateX(-100%);
+    animation:sheen 6s cubic-bezier(.4,0,.2,1) infinite;
+  }
+  @keyframes sheen{
+    0%{transform:translateX(-100%)}
+    55%,100%{transform:translateX(100%)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .stripes::after{animation:none;opacity:0}
+  }
+
   /* ---------------- top bar ---------------- */
   .topbar{
     width:min(100% - 32px,900px);margin:16px auto 30px;
@@ -138,6 +168,8 @@
 </style>
 </head>
 <body>
+
+<div class="stripes" aria-hidden="true"></div>
 
 <nav class="topbar">
   <a class="brand" href="../" aria-label="Legism home page">
