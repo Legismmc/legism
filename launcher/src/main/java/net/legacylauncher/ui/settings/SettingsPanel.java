@@ -12,6 +12,8 @@ import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.block.Blocker;
 import net.legacylauncher.ui.converter.ActionOnLaunchConverter;
 import net.legacylauncher.ui.converter.LoggerTypeConverter;
+import net.legacylauncher.ui.converter.ProxyModeConverter;
+import net.legacylauncher.util.LauncherProxy;
 import net.legacylauncher.ui.converter.SeparateDirsConverter;
 import net.legacylauncher.ui.converter.UiThemeConverter;
 import net.legacylauncher.ui.editor.*;
@@ -74,6 +76,12 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
     public final EditorFieldHandler curseForgeKey;
     public final EditorFieldHandler discordEnabled;
     public final EditorFieldHandler discordClientId;
+    public final EditorFieldHandler proxyMode;
+    public final EditorFieldHandler proxyHost;
+    public final EditorFieldHandler proxyPort;
+    public final EditorFieldHandler proxyType;
+    public final EditorFieldHandler proxyUsername;
+    public final EditorFieldHandler proxyPassword;
     public final EditorFieldHandler locale;
     public final HTMLPage about;
     private final BorderPanel buttonPanel;
@@ -318,6 +326,44 @@ public class SettingsPanel extends TabbedEditorPanel implements LoginForm.LoginP
         discordClientId = new EditorFieldHandler(DiscordPresenceManager.SETTING_CLIENT_ID,
                 new EditorTextField("settings.discord.clientid.prompt", true));
         tlauncherTab.add(new EditorPair("settings.discord.clientid.label", discordClientId));
+        tlauncherTab.nextPane();
+
+        // A machine can advertise a proxy that never actually answers, and until now the
+        // only way past that was editing tl.bootargs by hand. Every one of these takes
+        // effect as soon as the settings are saved.
+        proxyMode = new EditorFieldHandler(LauncherProxy.SETTING_MODE,
+                new EditorComboBox<>(new ProxyModeConverter(), Configuration.ProxyMode.values()));
+        proxyMode.addListener(new EditorFieldChangeListener() {
+            protected void onChange(String oldValue, String newValue) {
+                LauncherProxy.reapply();
+            }
+        });
+        tlauncherTab.add(new EditorPair("settings.proxy.mode.label", proxyMode));
+        tlauncherTab.nextPane();
+
+        proxyHost = new EditorFieldHandler(LauncherProxy.SETTING_HOST,
+                new EditorTextField("settings.proxy.host.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.proxy.host.label", proxyHost));
+        tlauncherTab.nextPane();
+
+        proxyPort = new EditorFieldHandler(LauncherProxy.SETTING_PORT,
+                new EditorTextField("settings.proxy.port.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.proxy.port.label", proxyPort));
+        tlauncherTab.nextPane();
+
+        proxyType = new EditorFieldHandler(LauncherProxy.SETTING_TYPE,
+                new EditorTextField("settings.proxy.type.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.proxy.type.label", proxyType));
+        tlauncherTab.nextPane();
+
+        proxyUsername = new EditorFieldHandler(LauncherProxy.SETTING_USER,
+                new EditorTextField("settings.proxy.username.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.proxy.username.label", proxyUsername));
+        tlauncherTab.nextPane();
+
+        proxyPassword = new EditorFieldHandler(LauncherProxy.SETTING_PASSWORD,
+                new EditorTextField("settings.proxy.password.prompt", true));
+        tlauncherTab.add(new EditorPair("settings.proxy.password.label", proxyPassword));
         tlauncherTab.nextPane();
 
         switchToBeta = new EditorFieldHandler("bootstrap.switchToBeta", new EditorCheckBox("settings.switch-to-beta"));

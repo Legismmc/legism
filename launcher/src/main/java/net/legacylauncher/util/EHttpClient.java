@@ -55,7 +55,7 @@ public final class EHttpClient {
     }
 
     public static HttpClientBuilder builder() {
-        return HttpClients.custom()
+        HttpClientBuilder builder = HttpClients.custom()
                 .setUserAgent(LauncherUserAgent.USER_AGENT)
                 .setRetryStrategy(new HttpRequestRetryStrategy())
                 .setConnectionManager(new PoolingHttpClientConnectionManager(
@@ -66,6 +66,11 @@ public final class EHttpClient {
                         null,
                         resolver,
                         null));
+        // Without this the client ignored proxies outright: it never called
+        // useSystemProperties, so anyone genuinely behind an HTTP proxy was quietly going
+        // direct and failing, while plain sockets went through the system SOCKS proxy.
+        LauncherProxy.configure(builder);
+        return builder;
     }
 
     public static CloseableHttpClient createRepeatable() {

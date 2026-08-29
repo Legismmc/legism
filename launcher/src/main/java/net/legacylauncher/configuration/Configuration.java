@@ -437,6 +437,25 @@ public class Configuration extends SimpleConfiguration {
         }
     }
 
+    /**
+     * How the launcher should reach the network.
+     */
+    public enum ProxyMode {
+        /**
+         * Follow whatever the operating system is configured to use.
+         */
+        SYSTEM,
+        /**
+         * Ignore the system settings and connect directly. The way out when the machine
+         * advertises a proxy that does not actually answer.
+         */
+        NONE,
+        /**
+         * Use the proxy typed into the settings.
+         */
+        MANUAL
+    }
+
     public enum LoggerType {
         GLOBAL,
         NONE;

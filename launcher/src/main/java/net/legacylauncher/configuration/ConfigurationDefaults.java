@@ -69,6 +69,17 @@ public final class ConfigurationDefaults {
         d.put("discord.rpc.enabled", true);
         d.put("discord.rpc.client-id", "");
 
+        // Following the system proxy stays the default, but it is now a setting rather
+        // than something only reachable by editing tl.bootargs by hand - a machine that
+        // advertises a proxy which never answers used to leave the launcher unable to
+        // reach anything, with no way out from inside it.
+        d.put("connection.proxy.mode", Configuration.ProxyMode.SYSTEM);
+        d.put("connection.proxy.type", "http");
+        d.put("connection.proxy.host", "");
+        d.put("connection.proxy.port", "");
+        d.put("connection.proxy.username", "");
+        d.put("connection.proxy.password", "");
+
         d.put("minecraft.crash", true);
         d.put("minecraft.mods.removeUndesirable", true);
 

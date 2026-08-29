@@ -77,11 +77,10 @@ public final class LegacyLauncher {
     private static LegacyLauncher instance;
 
     static {
-        // Following the system proxy is the right default, but a local proxy client that
-        // advertises a SOCKS server and then never answers leaves the launcher unable to
-        // reach anything at all. Upstream overwrote the property unconditionally; here an
-        // explicitly passed -Djava.net.useSystemProxies=false wins, so such a setup can be
-        // worked around from tl.bootargs without rebuilding.
+        // A starting point only: the real choice comes from the settings as soon as they
+        // are read, in LauncherProxy. This just keeps anything that runs before then -
+        // and anything launched with an explicit -Djava.net.useSystemProxies - behaving
+        // the way it always did.
         if (System.getProperty("java.net.useSystemProxies") == null) {
             System.setProperty("java.net.useSystemProxies", "true");
         }
@@ -156,6 +155,8 @@ public final class LegacyLauncher {
 
         bootstrapIPC.onBootProgress("Loading configuration", 0.1);
         this.settings = Configuration.createConfiguration(optionSet);
+        // before anything reaches for the network
+        LauncherProxy.apply(this.settings);
         bootstrapIPC.setMetadata("client", settings.getClient().toString());
         migrateLafConfigOrSetLaf();
         FlatLaf.applyUiTheme(settings.getUiTheme());
