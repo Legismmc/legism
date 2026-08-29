@@ -185,16 +185,6 @@
   .feat:hover h2 svg{stroke:var(--white-1)}
   .feat p{margin:0;color:var(--white-3);font-size:14.5px;line-height:1.6}
 
-  /* ---------------- screenshots ---------------- */
-  .shots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media (max-width:720px){.shots{grid-template-columns:1fr}}
-  .shot{
-    background:var(--black-2);border:1px solid var(--black-3);border-radius:8px;
-    overflow:hidden;transition:border-color .18s,transform .18s;
-  }
-  .shot:hover{border-color:var(--line);transform:translateY(-3px)}
-  .shot img{display:block;width:100%;height:auto}
-  .shot figcaption{padding:12px 16px;color:var(--white-3);font-size:14px;border-top:1px solid var(--black-3)}
 
   /* ---------------- downloads ---------------- */
   .downloads{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -215,6 +205,29 @@
   .dl .files a:hover{background:var(--black-3);border-color:var(--white-2)}
   .dl .files .hintline{color:var(--white-3);font-size:14px}
   .dl-cta{text-align:center;margin:28px 0 0}
+
+  /* ---------------- maintainers ---------------- */
+  .people{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media (max-width:720px){.people{grid-template-columns:1fr}}
+  .person{
+    display:flex;gap:16px;align-items:flex-start;
+    background:var(--black-2);border:1px solid var(--black-3);border-radius:8px;
+    padding:18px;text-decoration:none;color:var(--white-1);
+    transition:border-color .18s,background .18s,transform .18s;
+  }
+  .person:hover{border-color:var(--line);background:hsl(0,0%,10%);transform:translateY(-2px)}
+  .person img{
+    width:64px;height:64px;flex:none;border-radius:8px;display:block;
+    background:var(--black-3);object-fit:cover;
+  }
+  .person .who{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .person .handle{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .person .role{
+    font-size:12.5px;color:var(--white-2);
+    border:1px solid var(--line);border-radius:100px;padding:2px 9px;
+    white-space:nowrap;
+  }
+  .person .bio{margin:0;color:var(--white-3);font-size:14.5px;line-height:1.55}
 
   /* ---------------- faq ---------------- */
   .faq{display:grid;gap:10px}
@@ -399,24 +412,6 @@
     </div>
   </section>
 
-  <section id="screenshots">
-    <div class="wrap">
-      <h1 class="reveal">Screenshots</h1>
-      <p class="sub reveal">Straight from a running build.</p>
-
-      <div class="shots reveal">
-        <figure class="shot">
-          <img src="images/screenshot-instances.png" width="1000" height="600" loading="lazy" alt="The instance list, showing a single instance and its actions panel">
-          <figcaption>Instance list</figcaption>
-        </figure>
-        <figure class="shot">
-          <img src="images/screenshot-mods.png" width="1000" height="692" loading="lazy" alt="The Modrinth mod catalog inside an instance, with search and install buttons">
-          <figcaption>Mod catalog</figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
   <section id="download">
     <div class="wrap">
       <h1 class="reveal">Download</h1>
@@ -450,6 +445,37 @@
           Go to downloads
         </a>
       </p>
+    </div>
+  </section>
+
+  <section id="maintainers">
+    <div class="wrap">
+      <h1 class="reveal">Maintainers</h1>
+      <p class="sub reveal">The people behind the fork.</p>
+
+      <div class="people reveal">
+        <a class="person" href="https://github.com/tgskoZ" target="_blank" rel="noopener">
+          <img src="https://github.com/tgskoZ.png?size=128" width="64" height="64" alt="" loading="lazy">
+          <span>
+            <span class="who">
+              <span class="handle">tgskoZ</span>
+              <span class="role">developer</span>
+            </span>
+            <p class="bio" data-bio-for="tgskoZ"></p>
+          </span>
+        </a>
+
+        <a class="person" href="https://github.com/junekq" target="_blank" rel="noopener">
+          <img src="https://github.com/junekq.png?size=128" width="64" height="64" alt="" loading="lazy">
+          <span>
+            <span class="who">
+              <span class="handle">junekq</span>
+              <span class="role">java coder</span>
+            </span>
+            <p class="bio" data-bio-for="junekq"></p>
+          </span>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -545,6 +571,17 @@
       if (d && d.tag_name) document.getElementById('ver').textContent = d.tag_name;
     })
     .catch(function () { /* offline - the baked-in tag stands */ });
+
+  // Maintainer blurbs come from each person's own GitHub bio rather than being written
+  // for them here. Nobody's card depends on it: an empty or failed response just leaves
+  // the line out, and the name, role and avatar stand on their own.
+  [].slice.call(document.querySelectorAll('[data-bio-for]')).forEach(function (el) {
+    fetch('https://api.github.com/users/' + el.getAttribute('data-bio-for'), {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.bio) el.textContent = d.bio; })
+      .catch(function () { /* no bio shown, which is the same as having none */ });
+  });
 </script>
 <script>
   (function () {
