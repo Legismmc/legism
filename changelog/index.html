@@ -216,6 +216,31 @@
     return out.join('');
   }
 
+  /**
+   * Release notes carry both languages, wrapped in HTML comments that GitHub hides but
+   * keeps: an English half and a Russian one. This picks the half matching the chosen
+   * language, and falls back to the whole body for anything published before the
+   * convention existed - better a note in the wrong language than a blank entry.
+   */
+  function notesFor(body, lang) {
+    var open = lang === 'ru' ? '<!--RU-->' : '<!--EN-->';
+    var close = lang === 'ru' ? '<!--/RU-->' : '<!--/EN-->';
+    var from = body.indexOf(open);
+    var to = body.indexOf(close);
+    if (from === -1 || to === -1 || to < from) {
+      // try the other language before giving up on markers altogether
+      var otherOpen = lang === 'ru' ? '<!--EN-->' : '<!--RU-->';
+      var otherClose = lang === 'ru' ? '<!--/EN-->' : '<!--/RU-->';
+      var altFrom = body.indexOf(otherOpen);
+      var altTo = body.indexOf(otherClose);
+      if (altFrom !== -1 && altTo !== -1 && altTo > altFrom) {
+        return body.slice(altFrom + otherOpen.length, altTo).trim();
+      }
+      return body;
+    }
+    return body.slice(from + open.length, to).trim();
+  }
+
   function formatDate(iso) {
     var date = new Date(iso);
     if (isNaN(date)) return '';
@@ -244,7 +269,7 @@
       var stats = '<p class="rel-stats">' + downloads.toLocaleString() + ' '
         + window.i18n.plural(downloads, 'downloads') + '</p>';
 
-      var body = (release.body || '').trim();
+      var body = notesFor((release.body || '').trim(), window.i18n.lang());
       var notes = '<div class="notes">'
         + (body ? renderNotes(body) : '<p>' + window.i18n.get('cl.notes.none') + '</p>')
         + '</div>';
