@@ -183,6 +183,8 @@
     transition:background .15s,border-color .15s;
   }
   .dl .files a:hover{background:var(--black-3);border-color:var(--white-2)}
+  .dl .files .hintline{color:var(--white-3);font-size:14px}
+  .dl-cta{text-align:center;margin:28px 0 0}
 
   /* ---------------- faq ---------------- */
   .faq{display:grid;gap:10px}
@@ -233,18 +235,17 @@
     <p class="tagline">A Legacy Launcher fork with no ads and no telemetry — instances, a Modrinth and CurseForge catalog, and your own server.</p>
 
     <div class="actions">
-      <a class="btn primary" href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_installer.exe">
+      <a class="btn primary" href="download/">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
         </svg>
-        Download for Windows
+        Download
       </a>
-      <a class="btn" href="#download">Other platforms</a>
       <a class="btn" href="https://github.com/Legismmc/legism" target="_blank" rel="noopener">GitHub</a>
     </div>
 
     <p class="under">
-      v1.4.2.0.1 · Windows, Linux, macOS ·
+      <span id="ver">v1.4.2.0.1</span> · Windows, Linux, macOS ·
       <a href="https://github.com/Legismmc/legism/releases" target="_blank" rel="noopener">all versions</a>
     </p>
   </div>
@@ -376,40 +377,35 @@
   <section id="download">
     <div class="wrap">
       <h1 class="reveal">Download</h1>
-      <p class="sub reveal">Version 1.4.2.0.1. Java is bundled with every build, so there is nothing else to install.</p>
+      <p class="sub reveal">Windows, Linux and macOS. Java is bundled with every build, so there is nothing else to install.</p>
 
       <div class="downloads reveal">
         <div class="dl">
           <h2>Windows</h2>
           <p class="arch">10 and 11 · x64 and ARM64</p>
-          <div class="files">
-            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_installer.exe">Installer</a>
-            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_windows_portable.zip">Portable .zip</a>
-          </div>
+          <div class="files"><span class="hintline">Installer or portable archive</span></div>
         </div>
 
         <div class="dl">
           <h2>Linux</h2>
           <p class="arch">x86_64 and aarch64 in one archive</p>
-          <div class="files">
-            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_linux.tar.gz">Portable .tar.gz</a>
-          </div>
+          <div class="files"><span class="hintline">Portable .tar.gz</span></div>
         </div>
 
         <div class="dl">
           <h2>macOS</h2>
-          <p class="arch">Pick the one matching your Mac</p>
-          <div class="files">
-            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_macos_apple_silicon.dmg">Apple Silicon .dmg</a>
-            <a href="https://github.com/Legismmc/legism/releases/download/v1.4.2.0.1/Legism_macos_intel.dmg">Intel .dmg</a>
-          </div>
+          <p class="arch">Apple Silicon and Intel</p>
+          <div class="files"><span class="hintline">Disk image .dmg</span></div>
         </div>
       </div>
 
-      <p class="hint reveal">
-        On Linux, unpack the archive and run <code>./legism.sh</code>.
-        The macOS builds are not signed by Apple, so the first launch needs
-        Control-click → Open rather than a double click.
+      <p class="dl-cta reveal">
+        <a class="btn primary" href="download/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>
+          </svg>
+          Go to downloads
+        </a>
       </p>
     </div>
   </section>
@@ -496,6 +492,17 @@
   </div>
 </footer>
 
+<script>
+  // Keep the headline version honest without another manual bump each release. The markup
+  // already carries the last known tag, so a failed or rate-limited request changes nothing.
+  fetch('https://api.github.com/repos/Legismmc/legism/releases/latest', {
+    headers: { 'Accept': 'application/vnd.github+json' }
+  }).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.tag_name) document.getElementById('ver').textContent = d.tag_name;
+    })
+    .catch(function () { /* offline - the baked-in tag stands */ });
+</script>
 <script>
   (function () {
     var items = [].slice.call(document.querySelectorAll('.reveal'));

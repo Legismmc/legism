@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download Legism</title>
+<meta name="description" content="Download Legism for Windows, Linux and macOS — installer, portable archive and disk images, straight from the latest GitHub release.">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<meta property="og:title" content="Download Legism">
+<meta property="og:description" content="Builds for Windows, Linux and macOS, straight from the latest GitHub release.">
+<meta property="og:image" content="../images/legism-logo.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black-1:hsl(0,0%,0%);
+    --black-2:hsl(0,0%,8%);
+    --black-3:hsl(0,0%,16%);
+    --white-1:hsl(0,0%,100%);
+    --white-2:hsl(0,0%,75%);
+    --white-3:hsl(0,0%,50%);
+    --line:hsl(0,0%,25%);
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--black-2);
+    color:var(--white-1);
+    font:400 16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{width:min(100% - 32px,900px);margin-inline:auto;padding:40px 0 72px}
+
+  a{color:var(--white-1)}
+  :focus-visible{outline:2px solid var(--white-1);outline-offset:3px;border-radius:4px}
+
+  /* ---------------- heading ---------------- */
+  .head{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+  .back{
+    display:grid;place-items:center;flex:none;
+    width:40px;height:40px;border-radius:8px;border:1px solid transparent;
+    text-decoration:none;transition:background .15s,border-color .15s;
+  }
+  .back:hover{background:var(--black-3);border-color:var(--line)}
+  .back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  h1{font-size:clamp(26px,4.6vw,34px);font-weight:900;letter-spacing:-.02em;margin:0}
+
+  /* ---------------- recommended ---------------- */
+  .recommend{
+    border:1px solid var(--line);border-radius:8px;
+    padding:22px;text-align:center;margin-bottom:34px;
+  }
+  .recommend p{margin:0 0 16px;color:var(--white-2);font-size:15px}
+  .big{
+    display:inline-flex;align-items:center;justify-content:center;gap:12px;
+    min-height:56px;padding:0 28px;max-width:100%;
+    border:1px solid var(--white-2);border-radius:8px;
+    color:var(--white-1);text-decoration:none;
+    font-size:20px;font-weight:700;
+    transition:background .15s,color .15s,border-color .15s;
+  }
+  .big:hover{background:var(--white-1);color:var(--black-1);border-color:var(--white-1)}
+  .big svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .big .sup{font-size:13px;font-weight:500;opacity:.7;align-self:flex-start;margin-top:14px}
+  .big .kind{font-weight:900}
+
+  /* ---------------- matrix ---------------- */
+  .label{color:var(--white-2);font-size:15px;margin:0 0 12px}
+  .scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{border:1px solid var(--line);padding:12px;vertical-align:middle}
+  thead th{font-weight:700;text-align:center;background:hsl(0,0%,11%)}
+  thead th.corner{background:transparent;border-top-color:transparent;border-left-color:transparent}
+  tbody th{width:96px;text-align:center;font-weight:700;background:hsl(0,0%,11%)}
+  .os{display:inline-flex;align-items:center;gap:8px;justify-content:center}
+  .os svg{width:16px;height:16px;fill:currentColor}
+
+  .cell{display:grid;gap:8px}
+  .file{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    min-height:42px;padding:0 14px;
+    border:1px solid var(--line);border-radius:8px;
+    text-decoration:none;color:var(--white-1);
+    font-size:14.5px;font-weight:500;text-align:center;
+    transition:background .15s,border-color .15s,transform .15s;
+  }
+  .file:hover{background:var(--black-3);border-color:var(--white-3);transform:translateY(-2px)}
+  .file svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .file .ext{color:var(--white-3);font-size:12px}
+  .empty{color:var(--white-3);text-align:center;font-size:14px}
+
+  /* ---------------- footer ---------------- */
+  .foot{text-align:center;margin-top:30px;color:var(--white-3);font-size:14px}
+  .version{font-size:19px;font-weight:700;color:var(--white-1);letter-spacing:.02em}
+  .source{margin-top:4px}
+  .source a{color:var(--white-3)}
+  .source a:hover{color:var(--white-1)}
+  .source svg{width:14px;height:14px;fill:currentColor;vertical-align:-2px;margin-right:2px}
+  .note{
+    margin-top:26px;color:var(--white-2);font-size:14px;line-height:1.7;
+    border-top:1px solid var(--black-3);padding-top:20px;
+  }
+  .note code{background:hsl(0,0%,13%);padding:2px 6px;border-radius:4px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="head">
+    <a class="back" href="../" aria-label="Back to the Legism home page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    </a>
+    <h1>Download Legism</h1>
+  </div>
+
+  <div class="recommend">
+    <p id="recommend-text">Looking for the build that matches your system…</p>
+    <div id="recommend-slot"></div>
+  </div>
+
+  <p class="label">Other downloads:</p>
+  <div class="scroller">
+    <table>
+      <thead>
+        <tr>
+          <th class="corner"></th>
+          <th>
+            <span class="os">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5 10 4.5v7H3v-6ZM11 4.3 21 3v8.5H11v-7.2ZM3 12.5h7v7L3 18.5v-6ZM11 12.5h10V21l-10-1.3v-7.2Z"/></svg>
+              Windows
+            </span>
+          </th>
+          <th>
+            <span class="os">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.6 2.1-1.5 2.7-.4 6.6 1.1 8.8.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4-.1 0-2.2-.9-2.2-3.6ZM14.3 5.5c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg>
+              macOS
+            </span>
+          </th>
+          <th>
+            <span class="os">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-2 0-3 1.7-3 3.6 0 1.3.2 2-.4 3-.8 1.2-2 2.7-2.6 4.6-.4 1.2-.4 2.3-.2 3-.5.5-.8 1.2-.6 1.9.1.5.5.8 1 1 .5.2 1 .4 1.6.8.6.4 1.2.8 2 .9.5.1 1 0 1.4-.2.4.2.9.3 1.4.2.8-.1 1.4-.5 2-.9.6-.4 1.1-.6 1.6-.8.5-.2.9-.5 1-1 .2-.7-.1-1.4-.6-1.9.2-.7.2-1.8-.2-3-.6-1.9-1.8-3.4-2.6-4.6-.6-1-.4-1.7-.4-3C15 3.7 14 2 12 2Zm-1.3 3.2c.4 0 .7.4.7 1s-.3 1-.7 1-.7-.4-.7-1 .3-1 .7-1Zm2.6 0c.4 0 .7.4.7 1s-.3 1-.7 1-.7-.4-.7-1 .3-1 .7-1Zm-1.3 2.6c.9 0 1.7.5 1.7.9 0 .3-.3.5-.7.8-.4.2-.7.5-1 .5s-.6-.3-1-.5c-.4-.3-.7-.5-.7-.8 0-.4.8-.9 1.7-.9Z"/></svg>
+              Linux
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="matrix">
+        <tr><td colspan="4" class="empty">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <div class="version" id="version">—</div>
+    <div class="source" id="source">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.2c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.62-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5Z"/></svg>
+      Fetching from the GitHub API…
+    </div>
+  </div>
+
+  <p class="note">
+    Java is bundled with every build, so there is nothing else to install.
+    On Linux, unpack the archive and run <code>./legism.sh</code>.
+    The macOS builds are not signed by Apple, so the first launch needs
+    Control-click → Open rather than a double click.
+  </p>
+
+</div>
+
+<script>
+(function () {
+  var REPO = 'Legismmc/legism';
+
+  // What ships today. The page asks the API for the current release, but a rate-limited
+  // or offline visitor still gets working links rather than an empty table.
+  var FALLBACK = {
+    tag: 'v1.4.2.0.1',
+    assets: [
+      { name: 'Legism_windows_installer.exe', size: 118464937 },
+      { name: 'Legism_windows_portable.zip', size: 165539092 },
+      { name: 'Legism_linux.tar.gz', size: 139140413 },
+      { name: 'Legism_macos_apple_silicon.dmg', size: 99190628 },
+      { name: 'Legism_macos_intel.dmg', size: 103035061 }
+    ]
+  };
+
+  // Which cells of the grid an asset belongs in. Windows and Linux ship one file that
+  // carries both architectures' runtimes, so those entries claim both rows.
+  var RULES = [
+    { match: /windows_installer/i, os: 'windows', arch: ['x64', 'arm64'], label: 'Installer', ext: '.exe', kind: 'Installer' },
+    { match: /windows_portable/i, os: 'windows', arch: ['x64', 'arm64'], label: 'Portable', ext: '.zip', kind: 'Portable' },
+    { match: /linux/i, os: 'linux', arch: ['x64', 'arm64'], label: 'Portable', ext: '.tar.gz', kind: 'Portable' },
+    { match: /macos_apple_silicon|aarch64\.dmg/i, os: 'macos', arch: ['arm64'], label: 'Disk Image', ext: '.dmg', kind: 'Disk Image' },
+    { match: /macos_intel|x64\.dmg/i, os: 'macos', arch: ['x64'], label: 'Disk Image', ext: '.dmg', kind: 'Disk Image' }
+  ];
+
+  var ROWS = [
+    { key: 'x64', title: 'x64' },
+    { key: 'arm64', title: 'ARM64' }
+  ];
+  var COLUMNS = ['windows', 'macos', 'linux'];
+  var OS_TITLES = { windows: 'Windows', macos: 'macOS', linux: 'Linux' };
+
+  var DOWNLOAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>';
+
+  function humanSize(bytes) {
+    if (!bytes) return '';
+    var mb = bytes / (1024 * 1024);
+    return mb >= 1000 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB';
+  }
+
+  function classify(release) {
+    var grid = {};
+    ROWS.forEach(function (row) {
+      grid[row.key] = { windows: [], macos: [], linux: [] };
+    });
+    (release.assets || []).forEach(function (asset) {
+      RULES.forEach(function (rule) {
+        if (!rule.match.test(asset.name)) return;
+        rule.arch.forEach(function (arch) {
+          grid[arch][rule.os].push({
+            name: asset.name,
+            label: rule.label,
+            ext: rule.ext,
+            kind: rule.kind,
+            os: rule.os,
+            size: asset.size,
+            url: 'https://github.com/' + REPO + '/releases/download/' + release.tag + '/' + asset.name
+          });
+        });
+      });
+    });
+    return grid;
+  }
+
+  function fileLink(entry) {
+    var a = document.createElement('a');
+    a.className = 'file';
+    a.href = entry.url;
+    a.innerHTML = DOWNLOAD_ICON + '<span>' + entry.label +
+      ' <span class="ext">' + entry.ext + (entry.size ? ' · ' + humanSize(entry.size) : '') + '</span></span>';
+    return a;
+  }
+
+  function renderMatrix(grid) {
+    var body = document.getElementById('matrix');
+    body.innerHTML = '';
+    ROWS.forEach(function (row) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('th');
+      th.scope = 'row';
+      th.textContent = row.title;
+      tr.appendChild(th);
+
+      COLUMNS.forEach(function (os) {
+        var td = document.createElement('td');
+        var entries = grid[row.key][os];
+        if (!entries.length) {
+          td.className = 'empty';
+          td.textContent = 'No build';
+        } else {
+          var cell = document.createElement('div');
+          cell.className = 'cell';
+          entries.forEach(function (entry) { cell.appendChild(fileLink(entry)); });
+          td.appendChild(cell);
+        }
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  function detect() {
+    var ua = navigator.userAgent || '';
+    var os = null;
+    if (/Android/i.test(ua)) os = 'android';
+    else if (/iPhone|iPad|iPod/i.test(ua)) os = 'ios';
+    else if (/Windows/i.test(ua)) os = 'windows';
+    else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macos';
+    else if (/Linux|X11|CrOS/i.test(ua)) os = 'linux';
+
+    // ARM is genuinely hard to see from a browser - an Apple Silicon Mac still reports
+    // "MacIntel" - so this is a guess, which is why the wording above stays hedged.
+    var arch = /arm64|aarch64/i.test(ua) ? 'arm64' : 'x64';
+    return { os: os, arch: arch };
+  }
+
+  function refineArch(guess) {
+    var data = navigator.userAgentData;
+    if (!data || !data.getHighEntropyValues) return Promise.resolve(guess);
+    return data.getHighEntropyValues(['architecture']).then(function (values) {
+      if (values && values.architecture) {
+        guess.arch = /arm/i.test(values.architecture) ? 'arm64' : 'x64';
+      }
+      return guess;
+    }).catch(function () { return guess; });
+  }
+
+  function renderRecommendation(grid, found) {
+    var text = document.getElementById('recommend-text');
+    var slot = document.getElementById('recommend-slot');
+    slot.innerHTML = '';
+
+    if (found.os === 'android' || found.os === 'ios') {
+      text.textContent = 'Legism is a desktop launcher — there is no build for phones or tablets.';
+      return;
+    }
+    if (!found.os || !grid[found.arch] || !grid[found.arch][found.os].length) {
+      text.textContent = 'Could not tell which build fits your system. Pick one below.';
+      return;
+    }
+
+    // Prefer the installer where there is a choice; it is what most people want.
+    var entries = grid[found.arch][found.os];
+    var pick = entries.filter(function (e) { return e.kind === 'Installer'; })[0] || entries[0];
+
+    text.textContent = 'This release should be compatible with your OS:';
+    var a = document.createElement('a');
+    a.className = 'big';
+    a.href = pick.url;
+    a.innerHTML = DOWNLOAD_ICON +
+      '<span>' + OS_TITLES[found.os] +
+      '<span class="sup">' + found.arch + '</span> ' +
+      '<span class="kind">' + pick.kind + '</span></span>';
+    slot.appendChild(a);
+  }
+
+  function apply(release, live) {
+    var grid = classify(release);
+    renderMatrix(grid);
+    document.getElementById('version').textContent = release.tag;
+
+    var source = document.getElementById('source');
+    var icon = source.querySelector('svg').outerHTML;
+    source.innerHTML = icon + (live
+      ? ' Fetched from the <a href="https://github.com/' + REPO + '/releases/latest" target="_blank" rel="noopener">GitHub API</a>'
+      : ' GitHub was unreachable — showing the last known release');
+
+    refineArch(detect()).then(function (found) { renderRecommendation(grid, found); });
+  }
+
+  fetch('https://api.github.com/repos/' + REPO + '/releases/latest', {
+    headers: { 'Accept': 'application/vnd.github+json' }
+  }).then(function (response) {
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }).then(function (data) {
+    if (!data || !data.tag_name || !data.assets || !data.assets.length) {
+      throw new Error('release has no assets');
+    }
+    apply({ tag: data.tag_name, assets: data.assets }, true);
+  }).catch(function (error) {
+    if (window.console) console.warn('Falling back to the built-in release list:', error);
+    apply(FALLBACK, false);
+  });
+})();
+</script>
+
+</body>
+</html>
