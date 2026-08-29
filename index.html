@@ -61,7 +61,8 @@
       hsl(0,0%,34%) 220px 223px
     );
     opacity:.15;
-    animation:stripe-drift 34s linear infinite;
+    animation:stripe-drift 12s linear infinite;
+    will-change:transform;
   }
   /* One full period of the pattern measured along the gradient's own axis: 223px at 115deg
      is (223*sin115, -223*cos115) = 202.11 by 94.24. Landing exactly on the period is what
