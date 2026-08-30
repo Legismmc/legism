@@ -35,6 +35,12 @@ import java.util.UUID;
  */
 @Slf4j
 public final class DiscordRpc {
+    /**
+     * The art asset to show beside the status. Uploaded under the Discord application's
+     * Rich Presence -> Art Assets with exactly this name.
+     */
+    private static final String LARGE_IMAGE_KEY = "logo";
+
     private static final int OP_HANDSHAKE = 0;
     private static final int OP_FRAME = 1;
 
@@ -112,6 +118,15 @@ public final class DiscordRpc {
             JsonObject timestamps = new JsonObject();
             timestamps.addProperty("start", sinceMs);
             activity.add("timestamps", timestamps);
+
+            // Names an art asset uploaded to the Discord application. Discord simply shows
+            // no picture when the key is not there, so this can be sent before the asset
+            // exists and starts working the moment one by this name is uploaded - no
+            // release needed to turn it on.
+            JsonObject assets = new JsonObject();
+            assets.addProperty("large_image", LARGE_IMAGE_KEY);
+            assets.addProperty("large_text", "Legism");
+            activity.add("assets", assets);
 
             JsonObject args = new JsonObject();
             args.addProperty("pid", currentPid());
