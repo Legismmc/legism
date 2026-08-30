@@ -76,7 +76,7 @@ public final class DiscordPresenceManager implements InstanceManager.Listener {
             rpc = new DiscordRpc(clientId);
         }
         if (rpc.connect()) {
-            rpc.setActivity(running.getName(), System.currentTimeMillis());
+            rpc.setActivity(running.getName(), running.getVersionId(), System.currentTimeMillis());
         } else {
             log.debug("Discord not reachable, skipping Rich Presence for {}", running);
         }

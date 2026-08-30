@@ -104,17 +104,26 @@ public final class DiscordRpc {
     }
 
     /**
-     * @param state   what to show - the instance name, normally
-     * @param sinceMs epoch millis the activity started, for the "elapsed" clock
+     * @param instanceName what the player called the instance
+     * @param version      the Minecraft version it runs, shown underneath
+     * @param sinceMs      epoch millis the activity started, for the "elapsed" clock
      */
-    public synchronized void setActivity(String state, long sinceMs) {
+    public synchronized void setActivity(String instanceName, String version, long sinceMs) {
         if (transport == null) {
             return;
         }
         try {
             JsonObject activity = new JsonObject();
-            activity.addProperty("state", state);
-            activity.addProperty("details", "Legism");
+            // Discord already prints the application's name above all of this, so putting
+            // "Legism" in here again just said it twice. The instance and the version it
+            // runs are what the reader does not already know.
+            activity.addProperty("details", blankToNull(instanceName) == null ? "Minecraft" : instanceName);
+            // an instance named after its own version - the default - would otherwise
+            // repeat itself on the next line
+            String second = blankToNull(version);
+            if (second != null && !second.equalsIgnoreCase(instanceName)) {
+                activity.addProperty("state", second);
+            }
             JsonObject timestamps = new JsonObject();
             timestamps.addProperty("start", sinceMs);
             activity.add("timestamps", timestamps);
@@ -204,6 +213,10 @@ public final class DiscordRpc {
                 | ((buf[offset + 1] & 0xFF) << 8)
                 | ((buf[offset + 2] & 0xFF) << 16)
                 | ((buf[offset + 3] & 0xFF) << 24);
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     private static long currentPid() {
