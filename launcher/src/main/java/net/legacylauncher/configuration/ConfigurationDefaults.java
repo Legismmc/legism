@@ -67,11 +67,11 @@ public final class ConfigurationDefaults {
         d.put("curseforge.apikey", "$2a$10$U/ik1JVOXeYmLxnqIfUcxOsKvrogh/gpVqpL9ra6cmw12qzKP4gli");
 
         d.put("discord.rpc.enabled", true);
-        // The fork's own Discord application, so Rich Presence works without anyone
-        // registering one of their own. An application id is public by design - it is
-        // handed to every client that connects - so shipping it costs nothing. A user's
-        // own id in Settings still overrides this.
-        d.put("discord.rpc.client-id", "1543596924299509830");
+        // Left empty on purpose. The fork's own application id lives in
+        // DiscordPresenceManager instead: a default here would be copied into every user's
+        // tl.properties in plain text the first time settings are saved. This field is
+        // only for someone supplying an id of their own.
+        d.put("discord.rpc.client-id", "");
 
         // Following the system proxy stays the default, but it is now a setting rather
         // than something only reachable by editing tl.bootargs by hand - a machine that
