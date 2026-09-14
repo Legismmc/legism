@@ -6,17 +6,17 @@
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://legismmc.github.io/legism/</loc>
+    <loc>https://legism.github.io/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://legismmc.github.io/legism/download/</loc>
+    <loc>https://legism.github.io/download/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://legismmc.github.io/legism/changelog/</loc>
+    <loc>https://legism.github.io/changelog/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
