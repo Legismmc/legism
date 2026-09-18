@@ -147,26 +147,26 @@
   .rel-links a:hover{color:var(--white-1)}
   .state{color:var(--white-3);text-align:center;padding:40px 0}
 </style>
+<link rel="stylesheet" href="../assets/theme.css">
 </head>
-<body>
+<body class="changelog-page">
 
-<div class="stripes" aria-hidden="true"></div>
+
 
 <nav class="topbar">
   <a class="brand" href="../" aria-label="Legism">
     <img src="../images/legism-logo.png" width="34" height="34" alt="">
     <span>Legism</span>
   </a>
-  
-  <a class="btn" href="../download/" data-i18n="nav.download">Download</a>
+  <a class="btn" href="../download/">Download</a>
 </nav>
 
 <div class="wrap">
-  <h1 data-i18n="cl.title">Changelog</h1>
-  <p class="sub" data-i18n="cl.sub">Every release, newest first, straight from GitHub.</p>
+  <h1>Changelog</h1>
+  <p class="sub">Every release, newest first, straight from GitHub.</p>
 
   <div id="releases">
-    <p class="state" data-i18n="cl.loading">Loading releases…</p>
+    <p class="state">Loading releases…</p>
   </div>
 </div>
 
@@ -227,7 +227,7 @@
   function formatDate(iso) {
     var date = new Date(iso);
     if (isNaN(date)) return '';
-    return date.toLocaleDateString(window.i18n.lang() === 'ru' ? 'ru-RU' : 'en-GB',
+    return date.toLocaleDateString('en-GB',
       { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
@@ -252,7 +252,7 @@
       var stats = '<p class="rel-stats">' + downloads.toLocaleString() + ' '
         + window.i18n.plural(downloads, 'downloads') + '</p>';
 
-      var body = notesFor((release.body || '').trim(), window.i18n.lang());
+      var body = notesFor((release.body || '').trim());
       var notes = '<div class="notes">'
         + (body ? renderNotes(body) : '<p>' + window.i18n.get('cl.notes.none') + '</p>')
         + '</div>';
@@ -283,10 +283,7 @@
     });
   }
 
-  // dates and the built-in labels are language-dependent, so redraw on a switch
-  document.addEventListener('languagechange', function () {
-    if (cached) render(cached);
-  });
+
 
   load();
 })();
