@@ -25,6 +25,14 @@ public class ModrinthVersion {
     private List<String> loaders;
     private List<ModrinthFile> files;
     private List<ModrinthDependency> dependencies;
+    /**
+     * Markdown, as the author wrote it; may be absent.
+     */
+    private String changelog;
+
+    public String getChangelog() {
+        return changelog;
+    }
 
     public String getId() {
         return id;

@@ -162,8 +162,12 @@ public class ModpackInstallDialog implements ModpackImporter.ProgressListener {
                     resetFileBar();
                     break;
                 case DOWNLOADING_FILES:
+                    // several files download at once, so the lower bar is the whole
+                    // pack's megabytes rather than any one file's
                     overallBar.setIndeterminate(false);
+                    fileLabel.setText(" ");
                     fileBar.setVisible(true);
+                    resetFileBar();
                     break;
                 case RESOLVING:
                 case EXTRACTING:
@@ -182,11 +186,12 @@ public class ModpackInstallDialog implements ModpackImporter.ProgressListener {
         SwingUtilities.invokeLater(() -> {
             overallBar.setIndeterminate(false);
             overallBar.setMaximum(Math.max(1, total));
-            // the bar fills as files finish, so the one in progress is not counted yet
-            overallBar.setValue(current - 1);
+            // current counts finished files
+            overallBar.setValue(current);
             overallBar.setString(ModrinthStrings.get("modpack.progress.files", current, total));
-            fileLabel.setText(message);
-            resetFileBar();
+            if (message != null && !message.isEmpty()) {
+                fileLabel.setText(message);
+            }
         });
     }
 

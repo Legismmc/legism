@@ -262,6 +262,57 @@ public final class ModrinthStrings {
         en("modpack.skipped.close", "Close");
         ru("modpack.skipped.close", "Закрыть");
 
+        en("tab.modpack", "Modpack");
+        ru("tab.modpack", "Модпак");
+        en("modpack.page.info", "Modpack information");
+        ru("modpack.page.info", "Информация о сборке");
+        en("modpack.page.name", "Modpack name");
+        ru("modpack.page.name", "Имя сборки");
+        en("modpack.page.version", "Current version");
+        ru("modpack.page.version", "Текущая версия");
+        en("modpack.page.origin", "Source");
+        ru("modpack.page.origin", "Информация об источнике");
+        en("modpack.page.site", "Site:");
+        ru("modpack.page.site", "Сайт:");
+        en("modpack.page.project-id", "Modpack ID");
+        ru("modpack.page.project-id", "ID сборки");
+        en("modpack.page.version-id", "Version ID");
+        ru("modpack.page.version-id", "ID версии");
+        en("modpack.page.update-to", "Update to version:");
+        ru("modpack.page.update-to", "Обновление до версии:");
+        en("modpack.page.update", "Update modpack");
+        ru("modpack.page.update", "Обновить сборку");
+        en("modpack.page.update-file", "Update from file");
+        ru("modpack.page.update-file", "Обновить из файла");
+        en("modpack.page.changelog", "Changelog");
+        ru("modpack.page.changelog", "Список изменений");
+        en("modpack.page.reload", "Refresh page");
+        ru("modpack.page.reload", "Обновить страницу");
+        en("modpack.page.current", "installed");
+        ru("modpack.page.current", "установлена");
+        en("modpack.page.beta", "beta");
+        ru("modpack.page.beta", "бета");
+        en("modpack.page.no-changelog", "The author did not publish a changelog for this version.");
+        ru("modpack.page.no-changelog", "Автор не опубликовал список изменений для этой версии.");
+        en("modpack.page.no-versions", "The library lists no versions of this modpack.");
+        ru("modpack.page.no-versions", "Библиотека не знает ни одной версии этой сборки.");
+        en("modpack.page.unknown-source", "This modpack came from a library this launcher does not know.");
+        ru("modpack.page.unknown-source", "Сборка из библиотеки, которую этот лаунчер не знает.");
+        en("modpack.page.error.versions", "Could not load the version list.");
+        ru("modpack.page.error.versions", "Не удалось загрузить список версий.");
+        en("modpack.page.error.update", "Could not update the modpack. The instance was left as it was.");
+        ru("modpack.page.error.update", "Не удалось обновить сборку. Сборка осталась как была.");
+        en("modpack.page.running", "Close the game before updating this modpack.");
+        ru("modpack.page.running", "Закройте игру, прежде чем обновлять эту сборку.");
+        en("modpack.page.confirm", "Update \"%0\" from %1 to %2?\n\nWorlds, game settings, screenshots and mods you "
+                + "added yourself are kept. The modpack's own mods and configs are replaced.");
+        ru("modpack.page.confirm", "Обновить «%0» с версии %1 до %2?\n\nМиры, настройки игры, скриншоты и моды, "
+                + "добавленные вами, сохранятся. Моды и конфиги самой сборки будут заменены.");
+        en("modpack.page.updated.title", "Modpack updated");
+        ru("modpack.page.updated.title", "Сборка обновлена");
+        en("modpack.page.updated", "The modpack is now at version %0.");
+        ru("modpack.page.updated", "Сборка обновлена до версии %0.");
+
         en("open-folder.addon", "Open addons folder");
         ru("open-folder.addon", "Открыть папку аддонов");
 

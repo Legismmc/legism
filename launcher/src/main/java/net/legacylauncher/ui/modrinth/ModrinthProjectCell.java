@@ -97,11 +97,15 @@ public class ModrinthProjectCell extends JPanel {
         if (StringUtils.isNotEmpty(project.getAuthor())) {
             meta.append(project.getAuthor());
         }
-        meta.append(meta.length() > 0 ? "  ·  " : "")
-                .append(ModInstaller.formatCount(project.getDownloads()))
-                .append(" ↓");
+        // not every library counts downloads - ATLauncher publishes none - and "0" would
+        // read as a pack nobody wants
+        if (project.getDownloads() > 0) {
+            meta.append(meta.length() > 0 ? "  ·  " : "")
+                    .append(ModInstaller.formatCount(project.getDownloads()))
+                    .append(" ↓");
+        }
         if (!project.getCategories().isEmpty()) {
-            meta.append("  ·  ")
+            meta.append(meta.length() > 0 ? "  ·  " : "")
                     .append(StringUtils.join(project.getCategories(), ", "));
         }
         JLabel metaLabel = new JLabel(meta.toString());

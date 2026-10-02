@@ -52,7 +52,8 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
     private final ScreenshotsPanel screenshots;
     private final InstanceSettingsPanel instanceSettings;
     private final OtherLogsPanel otherLogs;
-    private final List<String> tabTitleKeys = new ArrayList<>();
+    private final ModpackPanel modpackPanel;
+    private final java.util.Map<java.awt.Component, String> tabTitleKeys = new java.util.LinkedHashMap<>();
     private final JButton backButton;
     private final JButton playButton;
     private final JButton folderButton;
@@ -122,6 +123,10 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
         otherLogs = new OtherLogsPanel(this::getInstance);
         addTab("tab.other-logs", otherLogs);
 
+        // only shown for instances installed from a modpack - see setInstance
+        modpackPanel = new ModpackPanel(this::getInstance, this::setInstance);
+        tabTitleKeys.put(modpackPanel, "tab.modpack");
+
         tabs.addChangeListener(e -> showSelectedTab());
         setCenter(tabs);
     }
@@ -133,7 +138,7 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
     }
 
     private void addTab(String titleKey, java.awt.Component component) {
-        tabTitleKeys.add(titleKey);
+        tabTitleKeys.put(component, titleKey);
         tabs.addTab(ModrinthStrings.get(titleKey), component);
     }
 
@@ -158,6 +163,13 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
 
     public void setInstance(Instance instance) {
         this.instance = instance;
+        boolean modpack = ModpackPanel.applies(instance);
+        int index = tabs.indexOfComponent(modpackPanel);
+        if (modpack && index < 0) {
+            tabs.insertTab(ModrinthStrings.get("tab.modpack"), null, modpackPanel, null, 0);
+        } else if (!modpack && index >= 0) {
+            tabs.removeTabAt(index);
+        }
         title.setText(ModrinthStrings.get("edit.title",
                 instance == null ? "" : instance.getName() + " — " + instance.getVersionId()));
     }
@@ -194,6 +206,8 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
             ((InstanceSettingsPanel) selected).onShown();
         } else if (selected instanceof OtherLogsPanel) {
             ((OtherLogsPanel) selected).onShown();
+        } else if (selected instanceof ModpackPanel) {
+            ((ModpackPanel) selected).onShown();
         }
     }
 
@@ -234,8 +248,11 @@ public class InstanceEditPanel extends BackdropPanel implements LocalizableCompo
         backButton.setText(ModrinthStrings.get("back"));
         playButton.setText(ModrinthStrings.get("instances.play"));
         folderButton.setText(ModrinthStrings.get("instances.open-folder"));
-        for (int i = 0; i < tabTitleKeys.size(); i++) {
-            tabs.setTitleAt(i, ModrinthStrings.get(tabTitleKeys.get(i)));
+        for (int i = 0; i < tabs.getTabCount(); i++) {
+            String key = tabTitleKeys.get(tabs.getComponentAt(i));
+            if (key != null) {
+                tabs.setTitleAt(i, ModrinthStrings.get(key));
+            }
         }
         setInstance(instance);
     }

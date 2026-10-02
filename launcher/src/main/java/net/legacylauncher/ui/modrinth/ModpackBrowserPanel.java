@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.legacylauncher.LegacyLauncher;
 import net.legacylauncher.instance.Instance;
 import net.legacylauncher.instance.ModpackImporter;
-import net.legacylauncher.modrinth.ContentFile;
 import net.legacylauncher.modrinth.ContentProject;
-import net.legacylauncher.modrinth.ContentProvider;
-import net.legacylauncher.modrinth.ContentProviders;
 import net.legacylauncher.modrinth.ContentSearchResult;
-import net.legacylauncher.modrinth.ContentType;
+import net.legacylauncher.modpack.ModpackOrigin;
+import net.legacylauncher.modpack.ModpackSource;
+import net.legacylauncher.modpack.ModpackSources;
+import net.legacylauncher.modpack.PackInstaller;
+import net.legacylauncher.modpack.PackPlan;
+import net.legacylauncher.modpack.PackVersion;
 import net.legacylauncher.ui.alert.Alert;
 import net.legacylauncher.ui.images.Images;
 import net.legacylauncher.util.SwingUtil;
@@ -54,13 +56,13 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
     private final Runnable onInstalled;
 
     private final JTextField searchField = new JTextField();
-    private final JComboBox<ContentProvider> libraryBox = new JComboBox<>();
+    private final JComboBox<ModpackSource> libraryBox = new JComboBox<>();
     private final JComboBox<String> gameVersionBox = new JComboBox<>();
     private final JPanel resultsBox = new JPanel();
     private final JLabel statusLabel = new JLabel();
     private final PagerBar pager = new PagerBar(this::goToPage);
 
-    private ContentProvider provider;
+    private ModpackSource provider;
     private int searchGeneration;
     private int currentPage;
     private int totalPages;
@@ -72,13 +74,8 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         setBorder(BorderFactory.createEmptyBorder(
                 SwingUtil.magnify(8), SwingUtil.magnify(8), SwingUtil.magnify(8), SwingUtil.magnify(8)));
 
-        List<ContentProvider> providers = new ArrayList<>();
-        for (ContentProvider candidate : ContentProviders.all()) {
-            if (candidate.supports(ContentType.MODPACK)) {
-                providers.add(candidate);
-            }
-        }
-        provider = providers.isEmpty() ? ContentProviders.getDefault() : providers.get(0);
+        List<ModpackSource> providers = ModpackSources.all();
+        provider = providers.get(0);
 
         add(buildHeader(providers), BorderLayout.NORTH);
 
@@ -99,7 +96,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         startSearch(true);
     }
 
-    private JComponent buildHeader(List<ContentProvider> providers) {
+    private JComponent buildHeader(List<ModpackSource> providers) {
         JPanel header = new JPanel(new BorderLayout(SwingUtil.magnify(8), SwingUtil.magnify(6)));
         header.setOpaque(false);
 
@@ -115,15 +112,15 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, SwingUtil.magnify(6), 0));
         filters.setOpaque(false);
         filters.add(new JLabel(ModrinthStrings.get("library") + ":"));
-        libraryBox.setModel(new DefaultComboBoxModel<>(providers.toArray(new ContentProvider[0])));
+        libraryBox.setModel(new DefaultComboBoxModel<>(providers.toArray(new ModpackSource[0])));
         // without this the box shows the provider's raw toString()
         libraryBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                           boolean selected, boolean focused) {
                 super.getListCellRendererComponent(list, value, index, selected, focused);
-                if (value instanceof ContentProvider) {
-                    ContentProvider candidate = (ContentProvider) value;
+                if (value instanceof ModpackSource) {
+                    ModpackSource candidate = (ModpackSource) value;
                     setText(candidate.getDisplayName());
                     setEnabled(candidate.isAvailable());
                 }
@@ -133,8 +130,8 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         libraryBox.setSelectedItem(provider);
         libraryBox.addActionListener(e -> {
             Object selected = libraryBox.getSelectedItem();
-            if (selected instanceof ContentProvider && selected != provider) {
-                provider = (ContentProvider) selected;
+            if (selected instanceof ModpackSource && selected != provider) {
+                provider = (ModpackSource) selected;
                 gameVersionsLoaded = false;
                 loadGameVersionsOnce();
                 startSearch(true);
@@ -167,7 +164,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
             return;
         }
         gameVersionsLoaded = true;
-        final ContentProvider currentProvider = provider;
+        final ModpackSource currentProvider = provider;
         AsyncThread.execute(() -> {
             final List<String> versions;
             try {
@@ -204,7 +201,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
     private void runSearch() {
         final String query = searchField.getText().trim();
         final String gameVersion = selectedGameVersion();
-        final ContentProvider currentProvider = provider;
+        final ModpackSource currentProvider = provider;
         final int offset = currentPage * PAGE_SIZE;
 
         resultsBox.removeAll();
@@ -213,7 +210,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         pager.setVisible(false);
 
         if (!currentProvider.isAvailable()) {
-            setStatus(currentProvider.getUnavailableReason());
+            setStatus(ModrinthStrings.get(currentProvider.getUnavailableReason()));
             return;
         }
 
@@ -223,8 +220,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         AsyncThread.execute(() -> {
             final ContentSearchResult result;
             try {
-                result = currentProvider.search(ContentType.MODPACK, query, gameVersion,
-                        null, null, offset, PAGE_SIZE);
+                result = currentProvider.search(query, gameVersion, offset, PAGE_SIZE);
             } catch (IOException e) {
                 log.warn("Modpack search failed", e);
                 SwingUtil.later(() -> {
@@ -261,18 +257,16 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
 
     @Override
     public void install(ContentProject project, ModrinthProjectCell cell) {
-        final ContentProvider currentProvider = provider;
+        final ModpackSource currentProvider = provider;
         final String gameVersion = selectedGameVersion();
         cell.setBusy(ModrinthStrings.get("installing"));
         ModpackInstallDialog progress = new ModpackInstallDialog(this, project.getTitle());
 
         AsyncThread.execute(() -> {
-            File pack = null;
             try {
                 progress.onStage(ModpackImporter.Stage.RESOLVING);
-                List<ContentFile> plan = currentProvider.plan(ContentType.MODPACK, project.getId(),
-                        gameVersion, null, false);
-                if (plan.isEmpty()) {
+                PackVersion version = currentProvider.pickVersion(project.getId(), gameVersion);
+                if (version == null) {
                     progress.done();
                     SwingUtil.later(() -> {
                         cell.setIdle();
@@ -281,9 +275,12 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
                     return;
                 }
 
-                pack = ModpackImporter.downloadToTemp(plan.get(0), progress);
-                final ModpackImporter.Result result = ModpackImporter.importAny(pack,
-                        LegacyLauncher.getInstance().getInstanceManager(), progress);
+                PackPlan plan = currentProvider.prepare(project.getId(), version, progress);
+                ModpackOrigin origin = new ModpackOrigin(currentProvider.getId(), project.getId(),
+                        project.getTitle(), version.getId(), version.getName(),
+                        project.getPageUrl(), project.getIconUrl());
+                final ModpackImporter.Result result = PackInstaller.installNew(plan,
+                        LegacyLauncher.getInstance().getInstanceManager(), origin, progress);
                 final Instance created = result.getInstance();
 
                 progress.done();
@@ -309,18 +306,15 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
                     Alert.showError(ModrinthStrings.get("error.title"),
                             ModrinthStrings.get("modpack.error.install") + "\n" + e.getMessage());
                 });
-            } finally {
-                if (pack != null && !pack.delete()) {
-                    pack.deleteOnExit();
-                }
             }
         });
         progress.showDialog();
     }
 
     /**
-     * Always false: an installed modpack becomes an instance, and an instance keeps no
-     * record of the library project it came from, so there is nothing to match against.
+     * Always false: an installed modpack becomes an instance of its own, and installing
+     * the same pack again - to try another version side by side, say - is a fair thing to
+     * want, so the button never locks.
      */
     @Override
     public boolean isProjectInstalled(String projectId) {

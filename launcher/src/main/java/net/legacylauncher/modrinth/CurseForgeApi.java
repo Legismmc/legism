@@ -145,6 +145,19 @@ public final class CurseForgeApi {
     }
 
     /**
+     * @return the author's notes for one file, as HTML
+     */
+    public static String getChangelog(String apiKey, long projectId, long fileId) throws IOException {
+        String url = BASE_URL + "/mods/" + projectId + "/files/" + fileId + "/changelog";
+        StringResponse response = parse(get(apiKey, url), StringResponse.class, "changelog");
+        return response == null ? null : response.data;
+    }
+
+    private static class StringResponse {
+        String data;
+    }
+
+    /**
      * Resolves many files in one go. A modpack names every mod by file id, and asking for
      * them one request at a time is what made big packs fail at random: hundreds of calls
      * in a row is where a single dropped connection or a rate limit eventually lands.
@@ -328,6 +341,25 @@ public final class CurseForgeApi {
         public long fileLength;
         public List<Hash> hashes;
         public List<Dependency> dependencies;
+        /**
+         * Minecraft versions mixed with loader names, such as {@code ["1.20.1", "Forge"]}.
+         */
+        public List<String> gameVersions;
+        public String fileDate;
+
+        /**
+         * @return the first entry of {@link #gameVersions} that is a Minecraft version
+         */
+        public String gameVersion() {
+            if (gameVersions != null) {
+                for (String version : gameVersions) {
+                    if (version != null && !version.isEmpty() && Character.isDigit(version.charAt(0))) {
+                        return version;
+                    }
+                }
+            }
+            return null;
+        }
 
         public String hash(int algo) {
             if (hashes == null) {

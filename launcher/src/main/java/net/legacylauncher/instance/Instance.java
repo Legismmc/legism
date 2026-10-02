@@ -32,6 +32,7 @@ public class Instance {
     private long lastPlayed;
     private long totalPlayTime;
     private String xmx;
+    private net.legacylauncher.modpack.ModpackOrigin modpack;
 
     /**
      * Set after loading; not part of the descriptor.
@@ -154,6 +155,18 @@ public class Instance {
 
     public void setXmx(String xmx) {
         this.xmx = xmx == null || xmx.trim().isEmpty() ? null : xmx.trim();
+    }
+
+    /**
+     * The modpack this instance was installed from, or {@code null} for one made by hand
+     * or imported from a file.
+     */
+    public net.legacylauncher.modpack.ModpackOrigin getModpack() {
+        return modpack;
+    }
+
+    public void setModpack(net.legacylauncher.modpack.ModpackOrigin modpack) {
+        this.modpack = modpack;
     }
 
     /**
