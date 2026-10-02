@@ -220,6 +220,47 @@ public final class ModrinthStrings {
         ru("modpack.installed", "Установлен как сборка «%0».");
         en("modpack.error.install", "Could not install the modpack.");
         ru("modpack.error.install", "Не удалось установить модпак.");
+        en("modpack.cancelled", "Installation cancelled.");
+        ru("modpack.cancelled", "Установка отменена.");
+
+        en("modpack.progress.title", "Installing modpack");
+        ru("modpack.progress.title", "Установка модпака");
+        en("modpack.progress.cancel", "Cancel");
+        ru("modpack.progress.cancel", "Отмена");
+        en("modpack.progress.cancelling", "Cancelling...");
+        ru("modpack.progress.cancelling", "Отмена...");
+        en("modpack.progress.stage.downloading_pack", "Downloading the modpack...");
+        ru("modpack.progress.stage.downloading_pack", "Скачивание модпака...");
+        en("modpack.progress.stage.resolving", "Getting the list of files...");
+        ru("modpack.progress.stage.resolving", "Получение списка файлов...");
+        en("modpack.progress.stage.downloading_files", "Downloading mods and files");
+        ru("modpack.progress.stage.downloading_files", "Скачивание модов и файлов");
+        en("modpack.progress.stage.extracting", "Unpacking settings and configs...");
+        ru("modpack.progress.stage.extracting", "Распаковка настроек и конфигов...");
+        en("modpack.progress.files", "%0 of %1");
+        ru("modpack.progress.files", "%0 из %1");
+
+        en("modpack.skipped.title", "A few files need downloading by hand");
+        ru("modpack.skipped.title", "Несколько файлов нужно скачать вручную");
+        en("modpack.skipped.intro", "<b>%0</b> is installed, but the authors of %1 of its files only allow "
+                + "downloading them through CurseForge's own app. Click <b>Download</b> next to each one - "
+                + "files saved to your Downloads folder are moved into the instance automatically "
+                + "while this window is open.");
+        ru("modpack.skipped.intro", "Сборка <b>%0</b> установлена, но авторы некоторых файлов (%1) разрешают "
+                + "скачивать их только через приложение CurseForge. Нажмите <b>Скачать</b> у каждого — "
+                + "файлы, сохранённые в папку «Загрузки», сами переносятся в сборку, пока это окно открыто.");
+        en("modpack.skipped.download", "Download");
+        ru("modpack.skipped.download", "Скачать");
+        en("modpack.skipped.waiting", "waiting");
+        ru("modpack.skipped.waiting", "ожидание");
+        en("modpack.skipped.in-place", "in place");
+        ru("modpack.skipped.in-place", "на месте");
+        en("modpack.skipped.progress", "Done: %0 of %1");
+        ru("modpack.skipped.progress", "Готово: %0 из %1");
+        en("modpack.skipped.open-folder", "Open mods folder");
+        ru("modpack.skipped.open-folder", "Открыть папку модов");
+        en("modpack.skipped.close", "Close");
+        ru("modpack.skipped.close", "Закрыть");
 
         en("open-folder.addon", "Open addons folder");
         ru("open-folder.addon", "Открыть папку аддонов");

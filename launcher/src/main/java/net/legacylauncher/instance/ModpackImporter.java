@@ -17,20 +17,32 @@ import net.legacylauncher.util.FileUtil;
 import net.legacylauncher.util.ua.LauncherUserAgent;
 import net.minecraft.launcher.updater.VersionSyncInfo;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hc.client5.http.fluent.Content;
-import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.util.Timeout;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -38,19 +50,158 @@ import java.util.zip.ZipFile;
 /**
  * Turns a modpack file into a new {@link Instance} - either a Modrinth {@code .mrpack}
  * (the ecosystem-standard format: an index of files to download plus an
- * {@code overrides/} folder of local files to copy in), or this launcher's own exported
- * instance zip (a plain copy of the whole instance folder, produced by
- * {@link InstanceManager#export}).
+ * {@code overrides/} folder of local files to copy in), a CurseForge modpack zip, or this
+ * launcher's own exported instance zip (a plain copy of the whole instance folder,
+ * produced by {@link InstanceManager#export}).
  * <p>
  * All methods block on network and disk I/O, so callers must stay off the Swing thread.
  */
 @Slf4j
 public final class ModpackImporter {
+    /**
+     * How many times one file is tried before the whole install gives up on it. A pack
+     * is hundreds of downloads in a row, and on an ordinary home connection one of them
+     * dropping is close to certain - which used to throw the entire pack away.
+     */
+    private static final int ATTEMPTS = 3;
+
+    /**
+     * Without a read timeout a connection that stalls - rather than drops - just sits
+     * there, and the install looks frozen forever instead of retrying.
+     */
+    private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+            .setConnectionRequestTimeout(Timeout.ofSeconds(30))
+            .setResponseTimeout(Timeout.ofSeconds(60))
+            .build();
+
     private ModpackImporter() {
     }
 
+    /**
+     * The phases an install goes through, in order. Not every pack goes through all of
+     * them: a file picked from disk starts at {@link #RESOLVING}, and an exported instance
+     * only ever extracts.
+     */
+    public enum Stage {
+        DOWNLOADING_PACK, RESOLVING, DOWNLOADING_FILES, EXTRACTING
+    }
+
     public interface ProgressListener {
+        /**
+         * One file of the pack is being fetched - {@code current} of {@code total}.
+         */
         void onStep(String message, int current, int total);
+
+        default void onStage(Stage stage) {
+        }
+
+        /**
+         * How far along the file currently downloading is. {@code total} is not positive
+         * when nobody said how big it is.
+         */
+        default void onBytes(long done, long total) {
+        }
+
+        /**
+         * Checked between and during downloads; once this is true the install stops and
+         * removes whatever it had made so far.
+         */
+        default boolean isCancelled() {
+            return false;
+        }
+    }
+
+    /**
+     * Thrown when the listener asked to stop. Still an {@link IOException}, so callers
+     * that only care whether the install worked need no extra catch - but the ones that
+     * show an error should not show one for this.
+     */
+    public static final class CancelledException extends InterruptedIOException {
+        public CancelledException() {
+            super("cancelled");
+        }
+    }
+
+    /**
+     * A file the pack needs that could not be fetched automatically, because its author
+     * does not let CurseForge hand it to anything other than CurseForge's own app. Prism
+     * and the other launchers that respect that do the same thing this one does: install
+     * everything else and send the player to the file's page for the rest.
+     */
+    public static final class SkippedFile {
+        private final String name;
+        private final String fileName;
+        private final String pageUrl;
+        private final String sha1;
+        private final File folder;
+
+        SkippedFile(String name, String fileName, String pageUrl, String sha1, File folder) {
+            this.name = name;
+            this.fileName = fileName;
+            this.pageUrl = pageUrl;
+            this.sha1 = sha1;
+            this.folder = folder;
+        }
+
+        /**
+         * @return the project's name when known, otherwise the file name
+         */
+        public String getName() {
+            return name;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        /**
+         * @return the page to download this exact file from by hand, or {@code null}
+         */
+        public String getPageUrl() {
+            return pageUrl;
+        }
+
+        /**
+         * @return the published SHA-1, or {@code null}; used to check a hand-downloaded copy
+         */
+        public String getSha1() {
+            return sha1;
+        }
+
+        /**
+         * @return the folder inside the instance this file belongs in
+         */
+        public File getFolder() {
+            return folder;
+        }
+
+        /**
+         * @return whether the file is already where it belongs - put there by hand
+         */
+        public boolean isInPlace() {
+            return fileName != null && new File(folder, fileName).isFile();
+        }
+    }
+
+    public static final class Result {
+        private final Instance instance;
+        private final List<SkippedFile> skipped;
+
+        Result(Instance instance, List<SkippedFile> skipped) {
+            this.instance = instance;
+            this.skipped = Collections.unmodifiableList(skipped);
+        }
+
+        public Instance getInstance() {
+            return instance;
+        }
+
+        /**
+         * @return the files still to be put in by hand; empty when the pack is complete
+         */
+        public List<SkippedFile> getSkipped() {
+            return skipped;
+        }
     }
 
     public enum Format {
@@ -81,17 +232,19 @@ public final class ModpackImporter {
     /**
      * Imports whichever kind of pack the file turns out to be.
      *
-     * @throws IOException when the file is not a pack this launcher understands
+     * @throws IOException when the file is not a pack this launcher understands, or the
+     *                     install failed - in which case nothing of it is left behind
      */
-    public static Instance importAny(File file, InstanceManager manager, ProgressListener listener)
+    public static Result importAny(File file, InstanceManager manager, ProgressListener listener)
             throws IOException {
         switch (detectFormat(file)) {
             case MRPACK:
-                return importMrpack(file, manager, listener);
+                return new Result(importMrpack(file, manager, listener), Collections.<SkippedFile>emptyList());
             case CURSEFORGE:
                 return importCurseForge(file, manager, listener);
             case LEGACY_EXPORT:
-                return importLegacyExport(file, manager);
+                stage(listener, Stage.EXTRACTING);
+                return new Result(importLegacyExport(file, manager), Collections.<SkippedFile>emptyList());
             default:
                 throw new IOException("unrecognised modpack format");
         }
@@ -101,14 +254,15 @@ public final class ModpackImporter {
      * Fetches a modpack the user picked out of a library into a scratch file, ready for
      * {@link #importAny}. The caller owns the returned file and should delete it.
      */
-    public static File downloadToTemp(ContentFile file) throws IOException {
+    public static File downloadToTemp(ContentFile file, ProgressListener listener) throws IOException {
         if (StringUtils.isEmpty(file.getUrl())) {
             throw new IOException("no download link for " + file.getFileName()
                     + " - its author opted out of third-party downloads");
         }
+        stage(listener, Stage.DOWNLOADING_PACK);
         File temp = Files.createTempFile("ll-modpack-", ".zip").toFile();
         try {
-            Files.write(temp.toPath(), download(file.getUrl()));
+            fetch(file.getUrl(), temp, file.getSha1(), file.getSize(), listener);
         } catch (IOException e) {
             temp.delete();
             throw e;
@@ -120,6 +274,7 @@ public final class ModpackImporter {
 
     public static Instance importMrpack(File mrpackFile, InstanceManager manager, ProgressListener listener)
             throws IOException {
+        stage(listener, Stage.RESOLVING);
         JsonObject index;
         try (ZipFile zip = new ZipFile(mrpackFile)) {
             ZipEntry entry = zip.getEntry("modrinth.index.json");
@@ -138,21 +293,25 @@ public final class ModpackImporter {
         File gameDir = instance.getGameDir();
 
         try {
-            JsonArray files = index.has("files") ? index.getAsJsonArray("files") : new JsonArray();
-            int total = files.size();
-            int current = 0;
-            for (JsonElement e : files) {
-                current++;
-                JsonObject file = e.getAsJsonObject();
-                if (isUnsupportedForClient(file)) {
-                    continue;
+            JsonArray all = index.has("files") ? index.getAsJsonArray("files") : new JsonArray();
+            List<JsonObject> files = new ArrayList<>();
+            for (JsonElement e : all) {
+                if (!isUnsupportedForClient(e.getAsJsonObject())) {
+                    files.add(e.getAsJsonObject());
                 }
+            }
+
+            stage(listener, Stage.DOWNLOADING_FILES);
+            for (int i = 0; i < files.size(); i++) {
+                JsonObject file = files.get(i);
                 String path = file.get("path").getAsString();
                 if (listener != null) {
-                    listener.onStep(path, current, total);
+                    listener.onStep(path, i + 1, files.size());
                 }
-                downloadFile(file, gameDir);
+                downloadFile(file, gameDir, listener);
             }
+
+            stage(listener, Stage.EXTRACTING);
             try (ZipFile zip = new ZipFile(mrpackFile)) {
                 extractPrefixed(zip, "overrides/", gameDir);
                 extractPrefixed(zip, "client-overrides/", gameDir);
@@ -173,7 +332,7 @@ public final class ModpackImporter {
         return env.has("client") && "unsupported".equals(env.get("client").getAsString());
     }
 
-    private static void downloadFile(JsonObject file, File gameDir) throws IOException {
+    private static void downloadFile(JsonObject file, File gameDir, ProgressListener listener) throws IOException {
         String path = file.get("path").getAsString();
         File destination = new File(gameDir, path).getCanonicalFile();
         if (!destination.toPath().startsWith(gameDir.getCanonicalFile().toPath())) {
@@ -185,17 +344,20 @@ public final class ModpackImporter {
         if (downloads.isEmpty()) {
             throw new IOException("no download URL for " + path);
         }
+        String sha1 = null;
+        if (file.has("hashes") && file.getAsJsonObject("hashes").has("sha1")) {
+            sha1 = file.getAsJsonObject("hashes").get("sha1").getAsString();
+        }
+        long size = file.has("fileSize") ? file.get("fileSize").getAsLong() : -1;
 
         IOException lastError = null;
         for (JsonElement urlElement : downloads) {
             String url = urlElement.getAsString();
             try {
-                byte[] bytes = download(url);
-                verifyHash(path, bytes, file);
-                File temp = new File(destination.getParentFile(), destination.getName() + ".part");
-                Files.write(temp.toPath(), bytes);
-                Files.move(temp.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                fetch(url, destination, sha1, size, listener);
                 return;
+            } catch (CancelledException e) {
+                throw e;
             } catch (IOException e) {
                 lastError = e;
                 log.warn("Could not download {} from {}, trying the next mirror if any", path, url, e);
@@ -204,38 +366,145 @@ public final class ModpackImporter {
         throw lastError != null ? lastError : new IOException("could not download " + path);
     }
 
-    private static byte[] download(String url) throws IOException {
-        Content content = EHttpClient.toContent(
-                Request.get(url).addHeader(HttpHeaders.USER_AGENT, LauncherUserAgent.USER_AGENT));
-        if (content == null) {
-            throw new IOException("no content received for " + url);
+    // ---------------------------------------------------------------- downloading
+
+    /**
+     * Downloads one file to {@code destination}, retrying when the connection lets it down.
+     * The file only appears under its real name once it has fully arrived and matches its
+     * hash, so a failed or cancelled download never leaves a broken file behind.
+     *
+     * @param sha1 the expected SHA-1, or {@code null} to skip the check
+     * @param size the expected size, or anything not positive when unknown; only used to
+     *             show progress when the server does not say
+     */
+    private static void fetch(String url, File destination, String sha1, long size, ProgressListener listener)
+            throws IOException {
+        IOException last = null;
+        for (int attempt = 1; attempt <= ATTEMPTS; attempt++) {
+            checkCancelled(listener);
+            try {
+                fetchOnce(url, destination, sha1, size, listener);
+                return;
+            } catch (CancelledException | PermanentFailure e) {
+                throw e;
+            } catch (IOException e) {
+                last = e;
+                log.warn("Download attempt {} of {} failed for {}: {}", attempt, ATTEMPTS, url, e.toString());
+                if (attempt < ATTEMPTS) {
+                    pause(1000L * attempt, listener);
+                }
+            }
         }
-        return content.asBytes();
+        throw last;
     }
 
-    private static void verifyHash(String path, byte[] bytes, JsonObject file) throws IOException {
-        if (!file.has("hashes")) {
-            return;
-        }
-        JsonObject hashes = file.getAsJsonObject("hashes");
-        String expected = hashes.has("sha1") ? hashes.get("sha1").getAsString() : null;
-        if (StringUtils.isEmpty(expected)) {
-            return;
-        }
-        String actual = sha1(bytes);
-        if (!expected.equalsIgnoreCase(actual)) {
-            throw new IOException(path + " does not match its published SHA-1 hash");
-        }
-    }
+    private static void fetchOnce(String url, File destination, String sha1, long size, ProgressListener listener)
+            throws IOException {
+        FileUtil.createFolder(destination.getParentFile());
+        File partial = new File(destination.getParentFile(), destination.getName() + ".part");
 
-    private static String sha1(byte[] bytes) {
-        MessageDigest digest;
+        HttpGet request = new HttpGet(url);
+        request.setConfig(REQUEST_CONFIG);
+        request.addHeader(HttpHeaders.USER_AGENT, LauncherUserAgent.USER_AGENT);
         try {
-            digest = MessageDigest.getInstance("SHA-1");
+            EHttpClient.getGlobalClient().execute(request, response -> {
+                int code = response.getCode();
+                if (code >= 400) {
+                    // these will not get better by asking again - except a timeout or a
+                    // rate limit, which is exactly what asking again a moment later is for
+                    String message = "the server answered " + code + " for " + url;
+                    if (code < 500 && code != 408 && code != 429) {
+                        throw new PermanentFailure(message);
+                    }
+                    throw new IOException(message);
+                }
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    throw new IOException("no content received for " + url);
+                }
+                long announced = entity.getContentLength();
+                long total = announced > 0 ? announced : size;
+
+                MessageDigest digest = sha1Digest();
+                long done = 0;
+                if (listener != null) {
+                    listener.onBytes(0, total);
+                }
+                try (InputStream in = entity.getContent();
+                     OutputStream out = new FileOutputStream(partial)) {
+                    byte[] buffer = new byte[64 * 1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        checkCancelled(listener);
+                        out.write(buffer, 0, read);
+                        digest.update(buffer, 0, read);
+                        done += read;
+                        if (listener != null) {
+                            listener.onBytes(done, total);
+                        }
+                    }
+                }
+                if (announced > 0 && done != announced) {
+                    throw new IOException("download stopped early: got " + done + " of " + announced + " bytes");
+                }
+                if (StringUtils.isNotEmpty(sha1) && !sha1.equalsIgnoreCase(hex(digest.digest()))) {
+                    throw new IOException(destination.getName() + " does not match its published SHA-1 hash");
+                }
+                return null;
+            });
+            Files.move(partial.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            partial.delete();
+        }
+    }
+
+    /**
+     * A download failure that retrying cannot fix, such as a file that is not there.
+     */
+    private static final class PermanentFailure extends IOException {
+        PermanentFailure(String message) {
+            super(message);
+        }
+    }
+
+    private static void checkCancelled(ProgressListener listener) throws CancelledException {
+        if (listener != null && listener.isCancelled()) {
+            throw new CancelledException();
+        }
+    }
+
+    private static void stage(ProgressListener listener, Stage stage) {
+        if (listener != null) {
+            listener.onStage(stage);
+        }
+    }
+
+    /**
+     * Waits before a retry, but notices a cancel within a fraction of a second rather
+     * than making the user sit out the whole delay.
+     */
+    private static void pause(long millis, ProgressListener listener) throws CancelledException {
+        long until = System.currentTimeMillis() + millis;
+        while (System.currentTimeMillis() < until) {
+            checkCancelled(listener);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new CancelledException();
+            }
+        }
+    }
+
+    private static MessageDigest sha1Digest() {
+        try {
+            return MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-1 is required by the Java platform", e);
         }
-        byte[] hash = digest.digest(bytes);
+    }
+
+    private static String hex(byte[] hash) {
         StringBuilder result = new StringBuilder(hash.length * 2);
         for (byte b : hash) {
             String hex = Integer.toHexString(b & 0xff);
@@ -245,6 +514,21 @@ public final class ModpackImporter {
             result.append(hex);
         }
         return result.toString();
+    }
+
+    /**
+     * @return the SHA-1 of a file on disk, for checking a copy the user fetched by hand
+     */
+    public static String sha1(File file) throws IOException {
+        MessageDigest digest = sha1Digest();
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] buffer = new byte[64 * 1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        return hex(digest.digest());
     }
 
     private static void extractPrefixed(ZipFile zip, String prefix, File targetDir) throws IOException {
@@ -324,13 +608,19 @@ public final class ModpackImporter {
      * <p>
      * Unlike a {@code .mrpack}, the manifest carries no download links of its own, so each
      * file has to be resolved through CurseForge's API first - which needs an API key.
+     * <p>
+     * A file whose author does not allow third-party downloads does not stop the install:
+     * everything else goes in, and the file comes back in {@link Result#getSkipped()} for
+     * the user to fetch by hand. Throwing the whole pack away over one such mod - which
+     * is what used to happen - left the user with nothing at all, and nothing to act on.
      */
-    public static Instance importCurseForge(File zipFile, InstanceManager manager, ProgressListener listener)
+    public static Result importCurseForge(File zipFile, InstanceManager manager, ProgressListener listener)
             throws IOException {
         String apiKey = CurseForgeProvider.getApiKey();
         if (StringUtils.isEmpty(apiKey)) {
             throw new IOException("a CurseForge API key is needed to import a CurseForge modpack");
         }
+        stage(listener, Stage.RESOLVING);
 
         JsonObject manifest;
         try (ZipFile zip = new ZipFile(zipFile)) {
@@ -350,42 +640,73 @@ public final class ModpackImporter {
         String name = manifest.has("name") ? manifest.get("name").getAsString() : zipFile.getName();
         String versionId = resolveVersionId(minecraft.get("version").getAsString(), curseForgeLoader(minecraft));
 
+        // project id per file id, in the manifest's order
+        Map<Long, Long> projectOf = new java.util.LinkedHashMap<>();
+        JsonArray entries = manifest.has("files") ? manifest.getAsJsonArray("files") : new JsonArray();
+        for (JsonElement e : entries) {
+            JsonObject entry = e.getAsJsonObject();
+            projectOf.put(entry.get("fileID").getAsLong(), entry.get("projectID").getAsLong());
+        }
+
+        // Both lookups happen before anything is created, so a CurseForge that cannot be
+        // reached leaves no empty instance behind.
+        Map<Long, CurseForgeApi.ModFile> files = new HashMap<>();
+        for (CurseForgeApi.ModFile file : CurseForgeApi.getFiles(apiKey, new ArrayList<>(projectOf.keySet()))) {
+            files.put(file.id, file);
+        }
+        Map<Long, CurseForgeApi.Mod> projects = new HashMap<>();
+        try {
+            for (CurseForgeApi.Mod mod : CurseForgeApi.getMods(apiKey,
+                    new ArrayList<>(new LinkedHashSet<>(projectOf.values())))) {
+                projects.put(mod.id, mod);
+            }
+        } catch (IOException e) {
+            // only needed for nicer names and for sorting resource packs out of mods/ -
+            // worth a warning, not worth failing the install over
+            log.warn("Could not look up the projects of {}; everything goes into mods/", name, e);
+        }
+
         Instance instance = manager.create(name, versionId);
         File gameDir = instance.getGameDir();
+        List<SkippedFile> skipped = new ArrayList<>();
 
         try {
-            JsonArray files = manifest.has("files") ? manifest.getAsJsonArray("files") : new JsonArray();
-            File modsDir = new File(gameDir, ContentType.MOD.getFolder());
-            int total = files.size();
-            int current = 0;
-            for (JsonElement e : files) {
-                current++;
-                JsonObject entry = e.getAsJsonObject();
-                long projectId = entry.get("projectID").getAsLong();
-                long fileId = entry.get("fileID").getAsLong();
-
-                CurseForgeApi.ModFile file = CurseForgeApi.getFile(apiKey, projectId, fileId).data;
-                if (file == null) {
-                    throw new IOException("CurseForge does not know file " + fileId + " of project " + projectId);
+            List<CurseForgeApi.ModFile> downloadable = new ArrayList<>();
+            for (Entry<Long, Long> entry : projectOf.entrySet()) {
+                long fileId = entry.getKey();
+                long projectId = entry.getValue();
+                CurseForgeApi.ModFile file = files.get(fileId);
+                CurseForgeApi.Mod project = projects.get(projectId);
+                if (file != null && StringUtils.isNotEmpty(file.downloadUrl)) {
+                    downloadable.add(file);
+                    continue;
                 }
-                if (StringUtils.isEmpty(file.downloadUrl)) {
-                    // the author opted out of third-party downloads - there is nothing the
-                    // launcher can do but name the file so it can be fetched by hand
-                    throw new IOException("CurseForge will not serve \"" + file.fileName
-                            + "\" to third-party apps. Download it by hand into " + modsDir);
-                }
-                if (listener != null) {
-                    listener.onStep(file.fileName, current, total);
-                }
-
-                byte[] bytes = download(file.downloadUrl);
-                String expected = file.hash(1); // CurseForge algo 1 = sha1
-                if (StringUtils.isNotEmpty(expected) && !expected.equalsIgnoreCase(sha1(bytes))) {
-                    throw new IOException(file.fileName + " does not match its published SHA-1 hash");
-                }
-                writeInto(modsDir, file.fileName, bytes);
+                String fileName = file != null ? file.fileName : null;
+                String projectName = project != null && StringUtils.isNotEmpty(project.name)
+                        ? project.name
+                        : fileName != null ? fileName : "CurseForge #" + projectId;
+                String page = project != null && project.links != null
+                        && StringUtils.isNotEmpty(project.links.websiteUrl)
+                        ? StringUtils.removeEnd(project.links.websiteUrl, "/") + "/files/" + fileId
+                        : null;
+                skipped.add(new SkippedFile(projectName, fileName, page,
+                        file != null ? file.hash(1) : null, folderFor(gameDir, project)));
+                log.info("Skipping {} ({}): CurseForge will not serve it to third-party apps", projectName, fileName);
             }
 
+            stage(listener, Stage.DOWNLOADING_FILES);
+            for (int i = 0; i < downloadable.size(); i++) {
+                CurseForgeApi.ModFile file = downloadable.get(i);
+                if (listener != null) {
+                    listener.onStep(file.fileName, i + 1, downloadable.size());
+                }
+                File folder = folderFor(gameDir, projects.get(file.modId));
+                fetch(file.downloadUrl, target(folder, file.fileName),
+                        file.hash(1), // CurseForge algo 1 = sha1
+                        file.fileLength, listener);
+            }
+
+            stage(listener, Stage.EXTRACTING);
             String overrides = manifest.has("overrides") ? manifest.get("overrides").getAsString() : "overrides";
             try (ZipFile zip = new ZipFile(zipFile)) {
                 extractPrefixed(zip, overrides.endsWith("/") ? overrides : overrides + "/", gameDir);
@@ -395,7 +716,23 @@ public final class ModpackImporter {
             FileUtil.deleteDirectory(instance.getFolder());
             throw e;
         }
-        return instance;
+        return new Result(instance, skipped);
+    }
+
+    /**
+     * Where a pack's file goes. Packs list resource packs and shaders right alongside the
+     * mods, and putting everything into mods/ quietly left those switched off.
+     */
+    private static File folderFor(File gameDir, CurseForgeApi.Mod project) {
+        ContentType type = ContentType.MOD;
+        if (project != null) {
+            if (project.classId == CurseForgeApi.classIdOf(ContentType.RESOURCE_PACK)) {
+                type = ContentType.RESOURCE_PACK;
+            } else if (project.classId == CurseForgeApi.classIdOf(ContentType.SHADER)) {
+                type = ContentType.SHADER;
+            }
+        }
+        return new File(gameDir, type.getFolder());
     }
 
     /**
@@ -427,10 +764,9 @@ public final class ModpackImporter {
     }
 
     /**
-     * Writes one downloaded file into a folder, refusing a name that would escape it.
+     * Where one downloaded file goes inside a folder, refusing a name that would escape it.
      */
-    private static void writeInto(File dir, String fileName, byte[] bytes) throws IOException {
-        FileUtil.createFolder(dir);
+    public static File target(File dir, String fileName) throws IOException {
         String name = fileName == null ? "" : fileName.replace('\\', '/');
         int slash = name.lastIndexOf('/');
         if (slash >= 0) {
@@ -443,13 +779,7 @@ public final class ModpackImporter {
         if (!destination.toPath().startsWith(dir.getCanonicalFile().toPath())) {
             throw new IOException("refusing to write outside the instance folder: " + fileName);
         }
-        File temp = new File(destination.getParentFile(), destination.getName() + ".part");
-        try {
-            Files.write(temp.toPath(), bytes);
-            Files.move(temp.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } finally {
-            temp.delete();
-        }
+        return destination;
     }
 
     // ---------------------------------------------------------------- legacy export

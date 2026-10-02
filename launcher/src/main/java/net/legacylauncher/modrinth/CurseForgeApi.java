@@ -2,6 +2,7 @@ package net.legacylauncher.modrinth;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,13 +43,19 @@ public final class CurseForgeApi {
 
     private static final Gson GSON = new GsonBuilder().create();
 
+    /**
+     * How many ids go into one batch request. CurseForge does not publish a limit; this
+     * stays well clear of whatever it is while still covering most packs in one call.
+     */
+    private static final int BATCH_SIZE = 100;
+
     private CurseForgeApi() {
     }
 
     /**
      * The "class" ids CurseForge files content under.
      */
-    static int classIdOf(ContentType type) {
+    public static int classIdOf(ContentType type) {
         switch (type) {
             case RESOURCE_PACK:
                 return 12;
@@ -137,6 +145,44 @@ public final class CurseForgeApi {
     }
 
     /**
+     * Resolves many files in one go. A modpack names every mod by file id, and asking for
+     * them one request at a time is what made big packs fail at random: hundreds of calls
+     * in a row is where a single dropped connection or a rate limit eventually lands.
+     * <p>
+     * Files CurseForge no longer has are simply missing from the answer, not an error.
+     */
+    public static List<ModFile> getFiles(String apiKey, List<Long> fileIds) throws IOException {
+        List<ModFile> result = new ArrayList<>();
+        for (int from = 0; from < fileIds.size(); from += BATCH_SIZE) {
+            List<Long> chunk = fileIds.subList(from, Math.min(fileIds.size(), from + BATCH_SIZE));
+            JsonObject body = new JsonObject();
+            body.add("fileIds", GSON.toJsonTree(chunk));
+            FilesResponse response = parse(post(apiKey, BASE_URL + "/mods/files", body.toString()),
+                    FilesResponse.class, "file list");
+            result.addAll(response.files());
+        }
+        return result;
+    }
+
+    /**
+     * Looks up many projects in one go - used to tell a modpack's mods from its resource
+     * packs and shaders, and for the pages of the mods that cannot be downloaded
+     * automatically, so the user can be pointed at them.
+     */
+    public static List<Mod> getMods(String apiKey, List<Long> modIds) throws IOException {
+        List<Mod> result = new ArrayList<>();
+        for (int from = 0; from < modIds.size(); from += BATCH_SIZE) {
+            List<Long> chunk = modIds.subList(from, Math.min(modIds.size(), from + BATCH_SIZE));
+            JsonObject body = new JsonObject();
+            body.add("modIds", GSON.toJsonTree(chunk));
+            SearchResponse response = parse(post(apiKey, BASE_URL + "/mods", body.toString()),
+                    SearchResponse.class, "project list");
+            result.addAll(response.mods());
+        }
+        return result;
+    }
+
+    /**
      * @return the Minecraft versions CurseForge knows about, newest first
      */
     public static VersionTypesResponse listGameVersions(String apiKey) throws IOException {
@@ -156,6 +202,29 @@ public final class CurseForgeApi {
                             .addHeader(HttpHeaders.ACCEPT, "application/json")
                             .addHeader(HttpHeaders.USER_AGENT, LauncherUserAgent.USER_AGENT)
                             .addHeader("x-api-key", apiKey)
+            );
+        } catch (IOException e) {
+            throw new ModrinthException("could not reach CurseForge: " + e.getMessage(), e);
+        }
+        if (body == null) {
+            throw new ModrinthException("empty response from " + url);
+        }
+        return body;
+    }
+
+    private static String post(String apiKey, String url, String json) throws IOException {
+        if (StringUtils.isEmpty(apiKey)) {
+            throw new ModrinthException("no CurseForge API key is set");
+        }
+        log.debug("POST {}", url);
+        final String body;
+        try {
+            body = EHttpClient.toString(
+                    Request.post(url)
+                            .addHeader(HttpHeaders.ACCEPT, "application/json")
+                            .addHeader(HttpHeaders.USER_AGENT, LauncherUserAgent.USER_AGENT)
+                            .addHeader("x-api-key", apiKey)
+                            .bodyString(json, org.apache.hc.core5.http.ContentType.APPLICATION_JSON)
             );
         } catch (IOException e) {
             throw new ModrinthException("could not reach CurseForge: " + e.getMessage(), e);
@@ -204,6 +273,10 @@ public final class CurseForgeApi {
         public String name;
         public String summary;
         public String slug;
+        /**
+         * What kind of content this is - see {@link #classIdOf}.
+         */
+        public int classId;
         @SerializedName("downloadCount")
         public double downloadCount;
         public Logo logo;

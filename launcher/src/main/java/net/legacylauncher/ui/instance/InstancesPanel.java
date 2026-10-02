@@ -899,26 +899,31 @@ public class InstancesPanel extends BackdropPanel implements LocalizableComponen
             return;
         }
 
-        statusLeft.setText(ModrinthStrings.get("loading"));
+        net.legacylauncher.ui.modrinth.ModpackInstallDialog progress =
+                new net.legacylauncher.ui.modrinth.ModpackInstallDialog(this, chosen.getName());
         AsyncThread.execute(() -> {
             try {
-                Instance imported = ModpackImporter.importAny(chosen, manager(),
-                        (message, current, total) -> SwingUtil.later(() ->
-                                statusLeft.setText(message + " (" + current + "/" + total + ")")));
+                ModpackImporter.Result result = ModpackImporter.importAny(chosen, manager(), progress);
+                progress.done();
                 SwingUtil.later(() -> {
-                    statusLeft.setText("");
                     refresh();
-                    select(imported);
+                    select(result.getInstance());
+                    net.legacylauncher.ui.modrinth.ModpackSkippedDialog.showIfNeeded(this, result);
                 });
-            } catch (IOException e) {
+            } catch (ModpackImporter.CancelledException e) {
+                progress.done();
+                SwingUtil.later(this::refresh);
+            } catch (IOException | RuntimeException e) {
                 log.warn("Could not import {}", chosen, e);
+                progress.done();
                 SwingUtil.later(() -> {
-                    statusLeft.setText("");
+                    refresh();
                     Alert.showError(ModrinthStrings.get("error.title"),
                             ModrinthStrings.get("instances.error.import") + "\n" + e.getMessage());
                 });
             }
         });
+        progress.showDialog();
     }
 
     /**

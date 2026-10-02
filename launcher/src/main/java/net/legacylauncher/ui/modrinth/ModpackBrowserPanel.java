@@ -264,13 +264,16 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
         final ContentProvider currentProvider = provider;
         final String gameVersion = selectedGameVersion();
         cell.setBusy(ModrinthStrings.get("installing"));
+        ModpackInstallDialog progress = new ModpackInstallDialog(this, project.getTitle());
 
         AsyncThread.execute(() -> {
             File pack = null;
             try {
+                progress.onStage(ModpackImporter.Stage.RESOLVING);
                 List<ContentFile> plan = currentProvider.plan(ContentType.MODPACK, project.getId(),
                         gameVersion, null, false);
                 if (plan.isEmpty()) {
+                    progress.done();
                     SwingUtil.later(() -> {
                         cell.setIdle();
                         setStatus(ModrinthStrings.get("modpack.no-version"));
@@ -278,23 +281,29 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
                     return;
                 }
 
-                SwingUtil.later(() -> cell.setBusy(ModrinthStrings.get("modpack.downloading")));
-                pack = ModpackImporter.downloadToTemp(plan.get(0));
+                pack = ModpackImporter.downloadToTemp(plan.get(0), progress);
+                final ModpackImporter.Result result = ModpackImporter.importAny(pack,
+                        LegacyLauncher.getInstance().getInstanceManager(), progress);
+                final Instance created = result.getInstance();
 
-                final Instance created = ModpackImporter.importAny(pack,
-                        LegacyLauncher.getInstance().getInstanceManager(),
-                        (message, current, total) -> SwingUtil.later(() ->
-                                cell.setBusy(ModrinthStrings.get("installing") + " " + current + "/" + total)));
-
+                progress.done();
                 SwingUtil.later(() -> {
                     cell.setInstalled();
                     setStatus(ModrinthStrings.get("modpack.installed", created.getName()));
                     if (onInstalled != null) {
                         onInstalled.run();
                     }
+                    ModpackSkippedDialog.showIfNeeded(this, result);
                 });
-            } catch (IOException e) {
+            } catch (ModpackImporter.CancelledException e) {
+                progress.done();
+                SwingUtil.later(() -> {
+                    cell.setIdle();
+                    setStatus(ModrinthStrings.get("modpack.cancelled"));
+                });
+            } catch (IOException | RuntimeException e) {
                 log.warn("Could not install the modpack {}", project, e);
+                progress.done();
                 SwingUtil.later(() -> {
                     cell.setIdle();
                     Alert.showError(ModrinthStrings.get("error.title"),
@@ -306,6 +315,7 @@ public class ModpackBrowserPanel extends JPanel implements ContentCellHost {
                 }
             }
         });
+        progress.showDialog();
     }
 
     /**
