@@ -62,11 +62,11 @@ A fork of [Legacy Launcher](https://llaun.ch/) — **not** endorsed by or affili
 | Ely.by accounts                                | ✅                | ✅              | ❌             |
 | No ads or telemetry                            | ✅                | ❌              | ✅             |
 | Separate instances                             | ✅                | ❌              | ✅             |
-| Built-in mod catalog                           | ✅                | ✅              | ✅             |
+| Built-in Modrinth & CurseForge catalog         | ✅                | ❌              | ✅             |
 | FTB, Technic and ATLauncher modpacks           | ✅                | ❌              | ✅             |
 | Modpack updates with changelogs                | ✅                | ❌              | ✅             |
 | Local server hosting                           | ✅                | ✅              | ❌             |
-| Discord Rich Presence                          | ✅                | ✅              | ❌             |
+| Discord Rich Presence                          | ✅                | ❌              | ❌             |
 | Based on                                       | Legacy Launcher   | —               | PolyMC         |
 
 ## Installation
