@@ -94,7 +94,7 @@
 Нашли ошибку или хотите предложить идею? Создайте issue в [GitHub Issues](https://github.com/Legismmc/legism/issues). Pull request’ы приветствуются.
 
 [![Telegram](https://img.shields.io/badge/Telegram-legismmc-8a8a8a?style=for-the-badge&logo=telegram)](https://t.me/legismmc)
-[![Discord](https://img.shields.io/badge/Discord-вступить-8a8a8a?style=for-the-badge&logo=discord)](https://discord.gg/csBAgdRuv)
+[![Discord](https://img.shields.io/badge/Discord-вступить-8a8a8a?style=for-the-badge&logo=discord)](https://discord.gg/YDcqU3WwM3)
 
 ## Сборка из исходников
 
@@ -132,4 +132,4 @@ SHORT_BRAND=tgsko PORTABLE_ENABLED=true INSTALLER_ENABLED=true ./gradlew :packag
 
 ## Лицензия
 
-См. [LICENSE.txt](LICENSE.txt). Исходный проект сохраняет за собой все права; этот форк наследует эти условия и ничего не перелицензирует.
+[![Лицензия](https://img.shields.io/badge/license-GPL--2.0-8a8a8a?style=for-the-badge)](LICENSE.txt)

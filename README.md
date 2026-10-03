@@ -94,7 +94,7 @@ Every commit to `main` is built by [GitHub Actions](https://github.com/Legismmc/
 Found a bug or want a feature? Open an issue in [GitHub Issues](https://github.com/Legismmc/legism/issues). Pull requests are welcome.
 
 [![Telegram](https://img.shields.io/badge/Telegram-legismmc-8a8a8a?style=for-the-badge&logo=telegram)](https://t.me/legismmc)
-[![Discord](https://img.shields.io/badge/Discord-join-8a8a8a?style=for-the-badge&logo=discord)](https://discord.gg/csBAgdRuv)
+[![Discord](https://img.shields.io/badge/Discord-join-8a8a8a?style=for-the-badge&logo=discord)](https://discord.gg/YDcqU3WwM3)
 
 ## Building from source
 
@@ -132,4 +132,4 @@ The product name, brand and support email come from `buildSrc/src/main/kotlin/ne
 
 ## License
 
-See [LICENSE.txt](LICENSE.txt). The upstream project reserves all rights; this fork inherits those terms and does not relicense anything.
+[![License](https://img.shields.io/badge/license-GPL--2.0-8a8a8a?style=for-the-badge)](LICENSE.txt)
